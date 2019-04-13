@@ -1,0 +1,10 @@
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\bin\Debug\netcoreapp2.0\SNP_First_Test.deps.json
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\bin\Debug\netcoreapp2.0\SNP_First_Test.runtimeconfig.json
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\bin\Debug\netcoreapp2.0\SNP_First_Test.runtimeconfig.dev.json
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\bin\Debug\netcoreapp2.0\SNP_First_Test.dll
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\bin\Debug\netcoreapp2.0\SNP_First_Test.pdb
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\obj\Debug\netcoreapp2.0\SNP_First_Test.csproj.CoreCompileInputs.cache
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\obj\Debug\netcoreapp2.0\SNP_First_Test.AssemblyInfoInputs.cache
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\obj\Debug\netcoreapp2.0\SNP_First_Test.AssemblyInfo.cs
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\obj\Debug\netcoreapp2.0\SNP_First_Test.dll
+E:\Projects\University\snp-project\SNP_First_Test\SNP_First_Test\obj\Debug\netcoreapp2.0\SNP_First_Test.pdb

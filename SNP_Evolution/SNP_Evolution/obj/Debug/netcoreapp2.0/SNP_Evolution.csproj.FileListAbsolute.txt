@@ -1,0 +1,11 @@
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\bin\Debug\netcoreapp2.0\SNP_Evolution.deps.json
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\bin\Debug\netcoreapp2.0\SNP_Evolution.runtimeconfig.json
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\bin\Debug\netcoreapp2.0\SNP_Evolution.runtimeconfig.dev.json
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\bin\Debug\netcoreapp2.0\SNP_Evolution.dll
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\bin\Debug\netcoreapp2.0\SNP_Evolution.pdb
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.csprojResolveAssemblyReference.cache
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.csproj.CoreCompileInputs.cache
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.AssemblyInfoInputs.cache
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.AssemblyInfo.cs
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.dll
+E:\Projects\University\SNP_Evolution\SNP_Evolution\SNP_Evolution\obj\Debug\netcoreapp2.0\SNP_Evolution.pdb

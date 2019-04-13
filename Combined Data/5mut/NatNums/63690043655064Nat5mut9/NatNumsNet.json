@@ -1,0 +1,97 @@
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa?",
+          "Delay": 0,
+          "Fire": true
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": false
+        }
+      ],
+      "SpikeCount": "aa",
+      "Connections": [
+        2,
+        3,
+        4
+      ],
+      "ActiveDelay": 0,
+      "PersistedState": false,
+      "IsOutput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true
+        },
+        {
+          "RuleExpression": "aa",
+          "Delay": 1,
+          "Fire": false
+        }
+      ],
+      "SpikeCount": "aa",
+      "Connections": [
+        1,
+        3,
+        4
+      ],
+      "ActiveDelay": 0,
+      "PersistedState": false,
+      "IsOutput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 1,
+          "Fire": true
+        }
+      ],
+      "SpikeCount": "aa",
+      "Connections": [
+        1,
+        2,
+        4
+      ],
+      "ActiveDelay": 0,
+      "PersistedState": false,
+      "IsOutput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true
+        },
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": false
+        }
+      ],
+      "SpikeCount": "aa",
+      "Connections": [],
+      "ActiveDelay": 0,
+      "PersistedState": false,
+      "IsOutput": true
+    }
+  ],
+  "OutputSet": [],
+  "CurrentOutput": 0,
+  "IsClear": false,
+  "GlobalTimer": 0,
+  "IsEngaged": false
+}
