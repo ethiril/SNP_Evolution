@@ -4,7 +4,7 @@ private static float FitnessFunction(int index, Func<List<int>, List<int>, float
     List<int> output = SNPRun(dna.Genes);
     float fitness = fitnessAlgorithm(output, expectedSet);
 
-    if (fitness >= 0.985 && fitness <= 1)
+    if (fitness >= 0.985f && fitness <= 1f)
     {
         Console.WriteLine("Testing the best fitness for repeated success.");
         if (TestBestNetwork(ga.BestGenes, ga.BestFitness))
@@ -27,10 +27,10 @@ private static float CalculateF1Score(List<int> output, List<int> expectedSet)
     int truePositives = expectedSet.Intersect(output).Count();
     int falsePositives = output.Count - truePositives;
 
-    float sensitivity = truePositives / (float)expectedSet.Count;
-    float precision = truePositives / (truePositives + falsePositives);
+    float sensitivity = (float)truePositives / expectedSet.Count;
+    float precision = (float)truePositives / (truePositives + falsePositives);
 
-    return 2 * ((precision * sensitivity) / (precision + sensitivity));
+    return 2f * ((precision * sensitivity) / (precision + sensitivity));
 }
 
 private static float CalculateJaccardIndex(List<int> output, List<int> expectedSet)
@@ -54,6 +54,8 @@ private static float CalculateMatthewsCorrelationCoefficient(List<int> output, L
     int falsePositives = output.Count - truePositives;
     int falseNegatives = expectedSet.Count - truePositives;
 
-    return (truePositives * truePositives - falsePositives * falseNegatives) /
-        (float)(Math.Sqrt((truePositives + falsePositives) * (truePositives + falseNegatives) * (falsePositives + truePositives) * (falsePositives + falseNegatives)));
+    float numerator = (truePositives * truePositives) - (falsePositives * falseNegatives);
+    float denominator = (float)Math.Sqrt((truePositives + falsePositives) * (truePositives + falseNegatives) * (falsePositives + truePositives) * (falsePositives + falseNegatives));
+
+    return numerator / denominator;
 }
