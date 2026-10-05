@@ -8,34 +8,68 @@ namespace SnpEvolution.Cli
     internal static class ConsoleUi
     {
         private const string Indent = "    ";
+        private const string MenuKeys = " [Up/Down] move   [Enter] select   [1-9] pick   [Esc] back";
 
-        // Returns null when the user presses ESC.
-        public static int? Choose(Settings settings, string message, IReadOnlyList<string> options)
+        // Returns null when the user goes back with ESC, Backspace or the left arrow. Options are numbered, and a
+        // number key picks its option at once; a letter key moves to the next option starting with it.
+        public static int? Choose(Settings settings, string title, IReadOnlyList<string> options, int initial = 0, bool splash = false)
         {
-            int boxWidth = options.Max(option => option.Length) + 4;
-            int selection = 0;
+            int boxWidth = options.Max(option => option.Length) + 8;
+            int selection = Math.Clamp(initial, 0, options.Count - 1);
             Console.CursorVisible = false;
             try
             {
                 while (true)
                 {
                     Console.Clear();
-                    PrintSplash();
-                    PrintConfiguration(settings);
-                    Console.WriteLine("  " + message);
+                    if (splash)
+                    {
+                        PrintSplash();
+                    }
+                    else
+                    {
+                        PrintHeader();
+                    }
+                    PrintStatus(settings);
+                    if (title.Length > 0)
+                    {
+                        WriteLineColoured(ConsoleColor.Yellow, " " + title);
+                    }
                     PrintOptions(options, selection, boxWidth);
-                    switch (Console.ReadKey(true).Key)
+                    WriteLineColoured(ConsoleColor.DarkGray, MenuKeys);
+                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
-                            selection = Math.Max(selection - 1, 0);
+                            selection = (selection + options.Count - 1) % options.Count;
                             break;
                         case ConsoleKey.DownArrow:
-                            selection = Math.Min(selection + 1, options.Count - 1);
+                            selection = (selection + 1) % options.Count;
+                            break;
+                        case ConsoleKey.Home:
+                            selection = 0;
+                            break;
+                        case ConsoleKey.End:
+                            selection = options.Count - 1;
                             break;
                         case ConsoleKey.Escape:
+                        case ConsoleKey.Backspace:
+                        case ConsoleKey.LeftArrow:
                             return null;
                         case ConsoleKey.Enter:
+                        case ConsoleKey.RightArrow:
                             return selection;
+                        default:
+                            int picked = key.KeyChar - '1';
+                            if (picked >= 0 && picked < Math.Min(9, options.Count))
+                            {
+                                return picked;
+                            }
+                            if (char.IsLetter(key.KeyChar))
+                            {
+                                selection = NextStartingWith(options, selection, key.KeyChar);
+                            }
+                            break;
                     }
                 }
             }
@@ -45,21 +79,36 @@ namespace SnpEvolution.Cli
             }
         }
 
-        // Re-prompts until tryApply accepts the input, or the user presses ESC.
-        public static void PromptUntilAccepted(string request, string invalidMessage, Func<string, bool> tryApply)
+        public static bool Confirm(Settings settings, string question) => Choose(settings, question, new[] { "Yes", "No" }) == 0;
+
+        // A menu row with its current value lined up after it.
+        public static string Row(string label, object value) => label.PadRight(28, ' ') + value;
+
+        // Re-prompts until tryApply accepts the input, or the user presses ESC. The notes show above the prompt.
+        public static void PromptUntilAccepted(string request, string invalidMessage, Func<string, bool> tryApply, params string[] notes)
         {
             while (true)
             {
                 Console.Clear();
-                PrintSplash();
-                Console.WriteLine(request + ", or press ESC to return to the last menu: ");
+                PrintHeader();
+                foreach (string note in notes)
+                {
+                    WriteLineColoured(ConsoleColor.DarkGray, " " + note);
+                }
+                if (notes.Length > 0)
+                {
+                    Console.WriteLine();
+                }
+                Console.WriteLine(" " + request + " (ESC to go back):");
+                Console.Write(" > ");
                 string? input = ReadLineWithCancel();
                 if (input == null || tryApply(input))
                 {
                     return;
                 }
                 Console.WriteLine();
-                WaitForEnter(invalidMessage + " Press enter to try again.");
+                WriteLineColoured(ConsoleColor.Red, " " + invalidMessage);
+                WaitForEnter(" Press enter to try again.");
             }
         }
 
@@ -97,6 +146,28 @@ namespace SnpEvolution.Cli
             Console.ReadLine();
         }
 
+        // True on Enter, false on ESC.
+        public static bool WaitForEnterOrEscape(string message)
+        {
+            Console.WriteLine(message);
+            while (true)
+            {
+                switch (Console.ReadKey(true).Key)
+                {
+                    case ConsoleKey.Enter:
+                        return true;
+                    case ConsoleKey.Escape:
+                        return false;
+                }
+            }
+        }
+
+        public static void PrintHeader()
+        {
+            WriteLineColoured(ConsoleColor.Cyan, " SN P Systems Evolved");
+            Console.WriteLine();
+        }
+
         public static void PrintSplash()
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -116,9 +187,8 @@ namespace SnpEvolution.Cli
             Console.Write(".|___/ \n");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(" |   __| | | . | | | | -_| . |");
-            Console.WriteLine(" |_____|\\_/|___|_|\\_/|___|___|\n\n");
+            Console.WriteLine(" |_____|\\_/|___|_|\\_/|___|___|\n");
             Console.ResetColor();
-            Console.WriteLine(" Please select an option from the menu below using your arrow and enter keys:\n");
         }
 
         public static void WriteColoured(ConsoleColor colour, object value)
@@ -128,28 +198,28 @@ namespace SnpEvolution.Cli
             Console.ResetColor();
         }
 
-        private static void PrintConfiguration(Settings settings)
+        public static void WriteLineColoured(ConsoleColor colour, object value)
         {
-            Console.WriteLine(" Current Configuration:");
-            Console.Write(" Enabled Experimental Rules : ");
-            WriteColoured(settings.ExperimentalRules ? ConsoleColor.Green : ConsoleColor.Red, settings.ExperimentalRules);
-            Console.Write("; Max Steps per network: ");
-            WriteColoured(ConsoleColor.Cyan, settings.MaxSteps);
-            Console.Write("; Step-Through amount per network: ");
-            WriteColoured(ConsoleColor.Cyan, settings.Repetitions);
-            Console.Write(";\n Genetic Algorithm Population Size: ");
-            WriteColoured(ConsoleColor.Cyan, settings.PopulationSize);
-            Console.Write("; Mutation Rate: ");
-            WriteColoured(ConsoleColor.Cyan, settings.MutationRate);
-            Console.Write("; Maximum Number of Generations: ");
-            WriteColoured(ConsoleColor.Cyan, settings.MaxGenerations);
-            Console.Write(";\n Engine: ");
-            WriteColoured(ConsoleColor.Cyan, settings.Engine.Name);
-            Console.Write("; Fitness Function: ");
-            WriteColoured(ConsoleColor.Cyan, settings.FitnessFunction.Name);
-            Console.Write("; Genetic Algorithm: ");
-            WriteColoured(ConsoleColor.Cyan, settings.Algorithm.Name);
-            Console.Write(";\n Expected Set: {" + string.Join("\t", settings.ExpectedSet) + "}\n\n");
+            WriteColoured(colour, value);
+            Console.WriteLine();
+        }
+
+        // What an evolution run would do with the current settings, in three lines.
+        private static void PrintStatus(Settings settings)
+        {
+            string task = settings.Task == Catalog.TargetTask ? $"{settings.Target.Kind} target {settings.Target}" : settings.Task.Name;
+            StatusLine("Task", task);
+            StatusLine("Search", $"{settings.Algorithm.Name} | population {settings.PopulationSize} | {settings.MaxGenerations} generations | " +
+                $"mutation {settings.MutationRate} | up to {settings.MaxNeurons} neurons | experimental rules {(settings.ExperimentalRules ? "on" : "off")}");
+            StatusLine("Simulation", $"{settings.Engine.Name} | {settings.MaxSteps} steps x {settings.Repetitions} runs | " +
+                $"{settings.RuleForm} rules | {settings.OutputTiming} timing");
+            Console.WriteLine();
+        }
+
+        private static void StatusLine(string label, string value)
+        {
+            WriteColoured(ConsoleColor.DarkGray, " " + label.PadRight(11));
+            WriteLineColoured(ConsoleColor.Cyan, value);
         }
 
         private static void PrintOptions(IReadOnlyList<string> options, int selection, int boxWidth)
@@ -162,11 +232,25 @@ namespace SnpEvolution.Cli
                 {
                     Console.BackgroundColor = ConsoleColor.DarkCyan;
                 }
-                Console.Write("| " + options[index].PadRight(boxWidth - 4) + " |");
+                string number = index < 9 ? $"{index + 1}." : "  ";
+                Console.Write("| " + $"{number,-3} {options[index]}".PadRight(boxWidth - 4) + " |");
                 Console.ResetColor();
                 Console.WriteLine();
             }
             Console.WriteLine(Indent + new string('-', boxWidth));
+        }
+
+        private static int NextStartingWith(IReadOnlyList<string> options, int selection, char letter)
+        {
+            for (int offset = 1; offset <= options.Count; offset++)
+            {
+                int index = (selection + offset) % options.Count;
+                if (options[index].StartsWith(letter.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return index;
+                }
+            }
+            return selection;
         }
     }
 }

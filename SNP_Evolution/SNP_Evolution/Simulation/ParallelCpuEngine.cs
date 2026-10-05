@@ -1,25 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SnpEvolution.Networks;
 
 namespace SnpEvolution.Simulation
 {
-    // Runs the networks across all cores. Random is not thread-safe, so each network gets its own generator,
+    // Samples the trials across all cores. Random is not thread-safe, so each trial gets its own generator,
     // seeded up front from the given random so the results do not depend on thread scheduling.
     public sealed class ParallelCpuEngine : ISimulationEngine
     {
-        public IReadOnlyList<IReadOnlyList<int>> CollectOutputs(IReadOnlyList<Network> networks, SimulationOptions options, Random random)
+        public IReadOnlyList<TrialResult> Run(IReadOnlyList<Trial> trials, SimulationOptions options, Random random)
         {
-            var seeds = new int[networks.Count];
+            int[] seeds = Seeds(trials.Count, random);
+            var results = new TrialResult[trials.Count];
+            Parallel.For(0, trials.Count, index => results[index] = NetworkRunner.Sample(trials[index], options, new Random(seeds[index])));
+            return results;
+        }
+
+        internal static int[] Seeds(int count, Random random)
+        {
+            var seeds = new int[count];
             for (int index = 0; index < seeds.Length; index++)
             {
                 seeds[index] = random.Next();
             }
-            var outputs = new IReadOnlyList<int>[networks.Count];
-            Parallel.For(0, networks.Count, index =>
-                outputs[index] = NetworkRunner.CollectOutputs(networks[index], options.MaxSteps, options.Repetitions, new Random(seeds[index])));
-            return outputs;
+            return seeds;
         }
     }
 }

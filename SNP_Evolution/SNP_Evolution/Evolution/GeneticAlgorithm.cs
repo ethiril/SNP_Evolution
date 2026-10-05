@@ -9,11 +9,15 @@ namespace SnpEvolution.Evolution
     // A generational algorithm: rank everyone, carry the elite over, and breed the rest with the given operators.
     public sealed class GeneticAlgorithm : IGeneticAlgorithm
     {
+        // Some tasks give almost every random network nothing, so replacement gives up after this many rounds.
+        private const int MaxReplacementRounds = 10;
+
         private readonly Random random;
         private readonly Func<Network> createRandomNetwork;
         private readonly IPopulationEvaluator evaluator;
         private readonly GeneticOperators operators;
         private readonly int elitism;
+        private readonly Action<string> log;
         private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
         private List<Individual> population;
 
@@ -23,8 +27,10 @@ namespace SnpEvolution.Evolution
             Func<Network> createRandomNetwork,
             IPopulationEvaluator evaluator,
             GeneticOperators operators,
-            int elitism)
+            int elitism,
+            Action<string>? log = null)
         {
+            this.log = log ?? Console.WriteLine;
             this.random = random;
             this.createRandomNetwork = createRandomNetwork;
             this.evaluator = evaluator;
@@ -61,28 +67,21 @@ namespace SnpEvolution.Evolution
                 Evaluate(population);
                 fitnessHistory.Add(population.Select(individual => individual.Fitness).Where(IsRecordableFitness).ToList());
             }
-            population.Sort((first, second) => second.Fitness.CompareTo(first.Fitness));
+            population = Ranking.Rank(population);
             Best = population.FirstOrDefault(individual => IsRecordableFitness(individual.Fitness)) ?? population[0];
             population = Breed();
             Generation++;
         }
 
-        private void Evaluate(IReadOnlyList<Individual> individuals)
-        {
-            IReadOnlyList<FitnessResult> results = evaluator.EvaluateAll(individuals.Select(individual => individual.Genes).ToList());
-            for (int index = 0; index < individuals.Count; index++)
-            {
-                individuals[index].Record(results[index]);
-            }
-        }
+        private void Evaluate(IReadOnlyList<Individual> individuals) => Evaluation.Evaluate(evaluator, individuals);
 
         private void EvaluateUntilViable()
         {
             Evaluate(population);
             List<int> nonViable = NonViableIndexes();
-            while (nonViable.Count > 0)
+            for (int round = 0; nonViable.Count > 0 && round < MaxReplacementRounds; round++)
             {
-                Console.WriteLine("Replacing {0} erroneous networks in the initial population.", nonViable.Count);
+                log($"Replacing {nonViable.Count} erroneous networks in the initial population.");
                 List<Individual> replacements = nonViable.Select(_ => new Individual(createRandomNetwork())).ToList();
                 Evaluate(replacements);
                 for (int replacement = 0; replacement < nonViable.Count; replacement++)

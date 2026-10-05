@@ -32,7 +32,11 @@ namespace SnpEvolution.Evolution
             return 2 * truePositives / (2 * truePositives + falsePositives + falseNegatives) * coverage;
         }
 
+        // With no more outputs than expected values (such as an exact engine's distinct outputs) the legacy rescaling
+        // would divide by zero or go negative, so the count is used as it is.
         private static float Normalise(float weightedCount, int expectedCount, int outputCount) =>
-            weightedCount > expectedCount ? (weightedCount - expectedCount) / (outputCount - expectedCount) : 0;
+            weightedCount <= expectedCount ? 0
+            : outputCount <= expectedCount ? weightedCount / expectedCount
+            : (weightedCount - expectedCount) / (outputCount - expectedCount);
     }
 }

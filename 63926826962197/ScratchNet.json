@@ -1,0 +1,118 @@
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa(aa)+",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        2,
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        5
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        4,
+        5
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aa?",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        1,
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        2,
+        4
+      ],
+      "IsOutput": true,
+      "IsInput": false
+    }
+  ]
+}

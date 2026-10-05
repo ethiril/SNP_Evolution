@@ -17,10 +17,19 @@ namespace SnpEvolution.Evolution
 
         public IReadOnlyList<int> Outputs { get; private set; } = Array.Empty<int>();
 
+        public string Description { get; private set; } = "";
+
+        public bool Exact { get; private set; }
+
+        public bool IsEvaluated { get; private set; }
+
         public void Record(FitnessResult result)
         {
             Fitness = result.Fitness;
             Outputs = result.Outputs;
+            Description = result.Description;
+            Exact = result.Exact;
+            IsEvaluated = true;
         }
     }
 }
