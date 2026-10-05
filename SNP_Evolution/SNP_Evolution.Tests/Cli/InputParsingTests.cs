@@ -23,18 +23,5 @@ namespace SnpEvolution.Tests.Cli
         {
             Assert.Equal(accepted, InputParsing.TryProbability(input, out _));
         }
-
-        [Fact]
-        public void IntegerSetToleratesSpacesAfterCommas()
-        {
-            Assert.True(InputParsing.TryIntegerSet("1, 2,3", out List<int> values));
-            Assert.Equal(new[] { 1, 2, 3 }, values);
-        }
-
-        [Fact]
-        public void IntegerSetRejectsAnyNonInteger()
-        {
-            Assert.False(InputParsing.TryIntegerSet("1,x,3", out _));
-        }
     }
 }

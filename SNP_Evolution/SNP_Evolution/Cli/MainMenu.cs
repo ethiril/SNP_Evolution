@@ -4,57 +4,45 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
+using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli
 {
+    // The top menu groups the work into evolving, running, benchmarking and settings. Every submenu stays open until
+    // the user goes back, so several things can be done in a row.
     internal sealed class MainMenu
     {
-        private static readonly string[] Options =
-        {
-            "1. Change the configuration",
-            "2. Evolve a natural numbers network",
-            "3. Evolve an even numbers network",
-            "4. Run natural numbers network",
-            "5. Run evens network",
-            "6. Evolve experimental network",
-            "7. Import Network from file",
-            "8. Exit",
-        };
-
         private readonly Random random = new Random();
         private Settings settings = new Settings();
 
         public void Run()
         {
+            int selection = 0;
             while (true)
             {
-                switch (ConsoleUi.Choose(settings, "", Options))
+                int? choice = ConsoleUi.Choose(settings, "", new[] { "Evolve a system >", "Run a network >", "Benchmark >", "Settings >", "Quit" }, selection, splash: true);
+                selection = choice ?? selection;
+                switch (choice)
                 {
                     case 0:
-                        settings = SettingsMenu.Edit(settings);
+                        EvolveMenu();
                         break;
                     case 1:
-                        Evolve("NatNumsNet", "Natural Numbers", expressions => ReferenceNetworks.NaturalNumbers().WithRandomExpressions(expressions.Next));
+                        RunMenu();
                         break;
                     case 2:
-                        Evolve("EvenNumsNet", "Evens", expressions => ReferenceNetworks.EvenNumbers().WithRandomExpressions(expressions.Next));
+                        BenchmarkMenu();
                         break;
                     case 3:
-                        RunReference("Natural Numbers", ReferenceNetworks.NaturalNumbers());
+                        settings = SettingsMenu.Edit(settings);
                         break;
                     case 4:
-                        RunReference("Even Numbers", ReferenceNetworks.EvenNumbers());
-                        break;
-                    case 5:
-                        EvolveExperimental();
-                        break;
-                    case 6:
-                        ImportNetwork();
-                        break;
-                    case 7:
-                        if (ConsoleUi.Choose(settings, "Are you sure you wish to quit?", new[] { "YES", "NO" }) == 0)
+                    case null:
+                        if (ConsoleUi.Confirm(settings, "Are you sure you wish to quit?"))
                         {
                             return;
                         }
@@ -63,70 +51,194 @@ namespace SnpEvolution.Cli
             }
         }
 
-        private void EvolveExperimental()
+        private void EvolveMenu()
         {
-            Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.WriteLine("!!! These features are experimental and will not provide meaningful results, press enter to continue or any other key to go back !!!");
-            Console.ResetColor();
-            if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+            int selection = 0;
+            while (ConsoleUi.Choose(settings, "Evolve a system", new[]
+                {
+                    "Match a target: a set, sequence or binary word...",
+                    $"For the selected task: {settings.SelectedTask.Name}",
+                    "Starting from the natural numbers network",
+                    "Starting from the even numbers network",
+                    $"Suggest settings for: {settings.SelectedTask.Name}",
+                }, selection) is int choice)
             {
-                Evolve("ExpNet", "Experimental", expressions => RandomTopology.Create(expressions, Settings.MaxSpikeGroupSize, random));
+                selection = choice;
+                switch (choice)
+                {
+                    case 0:
+                        if (SettingsMenu.EditTarget(settings) && SettingsMenu.EditTargetGenerations(settings) && ReviewAdvice())
+                        {
+                            EvolveFromScratch("TargetNet");
+                        }
+                        break;
+                    case 1:
+                        EvolveFromScratch("ScratchNet");
+                        break;
+                    case 2:
+                        Evolve("NatNumsNet", "Natural Numbers", TargetTask(), factory => ReferenceNetworks.NaturalNumbers().WithRandomExpressions(factory.NextExpression));
+                        break;
+                    case 3:
+                        Evolve("EvenNumsNet", "Evens", TargetTask(), factory => ReferenceNetworks.EvenNumbers().WithRandomExpressions(factory.NextExpression));
+                        break;
+                    case 4:
+                        ReviewAdvice();
+                        ConsoleUi.WaitForEnter(" Press enter to return to the menu.");
+                        break;
+                }
             }
         }
 
-        // Starting networks always use the simple rule template; the configured templates only drive mutation.
-        private void Evolve(string fileStem, string title, Func<ExpressionGenerator, Network> createStartingNetwork)
+        private void RunMenu()
         {
-            string folder = Path.Combine(Directory.GetCurrentDirectory(), (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond).ToString());
-            Console.Clear();
-            Console.WriteLine("The files will be saved to: {0}", folder);
-            ConsoleUi.WaitForEnter("Press the enter key to carry out this test.");
-            Console.WriteLine("---------- Evolving a network based on the {0} Spiking Neural P System ----------", title);
-
-            var startingExpressions = new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random);
-            var mutationExpressions = new ExpressionGenerator(settings.MutationTemplates, Settings.MaxSpikeGroupSize, random);
-            var evaluator = new FitnessEvaluator(
-                settings.Engine.Create(settings), settings.FitnessFunction.Create(settings), settings.SimulationOptions, settings.SolvedRetestCount, random);
-            IGeneticAlgorithm geneticAlgorithm = settings.Algorithm.Create(
-                new EvolutionRun(settings, random, () => createStartingNetwork(startingExpressions), mutationExpressions.Next, evaluator));
-
-            RunGenerations(geneticAlgorithm, evaluator);
-
-            Directory.CreateDirectory(folder);
-            NetworkFiles.SaveText(FitnessCsv.Format(geneticAlgorithm.FitnessHistory), Path.Combine(folder, fileStem + ".csv"));
-            if (geneticAlgorithm.Best is Individual best)
+            int selection = 0;
+            while (ConsoleUi.Choose(settings, "Run a network", new[] { "Natural numbers network", "Even numbers network", "Import a network from a file..." }, selection) is int choice)
             {
-                string graph = NetworkNotation.Format(best.Genes);
-                Console.WriteLine("\nBest network found (fitness {0}):\n{1}", best.Fitness, graph);
-                NetworkFiles.Save(best.Genes, Path.Combine(folder, fileStem + ".json"));
-                NetworkFiles.SaveText(graph, Path.Combine(folder, fileStem + ".txt"));
+                selection = choice;
+                switch (choice)
+                {
+                    case 0:
+                        RunReference("Natural Numbers", ReferenceNetworks.NaturalNumbers());
+                        break;
+                    case 1:
+                        RunReference("Even Numbers", ReferenceNetworks.EvenNumbers());
+                        break;
+                    case 2:
+                        ImportNetwork();
+                        break;
+                }
             }
+        }
+
+        private void BenchmarkMenu()
+        {
+            int selection = 0;
+            while (ConsoleUi.Choose(settings, "Benchmark", new[] { "Every algorithm on the task suite", "Find the best algorithm for the selected task" }, selection) is int choice)
+            {
+                selection = choice;
+                if (choice == 0)
+                {
+                    RunBenchmark();
+                }
+                else
+                {
+                    SelectAlgorithm();
+                }
+            }
+        }
+
+        // Shows what the advisor suggests for the selected task and applies it if the user agrees, then offers a pilot
+        // that picks the algorithm. False when the user backs out at the first question.
+        private bool ReviewAdvice()
+        {
+            const long PilotBudget = 500;
+            Advice advice = RunAdvisor.Advise(settings);
+            Console.Clear();
+            ConsoleUi.PrintHeader();
+            ConsoleUi.WriteLineColoured(ConsoleColor.Yellow, " Suggested settings for: " + settings.SelectedTask.Name);
+            Console.WriteLine();
+            foreach (string line in RunAdvisor.Format(advice))
+            {
+                Console.WriteLine(" " + line);
+            }
+            Console.WriteLine();
+            if (advice.Suggestions.Count > 0)
+            {
+                if (!ConsoleUi.WaitForEnterOrEscape(" Press enter to apply these suggestions, or ESC to keep the current settings."))
+                {
+                    Console.WriteLine(" Keeping the current settings.");
+                }
+                else
+                {
+                    RunAdvisor.ApplyAll(settings, advice);
+                    Console.WriteLine(" Applied.");
+                }
+            }
+            if (ConsoleUi.WaitForEnterOrEscape(" Press enter to run a quick pilot that picks the algorithm, or ESC to skip it."))
+            {
+                AlgorithmChoice winner = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
+                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == winner.Name);
+                Console.WriteLine(" The pilot picked {0}.", winner.Name);
+            }
+            return true;
+        }
+
+        // The reference networks are generators, so they evolve towards the target whatever task is selected.
+        private BenchmarkTask TargetTask() => Catalog.TargetTask.Create(settings) with { RuleForm = settings.RuleForm, Timing = settings.OutputTiming };
+
+        private void EvolveFromScratch(string fileStem)
+        {
+            if (Catalog.EvolvesRulesOnly(settings.Algorithm) &&
+                ConsoleUi.Confirm(settings, $"{settings.Algorithm.Name} keeps a random network's structure. Switch to {Catalog.StructuralDefault.Name}?"))
+            {
+                settings.Algorithm = Catalog.StructuralDefault;
+            }
+            Evolve(fileStem, "randomly generated", settings.SelectedTask, factory => factory.NewNetwork());
+        }
+
+        private void Evolve(string fileStem, string title, BenchmarkTask task, Func<NetworkFactory, Network> createStartingNetwork)
+        {
+            string folder = EvolutionSession.NewOutputFolder();
+            Console.Clear();
+            ConsoleUi.PrintHeader();
+            Console.WriteLine(" Evolving a {0} network for: {1}", title, task.Name);
+            Console.WriteLine(" The files will be saved to: {0}", folder);
+            foreach (string note in EvolutionSession.Notes(settings, task))
+            {
+                ConsoleUi.WriteLineColoured(ConsoleColor.Yellow, " " + note);
+            }
+            Console.WriteLine();
+            if (!ConsoleUi.WaitForEnterOrEscape(" Press enter to start, or ESC to go back."))
+            {
+                return;
+            }
+            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, createStartingNetwork, random, Console.WriteLine);
+            EvolutionSession.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine);
             ConsoleUi.WaitForEnter("Press enter to return to the menu.");
         }
 
-        private void RunGenerations(IGeneticAlgorithm geneticAlgorithm, FitnessEvaluator evaluator)
+        private void RunBenchmark()
         {
-            for (int generation = 0; generation < settings.MaxGenerations; generation++)
+            Console.Clear();
+            BenchmarkSettings benchmark = settings.BenchmarkSettings;
+            Console.WriteLine("Runs {0} algorithms on {1} tasks, {2} seeds each, with up to {3} evaluations per run, on the {4} engine.",
+                AlgorithmCatalog.All.Count, TaskSuite.All.Count, benchmark.Seeds, benchmark.EvaluationBudget, settings.Engine.Name);
+            if (!ConsoleUi.WaitForEnterOrEscape("Press enter to start, or ESC to go back; this can take a while."))
             {
-                Console.WriteLine("Running Generation {0}", generation);
-                geneticAlgorithm.NextGeneration();
-                if (geneticAlgorithm.Best is not Individual best)
-                {
-                    continue;
-                }
-                Console.Write(NetworkNotation.Format(best.Genes));
-                Console.WriteLine(string.Join("\t", best.Outputs.Distinct()));
-                Console.WriteLine("Current best fitness: {0}", best.Fitness);
-                if (!FitnessEvaluator.IsSolvingFitness(best.Fitness))
-                {
-                    continue;
-                }
-                Console.WriteLine("Testing the best fitness for repeated success.");
-                if (evaluator.IsReliablySolved(best.Genes))
-                {
-                    Console.WriteLine("Fitness over {0}, stopping . . .", FitnessEvaluator.SolvedThreshold);
-                    return;
-                }
+                return;
+            }
+            string folder = EvolutionSession.NewOutputFolder();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            IReadOnlyList<BenchmarkRow> rows = Benchmark.Run(AlgorithmCatalog.All, TaskSuite.All, benchmark, Console.WriteLine);
+            string table = Benchmark.FormatTable(rows);
+            Console.WriteLine("\n{0}\nTime elapsed: {1}", table, stopwatch.Elapsed);
+            Directory.CreateDirectory(folder);
+            NetworkFiles.SaveText(table, Path.Combine(folder, "benchmark.txt"));
+            NetworkFiles.SaveText(Benchmark.FormatCsv(rows), Path.Combine(folder, "benchmark.csv"));
+            ConsoleUi.WaitForEnter("Press enter to return to the menu.");
+        }
+
+        private void SelectAlgorithm()
+        {
+            Console.Clear();
+            BenchmarkTask task = settings.SelectedTask;
+            BenchmarkSettings benchmark = settings.BenchmarkSettings;
+            long initialBudget = Math.Max(1, benchmark.EvaluationBudget / 8);
+            Console.WriteLine("Successive halving over {0} algorithms for: {1}, starting at {2} evaluations per run.", AlgorithmCatalog.All.Count, task.Name, initialBudget);
+            if (!ConsoleUi.WaitForEnterOrEscape("Press enter to start, or ESC to go back; this can take a while."))
+            {
+                return;
+            }
+            SelectionResult result = AlgorithmSelector.Select(AlgorithmCatalog.All, task, benchmark, initialBudget, Console.WriteLine);
+            Console.WriteLine("\nBest algorithm for {0}: {1}", task.Name, result.Winner.Name);
+            if (result.BestFound is Individual best)
+            {
+                Console.WriteLine("Best network found (fitness {0}, {1}):\n{2}", best.Fitness, best.Description, NetworkNotation.Format(best.Genes));
+            }
+            ConsoleUi.WaitForEnter("Press enter to continue.");
+            if (ConsoleUi.Confirm(settings, $"Use {result.Winner.Name} from now on?"))
+            {
+                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == result.Winner.Name);
             }
         }
 
@@ -140,7 +252,7 @@ namespace SnpEvolution.Cli
         private void ImportNetwork()
         {
             Network? imported = null;
-            ConsoleUi.PromptUntilAccepted("Please enter a filename (WITH the extension) to import from", "Could not load a network from that file.",
+            ConsoleUi.PromptUntilAccepted("Enter a filename, with its extension, to import from", "Could not load a network from that file.",
                 path => (imported = NetworkFiles.Load(path)) != null);
             if (imported == null)
             {
@@ -154,11 +266,32 @@ namespace SnpEvolution.Cli
         private void RunAndReport(Network network)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            IReadOnlyList<int> outputs = settings.Engine.Create(settings).CollectOutputs(new[] { network }, settings.SimulationOptions, random)[0];
+            ISimulationEngine engine = settings.Engine.Create(settings);
+            IReadOnlyList<int> outputs = engine.CollectOutputs(new[] { network }, settings.SimulationOptions, random)[0];
             stopwatch.Stop();
             Console.WriteLine("Final output set: ");
             Console.WriteLine(string.Join("\t", outputs));
+            if (network.Neurons.Any(neuron => neuron.IsInput))
+            {
+                BenchmarkTask task = settings.SelectedTask;
+                FitnessResult result = new FitnessEvaluator(engine, task.Task, settings.SimulationOptions, 1, random).Evaluate(network);
+                Console.WriteLine("On {0}: fitness {1}, {2}", task.Name, result.Fitness, result.Description);
+            }
+            else
+            {
+                PrintSpikeTrain(engine, network);
+            }
             ConsoleUi.WaitForEnter($"Time elapsed: {stopwatch.Elapsed}. Press enter to return to the menu.");
+        }
+
+        // One run's output spike train, as bits and as the intervals between spikes.
+        private void PrintSpikeTrain(ISimulationEngine engine, Network network)
+        {
+            var trial = new Trial(network, InputSpikes.None, Readout.SpikeTrain);
+            IReadOnlyList<int> spikeSteps = engine.Run(new[] { trial }, settings.SimulationOptions with { Repetitions = 1 }, random)[0].SpikeTrains[0];
+            Console.WriteLine("One run's spike train over {0} steps:", settings.MaxSteps);
+            Console.WriteLine(SpikeTrains.Format(SpikeTrains.Word(spikeSteps, settings.MaxSteps)));
+            Console.WriteLine("Intervals between its spikes: {0}", string.Join(",", SpikeTrains.Intervals(spikeSteps)));
         }
     }
 }

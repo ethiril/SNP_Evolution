@@ -11,12 +11,14 @@ namespace SnpEvolution.Networks
             IReadOnlyList<Rule> rules,
             [JsonProperty("SpikeCount"), JsonConverter(typeof(SpikeCountJsonConverter))] long initialSpikes,
             IReadOnlyList<int> connections,
-            bool isOutput)
+            bool isOutput,
+            bool isInput = false)
         {
             Rules = rules;
             InitialSpikes = initialSpikes;
             Connections = connections;
             IsOutput = isOutput;
+            IsInput = isInput;
         }
 
         public IReadOnlyList<Rule> Rules { get; }
@@ -29,6 +31,16 @@ namespace SnpEvolution.Networks
 
         public bool IsOutput { get; }
 
-        public Neuron WithRules(IEnumerable<Rule> rules) => new Neuron(rules.ToList(), InitialSpikes, Connections, IsOutput);
+        // Input neurons also receive spikes from the environment, which is how a task feeds a network its arguments.
+        public bool IsInput { get; }
+
+        public Neuron WithRules(IEnumerable<Rule> rules) => new Neuron(rules.ToList(), InitialSpikes, Connections, IsOutput, IsInput);
+
+        public Neuron WithInitialSpikes(long initialSpikes) => new Neuron(Rules, initialSpikes, Connections, IsOutput, IsInput);
+
+        public Neuron WithConnections(IEnumerable<int> connections) =>
+            new Neuron(Rules, InitialSpikes, connections.Distinct().OrderBy(position => position).ToList(), IsOutput, IsInput);
+
+        public Neuron WithRoles(bool isOutput, bool isInput) => new Neuron(Rules, InitialSpikes, Connections, isOutput, isInput);
     }
 }

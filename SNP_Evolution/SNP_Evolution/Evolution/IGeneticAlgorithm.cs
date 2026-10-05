@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution
 {
@@ -16,5 +17,13 @@ namespace SnpEvolution.Evolution
         IReadOnlyList<IReadOnlyList<float>> FitnessHistory { get; }
 
         void NextGeneration();
+
+        // Puts the networks into the next generation in place of its weakest members, never the best, so a stalled
+        // search gets fresh material. They are scored along with the rest of that generation.
+        void Immigrate(IReadOnlyList<Network> newcomers);
+
+        // The task has changed, so any network kept with a score from before is scored again before it competes,
+        // and anything remembered about earlier fitness is forgotten.
+        void Rescore();
     }
 }

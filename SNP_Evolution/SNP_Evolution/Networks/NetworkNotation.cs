@@ -15,9 +15,20 @@ namespace SnpEvolution.Networks
         public static string Spikes(long count) =>
             count == 0 ? "-" : count <= MaxSpelledOutSpikes ? new string('a', (int)count) : "a^" + count;
 
-        // "aa -> a" fires, "aa -> forget" consumes without emitting, and ";d" shows a delay.
+        // "aa -> a" fires, "aa -> forget" consumes without emitting, and ";d" shows a delay. Standard rules add the
+        // spikes they consume, "a(aa)*/a -> aa", leaving out "E/" when E only matches the consumed count.
         public static string Rule(Rule rule) =>
-            $"{rule.Expression} -> {(rule.Fire ? "a" : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay : "")}";
+            $"{Condition(rule)} -> {(rule.Fire ? Spikes(rule.IsStandard ? rule.Produce : 1) : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay : "")}";
+
+        private static string Condition(Rule rule)
+        {
+            if (rule.Consume is not long consume)
+            {
+                return rule.Expression;
+            }
+            string consumed = Spikes(consume);
+            return rule.Expression == new string('a', (int)Math.Min(consume, MaxSpelledOutSpikes + 1)) ? consumed : rule.Expression + "/" + consumed;
+        }
 
         public static string Format(Network network) => Format(network, network.Neurons.Select(neuron => neuron.InitialSpikes).ToList());
 
@@ -30,7 +41,7 @@ namespace SnpEvolution.Networks
                 Neuron neuron = network.Neurons[index];
                 rows.Add(new[]
                 {
-                    Name(index + 1) + (neuron.IsOutput ? " (out)" : ""),
+                    Name(index + 1) + (neuron.IsInput ? " (in)" : "") + (neuron.IsOutput ? " (out)" : ""),
                     Spikes(spikes[index]),
                     string.Join("  |  ", neuron.Rules.Select(Rule)),
                     neuron.Connections.Count == 0 ? "-" : string.Join(", ", neuron.Connections.Select(Name)),

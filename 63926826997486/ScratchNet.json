@@ -1,0 +1,54 @@
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a?",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        2
+      ],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a*",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa?",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        1
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    }
+  ]
+}
