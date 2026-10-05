@@ -13,7 +13,6 @@ namespace SnpEvolution.Evolution.Tasks
     // so a network that gives the sequence every time beats one that only sometimes does.
     public sealed class SequenceTask : IPrefixTask
     {
-        private const float CloseIntervalCredit = 0.5f;
         private const int MaxGapBucket = 12;
         private const int FocusLength = 3;
 
@@ -126,7 +125,7 @@ namespace SnpEvolution.Evolution.Tasks
         {
             int prefix = CorrectPrefix(intervals);
             float close = prefix < Expected.Count && prefix < intervals.Count
-                ? CloseIntervalCredit / (1 + Math.Abs(intervals[prefix] - Expected[prefix]))
+                ? CloseCredit.Score(intervals[prefix], Expected[prefix])
                 : 0;
             return (prefix + close) / Expected.Count;
         }

@@ -39,7 +39,7 @@ namespace SnpEvolution.Compilation
             int[] Segment(int interval, int use) => Register(interval - back[use], use);
 
             var neurons = new Neuron?[NeuronCount(recurrence)];
-            neurons[output] = new Neuron(new[] { Fire("a", 1, 1) }, 1, new int[0], isOutput: true);
+            neurons[output] = new Neuron(new[] { Rule.Standard("a", 1, 1) }, 1, new int[0], isOutput: true);
             for (int value = 1; value <= initialCount; value++)
             {
                 IEnumerable<int> next = value < initialCount ? new[] { Timer(value + 1) } : Segment(initialCount + 1, 0);
@@ -79,12 +79,10 @@ namespace SnpEvolution.Compilation
         }
 
         // An odd count of 2v + 1 sends one unit (two spikes) per step for v steps, ending empty.
-        private static IReadOnlyList<Rule> EmitterRules() => new[] { Fire("aaaaa(aa)*", 2, 2), Fire("aaa", 3, 2) };
+        private static IReadOnlyList<Rule> EmitterRules() => new[] { Rule.Standard("aaaaa(aa)*", 2, 2), Rule.Standard("aaa", 3, 2) };
 
         // An odd count of 2v + 1 stays silent for v - 1 steps and fires one spike on the v-th, ending empty.
-        private static IReadOnlyList<Rule> TimerRules() => new[] { new Rule("aaaaa(aa)*", 0, false, 2), Fire("aaa", 3, 1) };
-
-        private static Rule Fire(string expression, long consume, int produce) => new Rule(expression, 0, true, consume, produce);
+        private static IReadOnlyList<Rule> TimerRules() => new[] { Rule.Forget("aaaaa(aa)*", 2), Rule.Standard("aaa", 3, 1) };
 
         private static IReadOnlyList<int> Positions(IEnumerable<int> indexes) => indexes.Select(index => index + 1).Distinct().OrderBy(position => position).ToList();
 

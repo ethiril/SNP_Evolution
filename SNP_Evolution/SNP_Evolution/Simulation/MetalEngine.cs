@@ -8,7 +8,8 @@ namespace SnpEvolution.Simulation
     // Samples on the GPU through Metal, every repetition of every trial at once, each in its own threadgroup. Rule
     // choices come from a hash of the run's seed, the step and the neuron rather than from System.Random, so results
     // differ from the CPU engines' run for run but follow the same distribution, and the same seed repeats them.
-    // Batches too small to repay a GPU round trip run on the CPU instead, as do networks beyond the kernel's limits.
+    // Batches too small to repay a GPU round trip run on the CPU instead, as do networks beyond the kernel's limits
+    // and Ports readouts.
     public sealed class MetalEngine : ISimulationEngine
     {
         // In neuron-steps: every trial's neurons times MaxSteps times Repetitions.
@@ -43,7 +44,9 @@ namespace SnpEvolution.Simulation
             for (int index = 0; index < trials.Count; index++)
             {
                 runs[index] = new List<GpuRunResult>();
-                (GpuNetwork.Of(CompiledNetwork.Of(trials[index].Network)).IsSupported ? onGpu : onCpu).Add(index);
+                // The kernel has no Ports readout; contracts are checked on the CPU.
+                bool supported = trials[index].Readout != Readout.Ports && GpuNetwork.Of(CompiledNetwork.Of(trials[index].Network)).IsSupported;
+                (supported ? onGpu : onCpu).Add(index);
             }
             if (onCpu.Count > 0)
             {

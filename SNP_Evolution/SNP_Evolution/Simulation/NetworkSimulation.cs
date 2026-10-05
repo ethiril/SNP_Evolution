@@ -38,6 +38,7 @@ namespace SnpEvolution.Simulation
         private readonly int[] emitters;
         private readonly int[] matchingRules;
         private readonly List<int>? outputSpikeSteps;
+        private readonly PortRecorder? portRecorder;
         private int outputCounter;
         private bool outputEngaged;
         private int emitterCount;
@@ -47,8 +48,9 @@ namespace SnpEvolution.Simulation
         {
         }
 
-        // recordSpikeTrain keeps every step the output neuron fires on, for OutputSpikeSteps.
-        public NetworkSimulation(CompiledNetwork network, Random? random, InputSpikes input, OutputTiming timing, bool recordSpikeTrain = false)
+        // recordSpikeTrain keeps every step the output neuron fires on, for OutputSpikeSteps, and watch the firings PortRun reports.
+        public NetworkSimulation(CompiledNetwork network, Random? random, InputSpikes input, OutputTiming timing, bool recordSpikeTrain = false,
+            PortWatch? watch = null)
         {
             this.network = network;
             this.random = random;
@@ -65,12 +67,14 @@ namespace SnpEvolution.Simulation
             emitters = new int[count];
             matchingRules = new int[network.MaxRulesPerNeuron];
             outputSpikeSteps = recordSpikeTrain ? new List<int>() : null;
+            portRecorder = watch == null ? null : new PortRecorder(watch, count);
         }
 
         private NetworkSimulation(NetworkSimulation other)
             : this(other.network, null, other.input, other.timing, other.outputSpikeSteps != null)
         {
             outputSpikeSteps?.AddRange(other.outputSpikeSteps!);
+            portRecorder = other.portRecorder?.Clone();
             Array.Copy(other.spikes, spikes, spikes.Length);
             Array.Copy(other.legacyDelay, legacyDelay, legacyDelay.Length);
             Array.Copy(other.legacyPending, legacyPending, legacyPending.Length);
@@ -94,6 +98,13 @@ namespace SnpEvolution.Simulation
         public IReadOnlyList<int> OutputSpikeSteps => outputSpikeSteps ?? (IReadOnlyList<int>)Array.Empty<int>();
 
         public IReadOnlyList<long> Spikes => (long[])spikes.Clone();
+
+        // Whether a Ports readout has seen all it waits for after done.
+        public bool PortRunOver => portRecorder?.IsOver(StepCount) ?? false;
+
+        // What a Ports readout reads from this computation so far.
+        public PortRun PortRun() =>
+            (portRecorder ?? throw new InvalidOperationException("This simulation watches no ports.")).Run((long[])spikes.Clone(), network.initialSpikes);
 
         public int NeuronCount => network.NeuronCount;
 
@@ -190,8 +201,11 @@ namespace SnpEvolution.Simulation
                 state[5 * count + 1] = outputEngaged ? 1 : 0;
                 state[5 * count + 2] = Output ?? -1;
             }
-            return state;
+            return portRecorder == null ? state : [.. state, .. portRecorder.History()];
         }
+
+        // Everything a Ports readout has recorded, flattened, so computations with different records are never merged.
+        public long[] PortHistory() => portRecorder?.History() ?? Array.Empty<long>();
 
         private int ApplicableRuleCount(int neuron)
         {
@@ -212,6 +226,7 @@ namespace SnpEvolution.Simulation
             if (emitting[neuron] > 0)
             {
                 emitters[emitterCount++] = neuron;
+                portRecorder?.RecordFiring(neuron, StepCount, emitting[neuron]);
             }
         }
 

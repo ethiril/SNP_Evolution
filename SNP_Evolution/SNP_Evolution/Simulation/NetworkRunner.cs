@@ -22,12 +22,18 @@ namespace SnpEvolution.Simulation
             CompiledNetwork network = CompiledNetwork.Of(trial.Network);
             var outputs = new List<int>();
             var spikeTrains = new List<IReadOnlyList<int>>();
+            var portRuns = new List<PortRun>();
             bool recordSpikeTrain = trial.Readout == Readout.SpikeTrain;
+            PortWatch? watch = WatchOf(trial);
             bool halted = false;
             for (int run = 0; run < runs; run++)
             {
-                var simulation = new NetworkSimulation(network, random, trial.Input, options.Timing, recordSpikeTrain);
+                var simulation = new NetworkSimulation(network, random, trial.Input, options.Timing, recordSpikeTrain, watch);
                 RunOnce(simulation, trial.Readout, options.MaxSteps);
+                if (watch != null)
+                {
+                    portRuns.Add(simulation.PortRun());
+                }
                 if (trial.Readout != Readout.Halting && simulation.Output is int output)
                 {
                     outputs.Add(output);
@@ -38,8 +44,11 @@ namespace SnpEvolution.Simulation
                 }
                 halted |= simulation.IsHalted;
             }
-            return new TrialResult(outputs, halted, Exact: false, spikeTrains);
+            return new TrialResult(outputs, halted, Exact: false, spikeTrains, portRuns);
         }
+
+        // The trial's watch for a Ports readout, which watches nothing when it names no neurons, and null for any other.
+        internal static PortWatch? WatchOf(Trial trial) => trial.Readout == Readout.Ports ? trial.Watch ?? PortWatch.None : null;
 
         // A trial whose first runs read no output at all is given up on, as it is unlikely ever to produce one.
         public static TrialResult Sample(Trial trial, SimulationOptions options, Random random)
@@ -61,16 +70,24 @@ namespace SnpEvolution.Simulation
                 all.SelectMany(part => part.Outputs).OrderBy(output => output).ToList(),
                 all.Any(part => part.CanHalt),
                 Exact: false,
-                all.SelectMany(part => part.SpikeTrains).ToList());
+                all.SelectMany(part => part.SpikeTrains).ToList(),
+                all.SelectMany(part => part.PortRuns).ToList());
         }
 
         private static NetworkSimulation RunOnce(NetworkSimulation simulation, Readout readout, int maxSteps)
         {
-            while (simulation.StepCount < maxSteps && !(readout == Readout.Output ? simulation.Output != null : simulation.IsHalted))
+            while (simulation.StepCount < maxSteps && !IsOver(simulation, readout))
             {
                 simulation.Step();
             }
             return simulation;
         }
+
+        private static bool IsOver(NetworkSimulation simulation, Readout readout) => readout switch
+        {
+            Readout.Output => simulation.Output != null,
+            Readout.Ports => simulation.PortRunOver || simulation.IsHalted,
+            _ => simulation.IsHalted,
+        };
     }
 }

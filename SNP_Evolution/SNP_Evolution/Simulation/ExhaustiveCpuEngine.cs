@@ -11,7 +11,9 @@ namespace SnpEvolution.Simulation
     // spent, a configuration seen on any earlier step is dropped too, as its future has already been explored with
     // more steps to spare; a network that cycles without halting is then settled in a few steps. A trial whose
     // configurations outgrow maxConfigurations falls back to sampling, and its result says it is not exact. Spike train
-    // readouts are always sampled, as merging configurations would lose the trains that led to them.
+    // readouts are always sampled, as merging configurations would lose the trains that led to them. A Ports readout
+    // keeps what it has recorded in the merge key, so only computations with the same record so far are merged; each
+    // distinct computation is reported once.
     public sealed class ExhaustiveCpuEngine : ISimulationEngine
     {
         public const int DefaultMaxConfigurations = 2_000;
@@ -40,8 +42,10 @@ namespace SnpEvolution.Simulation
                 return null;
             }
             var outputs = new SortedSet<int>();
+            var portRuns = new Dictionary<long[], PortRun>(StateComparer.Instance);
             bool canHalt = false;
-            var frontier = new List<NetworkSimulation> { new NetworkSimulation(CompiledNetwork.Of(trial.Network), null, trial.Input, options.Timing) };
+            PortWatch? watch = NetworkRunner.WatchOf(trial);
+            var frontier = new List<NetworkSimulation> { new NetworkSimulation(CompiledNetwork.Of(trial.Network), null, trial.Input, options.Timing, watch: watch) };
             HashSet<long[]>? seen = trial.Readout == Readout.Halting ? new HashSet<long[]>(StateComparer.Instance) : null;
             for (int step = 0; step < options.MaxSteps && frontier.Count > 0; step++)
             {
@@ -56,6 +60,15 @@ namespace SnpEvolution.Simulation
                             return new TrialResult(Array.Empty<int>(), true, Exact: true);
                         }
                         canHalt = true;
+                        if (watch != null)
+                        {
+                            AddPortRun(portRuns, configuration);
+                        }
+                        continue;
+                    }
+                    if (watch != null && configuration.PortRunOver)
+                    {
+                        AddPortRun(portRuns, configuration);
                         continue;
                     }
                     if (!Expand(configuration, trial.Readout, outputs, next, seen))
@@ -66,8 +79,15 @@ namespace SnpEvolution.Simulation
                 frontier = next.Values.ToList();
             }
             canHalt |= frontier.Any(configuration => configuration.IsHalted);
-            return new TrialResult(outputs.ToList(), canHalt, Exact: true);
+            if (watch != null)
+            {
+                frontier.ForEach(configuration => AddPortRun(portRuns, configuration));
+            }
+            return new TrialResult(outputs.ToList(), canHalt, Exact: true, PortRuns: portRuns.Values.ToList());
         }
+
+        private static void AddPortRun(Dictionary<long[], PortRun> portRuns, NetworkSimulation configuration) =>
+            portRuns.TryAdd(configuration.PortHistory().Concat(configuration.Spikes).ToArray(), configuration.PortRun());
 
         // Adds every successor of the configuration to next, or returns false once there are too many.
         private bool Expand(

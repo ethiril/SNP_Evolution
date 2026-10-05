@@ -11,8 +11,6 @@ namespace SnpEvolution.Evolution.Tasks
     // output the result. A wrong output still earns a little credit for being close, which gives the search a slope.
     public sealed class FunctionTask : ITask
     {
-        private const float CloseOutputCredit = 0.5f;
-
         public FunctionTask(string name, IReadOnlyList<FunctionExample> examples)
         {
             Name = name;
@@ -48,6 +46,6 @@ namespace SnpEvolution.Evolution.Tasks
         public string CheckName(int check) => $"f({string.Join(",", Examples[check].Arguments)})={Examples[check].Result}";
 
         private static float ScoreCase(IReadOnlyList<int> outputs, int expected) =>
-            outputs.Count == 0 ? 0 : (float)outputs.Average(output => output == expected ? 1 : CloseOutputCredit / (1 + Math.Abs(output - expected)));
+            outputs.Count == 0 ? 0 : (float)outputs.Average(output => CloseCredit.Score(output, expected));
     }
 }

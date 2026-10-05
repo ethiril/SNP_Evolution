@@ -61,7 +61,7 @@ namespace SnpEvolution.Evolution
         {
             Interlocked.Add(ref evaluations, networks.Count);
             IReadOnlyList<TaskCase> cases = Task.Cases;
-            var trials = networks.SelectMany(network => cases.Select(@case => new Trial(network, @case.Input, @case.Readout))).ToList();
+            var trials = networks.SelectMany(network => cases.Select(@case => new Trial(network, @case.Input, @case.Readout, @case.Watch))).ToList();
             IReadOnlyList<TrialResult> results = engine.Run(trials, options, random);
             return Enumerable.Range(0, networks.Count).Select(index =>
             {
