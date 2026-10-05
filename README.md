@@ -95,6 +95,7 @@ A task says what a network should do (`Evolution/Tasks/ITask`):
 The last two read the whole output spike train (`Readout.SpikeTrain`), not just the first two spikes. `OutputTarget` turns a typed target into the matching task.
 - **Function**: read numbers on the input neurons, each as two spikes n steps apart, and output f(n). Examples are `n + 1`, `2n` and `n1 + n2`. Wrong but close outputs earn partial credit.
 - **Acceptor**: read a number on the input neuron and halt if and only if it belongs to the set. Scored by balanced accuracy.
+- **Contract**: behave as a part with a start trigger, one or more done triggers and typed data ports (interval, count, trigger or binary), as a `Contract` in `Evolution/Contracts/` describes (`ContractTask`). Each case is checked against four rules: nothing is sent before start, done fires exactly once with the right outputs, every neuron ends with the spikes it started with, and done fires within the maximum latency. It reads the named port neurons (`Readout.Ports`), which the exhaustive engine follows over every computation. `ReferenceParts` holds a hand-built delay and register that meet their contracts.
 
 `TaskSuite` holds a benchmark suite of these tasks, and the settings menu can select any of them.
 

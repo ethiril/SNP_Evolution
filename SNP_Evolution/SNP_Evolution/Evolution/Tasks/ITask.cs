@@ -3,8 +3,8 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
 {
-    // One input to try a network on, and what to read back.
-    public sealed record TaskCase(InputSpikes Input, Readout Readout);
+    // One input to try a network on, and what to read back. Watch names the neurons a Ports readout watches.
+    public sealed record TaskCase(InputSpikes Input, Readout Readout, PortWatch? Watch = null);
 
     // What a network should do: the cases it is run on and how its results are scored. Generating a set, computing
     // a function and accepting a set are all tasks, so the algorithms and engines never need to know which it is.

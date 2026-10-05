@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Simulation
@@ -38,6 +39,13 @@ namespace SnpEvolution.Simulation
         private readonly int[] emitters;
         private readonly int[] matchingRules;
         private readonly List<int>? outputSpikeSteps;
+        private readonly PortWatch? watch;
+        // For a Ports readout: each neuron's slot in watch.Neurons or -1, whether it is a done neuron, and each slot's
+        // firings so far.
+        private readonly int[]? watchSlot;
+        private readonly bool[]? isDone;
+        private readonly List<Firing>[]? firings;
+        private int? firstDoneStep;
         private int outputCounter;
         private bool outputEngaged;
         private int emitterCount;
@@ -47,8 +55,10 @@ namespace SnpEvolution.Simulation
         {
         }
 
-        // recordSpikeTrain keeps every step the output neuron fires on, for OutputSpikeSteps.
-        public NetworkSimulation(CompiledNetwork network, Random? random, InputSpikes input, OutputTiming timing, bool recordSpikeTrain = false)
+        // recordSpikeTrain keeps every step the output neuron fires on, for OutputSpikeSteps. watch records the firings
+        // a Ports readout needs, for PortRun.
+        public NetworkSimulation(CompiledNetwork network, Random? random, InputSpikes input, OutputTiming timing, bool recordSpikeTrain = false,
+            PortWatch? watch = null)
         {
             this.network = network;
             this.random = random;
@@ -65,12 +75,33 @@ namespace SnpEvolution.Simulation
             emitters = new int[count];
             matchingRules = new int[network.MaxRulesPerNeuron];
             outputSpikeSteps = recordSpikeTrain ? new List<int>() : null;
+            if (watch != null)
+            {
+                this.watch = watch;
+                watchSlot = Enumerable.Repeat(-1, count).ToArray();
+                isDone = new bool[count];
+                firings = new List<Firing>[watch.Neurons.Count];
+                for (int slot = 0; slot < watch.Neurons.Count; slot++)
+                {
+                    watchSlot[watch.Neurons[slot] - 1] = slot;
+                    firings[slot] = new List<Firing>();
+                }
+                foreach (int position in watch.Done)
+                {
+                    isDone[position - 1] = true;
+                }
+            }
         }
 
         private NetworkSimulation(NetworkSimulation other)
-            : this(other.network, null, other.input, other.timing, other.outputSpikeSteps != null)
+            : this(other.network, null, other.input, other.timing, other.outputSpikeSteps != null, other.watch)
         {
             outputSpikeSteps?.AddRange(other.outputSpikeSteps!);
+            for (int slot = 0; firings != null && slot < firings.Length; slot++)
+            {
+                firings[slot].AddRange(other.firings![slot]);
+            }
+            firstDoneStep = other.firstDoneStep;
             Array.Copy(other.spikes, spikes, spikes.Length);
             Array.Copy(other.legacyDelay, legacyDelay, legacyDelay.Length);
             Array.Copy(other.legacyPending, legacyPending, legacyPending.Length);
@@ -94,6 +125,13 @@ namespace SnpEvolution.Simulation
         public IReadOnlyList<int> OutputSpikeSteps => outputSpikeSteps ?? (IReadOnlyList<int>)Array.Empty<int>();
 
         public IReadOnlyList<long> Spikes => (long[])spikes.Clone();
+
+        // Whether a Ports readout has seen all it waits for after done.
+        public bool PortRunOver => firstDoneStep is int done && StepCount > done + watch!.StepsAfterDone;
+
+        // What a Ports readout reads from this computation so far.
+        public PortRun PortRun() =>
+            new PortRun(firings!.Select(slot => (IReadOnlyList<Firing>)slot.ToArray()).ToArray(), (long[])spikes.Clone(), Array.AsReadOnly(network.initialSpikes));
 
         public int NeuronCount => network.NeuronCount;
 
@@ -190,7 +228,23 @@ namespace SnpEvolution.Simulation
                 state[5 * count + 1] = outputEngaged ? 1 : 0;
                 state[5 * count + 2] = Output ?? -1;
             }
-            return state;
+            return firings == null ? state : state.Concat(PortHistory()).ToArray();
+        }
+
+        // Everything a Ports readout has recorded, flattened, so computations with different records are never merged.
+        public long[] PortHistory()
+        {
+            var history = new List<long> { firstDoneStep ?? -1 };
+            for (int slot = 0; slot < firings!.Length; slot++)
+            {
+                history.Add(-1 - slot);
+                foreach (Firing firing in firings[slot])
+                {
+                    history.Add(firing.Step);
+                    history.Add(firing.Spikes);
+                }
+            }
+            return history.ToArray();
         }
 
         private int ApplicableRuleCount(int neuron)
@@ -212,6 +266,10 @@ namespace SnpEvolution.Simulation
             if (emitting[neuron] > 0)
             {
                 emitters[emitterCount++] = neuron;
+                if (watchSlot != null)
+                {
+                    RecordWatchedFiring(neuron);
+                }
             }
         }
 
@@ -303,6 +361,18 @@ namespace SnpEvolution.Simulation
             }
             emitting[neuron] = network.RuleProduce[rule];
             return release;
+        }
+
+        private void RecordWatchedFiring(int neuron)
+        {
+            if (watchSlot![neuron] >= 0)
+            {
+                firings![watchSlot[neuron]].Add(new Firing(StepCount, emitting[neuron]));
+            }
+            if (isDone![neuron] && firstDoneStep == null)
+            {
+                firstDoneStep = StepCount;
+            }
         }
 
         private void RecordOutputNeuron(SpikeRelease release)
