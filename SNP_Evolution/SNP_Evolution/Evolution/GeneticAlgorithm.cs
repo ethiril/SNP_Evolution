@@ -1,45 +1,46 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution
 {
-    public sealed class GeneticAlgorithm
+    // A generational algorithm: rank everyone, carry the elite over, and breed the rest with the given operators.
+    public sealed class GeneticAlgorithm : IGeneticAlgorithm
     {
         private readonly Random random;
         private readonly Func<Network> createRandomNetwork;
-        private readonly Func<string> createRandomExpression;
-        private readonly Func<Network, FitnessResult> evaluate;
+        private readonly IPopulationEvaluator evaluator;
+        private readonly GeneticOperators operators;
         private readonly int elitism;
-        private readonly float mutationRate;
+        private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
+        private List<Individual> population;
 
         public GeneticAlgorithm(
             int populationSize,
             Random random,
             Func<Network> createRandomNetwork,
-            Func<string> createRandomExpression,
-            Func<Network, FitnessResult> evaluate,
-            int elitism,
-            float mutationRate)
+            IPopulationEvaluator evaluator,
+            GeneticOperators operators,
+            int elitism)
         {
             this.random = random;
             this.createRandomNetwork = createRandomNetwork;
-            this.createRandomExpression = createRandomExpression;
-            this.evaluate = evaluate;
+            this.evaluator = evaluator;
+            this.operators = operators;
             this.elitism = elitism;
-            this.mutationRate = mutationRate;
-            Population = Enumerable.Range(0, populationSize).Select(_ => new Individual(createRandomNetwork())).ToList();
+            population = Enumerable.Range(0, populationSize).Select(_ => new Individual(createRandomNetwork())).ToList();
         }
 
-        public List<Individual> Population { get; private set; }
+        public IReadOnlyList<Individual> Population => population;
 
         public int Generation { get; private set; } = 1;
 
         public Individual? Best { get; private set; }
 
         // One row per generation after the first, holding every in-range fitness that generation scored.
-        public List<List<float>> FitnessHistory { get; } = new List<List<float>>();
+        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory;
 
         public static bool IsRecordableFitness(float fitness) => fitness >= 0 && fitness <= 1;
 
@@ -47,7 +48,7 @@ namespace SnpEvolution.Evolution
 
         public void NextGeneration()
         {
-            if (Population.Count == 0)
+            if (population.Count == 0)
             {
                 return;
             }
@@ -57,90 +58,54 @@ namespace SnpEvolution.Evolution
             }
             else
             {
-                Population.ForEach(individual => individual.Evaluate(evaluate));
-                FitnessHistory.Add(Population.Select(individual => individual.Fitness).Where(IsRecordableFitness).ToList());
+                Evaluate(population);
+                fitnessHistory.Add(population.Select(individual => individual.Fitness).Where(IsRecordableFitness).ToList());
             }
-            Population.Sort((first, second) => second.Fitness.CompareTo(first.Fitness));
-            Best = Population.FirstOrDefault(individual => IsRecordableFitness(individual.Fitness)) ?? Population[0];
-            Population = Breed();
+            population.Sort((first, second) => second.Fitness.CompareTo(first.Fitness));
+            Best = population.FirstOrDefault(individual => IsRecordableFitness(individual.Fitness)) ?? population[0];
+            population = Breed();
             Generation++;
+        }
+
+        private void Evaluate(IReadOnlyList<Individual> individuals)
+        {
+            IReadOnlyList<FitnessResult> results = evaluator.EvaluateAll(individuals.Select(individual => individual.Genes).ToList());
+            for (int index = 0; index < individuals.Count; index++)
+            {
+                individuals[index].Record(results[index]);
+            }
         }
 
         private void EvaluateUntilViable()
         {
-            Population.ForEach(individual => individual.Evaluate(evaluate));
+            Evaluate(population);
             List<int> nonViable = NonViableIndexes();
             while (nonViable.Count > 0)
             {
                 Console.WriteLine("Replacing {0} erroneous networks in the initial population.", nonViable.Count);
-                foreach (int index in nonViable)
+                List<Individual> replacements = nonViable.Select(_ => new Individual(createRandomNetwork())).ToList();
+                Evaluate(replacements);
+                for (int replacement = 0; replacement < nonViable.Count; replacement++)
                 {
-                    var replacement = new Individual(createRandomNetwork());
-                    replacement.Evaluate(evaluate);
-                    Population[index] = replacement;
+                    population[nonViable[replacement]] = replacements[replacement];
                 }
                 nonViable = NonViableIndexes();
             }
         }
 
         private List<int> NonViableIndexes() =>
-            Enumerable.Range(0, Population.Count).Where(index => !IsViableFitness(Population[index].Fitness)).ToList();
+            Enumerable.Range(0, population.Count).Where(index => !IsViableFitness(population[index].Fitness)).ToList();
 
         private List<Individual> Breed()
         {
-            float fitnessSum = Population.Sum(individual => individual.Fitness);
-            List<Individual> nextPopulation = Population.Take(elitism).ToList();
-            while (nextPopulation.Count < Population.Count)
+            Func<Individual> chooseParent = operators.Selection.Prepare(population, random);
+            List<Individual> nextPopulation = population.Take(elitism).ToList();
+            while (nextPopulation.Count < population.Count)
             {
-                Network child = Crossover(ChooseParent(fitnessSum).Genes, ChooseParent(fitnessSum).Genes);
-                nextPopulation.Add(new Individual(Mutate(child)));
+                Network child = operators.Crossover.Cross(chooseParent().Genes, chooseParent().Genes, random);
+                nextPopulation.Add(new Individual(operators.Mutation.Mutate(child, random)));
             }
             return nextPopulation;
-        }
-
-        // Roulette-wheel selection, falling back to the top tenth when rounding leaves the wheel unspent.
-        private Individual ChooseParent(float fitnessSum)
-        {
-            double remaining = random.NextDouble() * fitnessSum;
-            foreach (Individual individual in Population)
-            {
-                if (remaining < individual.Fitness)
-                {
-                    return individual;
-                }
-                remaining -= individual.Fitness;
-            }
-            return Population[random.Next(0, Population.Count / 10 + 1)];
-        }
-
-        // The child keeps the first parent's topology, taking each rule expression from either parent.
-        private Network Crossover(Network firstParent, Network secondParent)
-        {
-            var neurons = new List<Neuron>();
-            for (int neuronIndex = 0; neuronIndex < firstParent.Neurons.Count; neuronIndex++)
-            {
-                Neuron neuron = firstParent.Neurons[neuronIndex];
-                IReadOnlyList<Rule>? secondRules = secondParent.Neurons.ElementAtOrDefault(neuronIndex)?.Rules;
-                neurons.Add(neuron.WithRules(neuron.Rules.Select((rule, ruleIndex) =>
-                {
-                    bool keepFirst = random.NextDouble() < 0.5;
-                    Rule? secondRule = secondRules?.ElementAtOrDefault(ruleIndex);
-                    return keepFirst || secondRule == null ? rule : rule.WithExpression(secondRule.Expression);
-                })));
-            }
-            return new Network(neurons);
-        }
-
-        private Network Mutate(Network network)
-        {
-            if (random.NextDouble() >= mutationRate)
-            {
-                return network;
-            }
-            int neuronIndex = random.Next(0, network.Neurons.Count);
-            IReadOnlyList<Rule> rules = network.Neurons[neuronIndex].Rules;
-            int ruleIndex = random.Next(0, rules.Count);
-            return network.WithRule(neuronIndex, ruleIndex, rules[ruleIndex].WithExpression(createRandomExpression()));
         }
     }
 }

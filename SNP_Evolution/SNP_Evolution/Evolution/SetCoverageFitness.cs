@@ -3,10 +3,17 @@ using System.Linq;
 
 namespace SnpEvolution.Evolution
 {
-    public static class FitnessScore
+    // An F1-style score against the expected set, scaled by how much of that set the outputs cover.
+    public sealed class SetCoverageFitness : IFitnessFunction
     {
-        // An F1-style score against the expected set, scaled by how much of that set the outputs cover.
-        public static float Calculate(IReadOnlyList<int> outputs, IReadOnlyCollection<int> expectedSet)
+        private readonly IReadOnlyCollection<int> expectedSet;
+
+        public SetCoverageFitness(IReadOnlyCollection<int> expectedSet)
+        {
+            this.expectedSet = expectedSet;
+        }
+
+        public float Score(IReadOnlyList<int> outputs)
         {
             if (outputs.Count == 0)
             {

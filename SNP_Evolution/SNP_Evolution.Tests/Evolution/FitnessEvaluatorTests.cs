@@ -1,12 +1,16 @@
 using SnpEvolution.Evolution;
 using SnpEvolution.Networks;
+using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Evolution
 {
     public class FitnessEvaluatorTests
     {
         private static FitnessEvaluator EvaluatorExpecting(params int[] expectedSet) =>
-            new FitnessEvaluator(expectedSet, maxSteps: 10, repetitions: 10, solvedRetestCount: 5, new Random(0));
+            Create(expectedSet, repetitions: 10, solvedRetestCount: 5, new Random(0));
+
+        private static FitnessEvaluator Create(int[] expectedSet, int repetitions, int solvedRetestCount, Random random) =>
+            new FitnessEvaluator(new SequentialCpuEngine(), new SetCoverageFitness(expectedSet), new SimulationOptions(MaxSteps: 10, repetitions), solvedRetestCount, random);
 
         [Fact]
         public void EvaluateReportsFitnessAndOutputs()
@@ -35,12 +39,20 @@ namespace SnpEvolution.Tests.Evolution
             // The feeder's first rule refills the output neuron and its second starves it, so the scripted choices pass one retest and fail the next.
             var network = new Network(new[]
             {
-                TestNetworks.Neuron("a", new[] { 2 }, new Rule("a", 1, true), new Rule("a", 0, false)),
-                TestNetworks.OutputNeuron("a", new Rule("a", 0, true)),
+                TestNetworks.Neuron(1, new[] { 2 }, new Rule("a", 1, true), new Rule("a", 0, false)),
+                TestNetworks.OutputNeuron(1, new Rule("a", 0, true)),
             });
-            var evaluator = new FitnessEvaluator(new[] { 1 }, maxSteps: 10, repetitions: 2, solvedRetestCount: 2, new ScriptedRandom(0, 0, 1, 1));
+            var evaluator = Create(new[] { 1 }, repetitions: 2, solvedRetestCount: 2, new ScriptedRandom(0, 0, 1, 1));
 
             Assert.False(evaluator.IsReliablySolved(network));
+        }
+
+        [Fact]
+        public void EvaluateAllScoresEachNetworkInOrder()
+        {
+            IReadOnlyList<FitnessResult> results = EvaluatorExpecting(1).EvaluateAll(new[] { TestNetworks.NeverOutputs(), TestNetworks.AlwaysOutputsOne() });
+
+            Assert.Equal(new[] { 0f, 1f }, results.Select(result => result.Fitness));
         }
 
         [Theory]

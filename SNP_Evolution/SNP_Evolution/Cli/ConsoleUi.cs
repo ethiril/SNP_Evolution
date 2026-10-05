@@ -143,6 +143,12 @@ namespace SnpEvolution.Cli
             WriteColoured(ConsoleColor.Cyan, settings.MutationRate);
             Console.Write("; Maximum Number of Generations: ");
             WriteColoured(ConsoleColor.Cyan, settings.MaxGenerations);
+            Console.Write(";\n Engine: ");
+            WriteColoured(ConsoleColor.Cyan, settings.Engine.Name);
+            Console.Write("; Fitness Function: ");
+            WriteColoured(ConsoleColor.Cyan, settings.FitnessFunction.Name);
+            Console.Write("; Genetic Algorithm: ");
+            WriteColoured(ConsoleColor.Cyan, settings.Algorithm.Name);
             Console.Write(";\n Expected Set: {" + string.Join("\t", settings.ExpectedSet) + "}\n\n");
         }
 

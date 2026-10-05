@@ -42,9 +42,24 @@ For outputs 4 and 5 and 7, the screen will be filled with numbers that were gene
 File Structure (under `SNP_Evolution/SNP_Evolution`):
 
 - `Program.cs` starts the console menu.
-- `Networks/` holds the SN P system: `Rule`, `Neuron` and `Network` describe a system, `NetworkSimulation` steps one run of it, `NetworkRunner` repeats runs to collect outputs, and `ReferenceNetworks` holds the hand-built natural and even numbers systems.
-- `Evolution/` holds the genetic algorithm: `GeneticAlgorithm`, `Individual`, the fitness score and evaluator, and the random rule and topology generators.
+- `Networks/` holds the SN P system: `Rule`, `Neuron` and `Network` describe a system, `SpikeCondition` compiles a rule expression into the exact set of spike counts it matches, `NetworkNotation` renders a network as a readable text table, and `ReferenceNetworks` holds the hand-built natural and even numbers systems.
+- `Simulation/` runs networks: `CompiledNetwork` flattens a network into arrays, `NetworkSimulation` steps one run of it, `NetworkRunner` repeats runs to collect outputs, and the `ISimulationEngine` implementations run whole batches of networks.
+- `Evolution/` holds the genetic algorithm: `GeneticAlgorithm` and its swappable `Operators/`, `Individual`, the fitness functions and evaluator, and the random rule and topology generators.
 - `Storage/` saves and loads networks as JSON and fitness history as CSV.
-- `Cli/` holds the console menus and settings.
+- `Cli/` holds the console menus and settings, and `Catalog` lists the engines, fitness functions and algorithms the settings menu offers.
+
+## How spikes are stored
+
+Spikes are stored as counts (up to `long.MaxValue`) rather than strings of `a`. Each rule expression is a regex over `a`, and the counts it matches always settle into a repeating pattern. Each rule is therefore compiled once into a short lookup table plus a repeating cycle. Matching a rule costs the same whether a neuron holds 2 spikes or 2 trillion. The supported syntax is literals, `.`, groups, `|` and the `?`, `*`, `+`, `{n}`, `{n,}` and `{n,m}` quantifiers. Saved networks write `SpikeCount` as a number; older files that wrote it as `"aa"` still load.
+
+When an evolution finishes, the best network is printed and saved as a `.txt` table next to its `.json`, with spike counts written back out as runs of `a` (`a^N` for long runs).
+
+## Extending
+
+Each swappable part is an interface plus one line in `Cli/Catalog.cs`, after which it appears in the settings menu:
+
+- **Simulation engine** (`ISimulationEngine`): receives a whole batch of networks so it can spread the runs out. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
+- **Fitness function** (`IFitnessFunction`): scores a network's sorted outputs from 0 to 1.
+- **Genetic algorithm**: either combine new `IParentSelection`, `ICrossover` or `IMutation` operators with the existing `GeneticAlgorithm`, or implement `IGeneticAlgorithm` from scratch.
 
 Tests live in `SNP_Evolution/SNP_Evolution.Tests`. `network.json` is a sample network to try out with option 7.

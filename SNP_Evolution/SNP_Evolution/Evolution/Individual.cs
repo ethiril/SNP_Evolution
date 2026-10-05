@@ -17,9 +17,8 @@ namespace SnpEvolution.Evolution
 
         public IReadOnlyList<int> Outputs { get; private set; } = Array.Empty<int>();
 
-        public void Evaluate(Func<Network, FitnessResult> evaluate)
+        public void Record(FitnessResult result)
         {
-            FitnessResult result = evaluate(Genes);
             Fitness = result.Fitness;
             Outputs = result.Outputs;
         }

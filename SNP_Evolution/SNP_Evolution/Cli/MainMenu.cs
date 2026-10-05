@@ -85,28 +85,26 @@ namespace SnpEvolution.Cli
 
             var startingExpressions = new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random);
             var mutationExpressions = new ExpressionGenerator(settings.MutationTemplates, Settings.MaxSpikeGroupSize, random);
-            var evaluator = new FitnessEvaluator(settings.ExpectedSet, settings.MaxSteps, settings.Repetitions, settings.SolvedRetestCount, random);
-            var geneticAlgorithm = new GeneticAlgorithm(
-                settings.PopulationSize,
-                random,
-                () => createStartingNetwork(startingExpressions),
-                mutationExpressions.Next,
-                evaluator.Evaluate,
-                Settings.Elitism,
-                settings.MutationRate);
+            var evaluator = new FitnessEvaluator(
+                settings.Engine.Create(settings), settings.FitnessFunction.Create(settings), settings.SimulationOptions, settings.SolvedRetestCount, random);
+            IGeneticAlgorithm geneticAlgorithm = settings.Algorithm.Create(
+                new EvolutionRun(settings, random, () => createStartingNetwork(startingExpressions), mutationExpressions.Next, evaluator));
 
             RunGenerations(geneticAlgorithm, evaluator);
 
             Directory.CreateDirectory(folder);
             NetworkFiles.SaveText(FitnessCsv.Format(geneticAlgorithm.FitnessHistory), Path.Combine(folder, fileStem + ".csv"));
-            if (geneticAlgorithm.Best != null)
+            if (geneticAlgorithm.Best is Individual best)
             {
-                NetworkFiles.Save(geneticAlgorithm.Best.Genes, Path.Combine(folder, fileStem + ".json"));
+                string graph = NetworkNotation.Format(best.Genes);
+                Console.WriteLine("\nBest network found (fitness {0}):\n{1}", best.Fitness, graph);
+                NetworkFiles.Save(best.Genes, Path.Combine(folder, fileStem + ".json"));
+                NetworkFiles.SaveText(graph, Path.Combine(folder, fileStem + ".txt"));
             }
             ConsoleUi.WaitForEnter("Press enter to return to the menu.");
         }
 
-        private void RunGenerations(GeneticAlgorithm geneticAlgorithm, FitnessEvaluator evaluator)
+        private void RunGenerations(IGeneticAlgorithm geneticAlgorithm, FitnessEvaluator evaluator)
         {
             for (int generation = 0; generation < settings.MaxGenerations; generation++)
             {
@@ -116,7 +114,7 @@ namespace SnpEvolution.Cli
                 {
                     continue;
                 }
-                best.Genes.Print();
+                Console.Write(NetworkNotation.Format(best.Genes));
                 Console.WriteLine(string.Join("\t", best.Outputs.Distinct()));
                 Console.WriteLine("Current best fitness: {0}", best.Fitness);
                 if (!FitnessEvaluator.IsSolvingFitness(best.Fitness))
@@ -149,14 +147,14 @@ namespace SnpEvolution.Cli
                 return;
             }
             Console.WriteLine("\n");
-            imported.Print();
+            Console.Write(NetworkNotation.Format(imported));
             RunAndReport(imported);
         }
 
         private void RunAndReport(Network network)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            List<int> outputs = NetworkRunner.CollectOutputs(network, settings.MaxSteps, settings.Repetitions, random);
+            IReadOnlyList<int> outputs = settings.Engine.Create(settings).CollectOutputs(new[] { network }, settings.SimulationOptions, random)[0];
             stopwatch.Stop();
             Console.WriteLine("Final output set: ");
             Console.WriteLine(string.Join("\t", outputs));
