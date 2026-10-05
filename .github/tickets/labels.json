@@ -1,0 +1,50 @@
+{
+  "Epic": {
+    "color": "5319e7",
+    "description": "A block of work; its children are the tickets"
+  },
+  "area: simulation": {
+    "color": "0969DA",
+    "description": "Engines, readouts, input encodings"
+  },
+  "area: tasks": {
+    "color": "0969DA",
+    "description": "ITask implementations and the task suite"
+  },
+  "area: modules": {
+    "color": "0969DA",
+    "description": "Module library, parts, contracts, composition"
+  },
+  "area: evolution": {
+    "color": "0969DA",
+    "description": "Algorithms, operators, fitness, MAP-Elites"
+  },
+  "area: cli": {
+    "color": "0969DA",
+    "description": "Command line and menus"
+  },
+  "area: export": {
+    "color": "0969DA",
+    "description": "Exporters to hardware and verification tools"
+  },
+  "area: research": {
+    "color": "0969DA",
+    "description": "RESEARCH.md, experiments, paper tables"
+  },
+  "kind: investigation": {
+    "color": "D4A72C",
+    "description": "Answers a question before code is committed to it"
+  },
+  "kind: benchmark": {
+    "color": "1B7C83",
+    "description": "Runs seeds and reports numbers"
+  },
+  "state: blocked": {
+    "color": "6E7781",
+    "description": "Waiting on another issue or an external dependency"
+  },
+  "state: needs-decision": {
+    "color": "BF3989",
+    "description": "Surfaced something the owner must decide before code proceeds"
+  }
+}

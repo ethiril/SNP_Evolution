@@ -103,6 +103,15 @@ namespace SnpEvolution.Evolution.Tasks
             return new SequenceTask($"{Name}, gaps {start + 1}-{Math.Min(Expected.Count, start + FocusLength)}", Expected.Skip(start).Take(FocusLength).ToList());
         }
 
+        // The same gaps as Focus, made after a trigger: the part's input receives one spike, and its output should
+        // then fire as if the step after the spike arrived had been the last spike of the sequence so far.
+        public ITask? Triggered(int check)
+        {
+            int start = Math.Clamp(check, 0, Expected.Count - 1);
+            return new TriggeredSequenceTask($"{Name}, gaps {start + 1}-{Math.Min(Expected.Count, start + FocusLength)} after a trigger",
+                Expected.Skip(start).Take(FocusLength).ToList());
+        }
+
         public int CorrectPrefix(IReadOnlyList<int> intervals)
         {
             int prefix = 0;

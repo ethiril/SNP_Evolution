@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1621" height="1092" viewBox="0 0 1621 1092" font-family="Menlo, Consolas, monospace" font-size="12">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#444"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<path d="M639.5,494 C695.4,494 695.4,434 751.4,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M639.5,494 C689.9,494 689.9,554 740.4,554" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M639.5,494 L656.4,494 Q664.4,494 664.4,486 L664.4,108 Q664.4,100 656.4,100 L229.7,100 Q221.7,100 221.7,108 L221.7,538 Q221.7,546 228.7,546 L235.7,546" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M639.5,494 C699.1,494 699.1,666 758.7,666" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1100.4,142 L1137.9,142 Q1145.9,142 1145.9,150 L1145.9,230 Q1145.9,238 1137.9,238 L1085.8,238" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1100.4,142 L1143.9,142 Q1151.9,142 1151.9,134 L1151.9,96 Q1151.9,88 1143.9,88 L722.4,88 Q714.4,88 714.4,96 L714.4,546 Q714.4,554 722.4,554 L740.4,554" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1312.6,434 L1354.8,434 Q1362.8,434 1362.8,426 L1362.8,90 Q1362.8,82 1354.8,82 L482.3,82 Q474.3,82 474.3,90 L474.3,486 Q474.3,494 482.3,494 L517.3,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1312.6,434 C1366.7,434 1366.7,546 1420.8,546" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1360.8,530 Q1368.8,530 1368.8,522 L1368.8,442 Q1368.8,434 1360.8,434 L1312.6,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1366.8,530 Q1374.8,530 1374.8,522 L1374.8,78 Q1374.8,70 1366.8,70 L704.4,70 Q696.4,70 696.4,78 L696.4,426 Q696.4,434 704.4,434 L751.4,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1336.8,530 Q1344.8,530 1344.8,522 L1344.8,108 Q1344.8,100 1336.8,100 L946.6,100 Q938.6,100 938.6,108 L938.6,454 Q938.6,462 946.6,462 L992.8,462" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1342.8,530 Q1350.8,530 1350.8,522 L1350.8,102 Q1350.8,94 1342.8,94 L940.6,94 Q932.6,94 932.6,102 L932.6,566 Q932.6,574 940.6,574 L952.6,574" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1348.8,530 Q1356.8,530 1356.8,522 L1356.8,96 Q1356.8,88 1348.8,88 L934.6,88 Q926.6,88 926.6,96 L926.6,694 Q926.6,702 934.6,702 L978.2,702" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1354.8,530 Q1362.8,530 1362.8,522 L1362.8,90 Q1362.8,82 1354.8,82 L928.6,82 Q920.6,82 920.6,90 L920.6,822 Q920.6,830 928.6,830 L989.1,830" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1316.2,530 L1360.8,530 Q1368.8,530 1368.8,522 L1368.8,84 Q1368.8,76 1360.8,76 L710.4,76 Q702.4,76 702.4,84 L702.4,658 Q702.4,666 710.4,666 L758.7,666" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M851.7,434 C902.1,434 902.1,574 952.6,574" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M851.7,434 C920.4,434 920.4,830 989.1,830" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M851.7,434 C918.6,434 918.6,942 985.5,942" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,238 L1161.9,238 Q1169.9,238 1169.9,230 L1169.9,78 Q1169.9,70 1161.9,70 L470.3,70 Q462.3,70 462.3,78 L462.3,486 Q462.3,494 470.3,494 L517.3,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,238 L1131.9,238 Q1139.9,238 1139.9,230 L1139.9,150 Q1139.9,142 1131.9,142 L1100.4,142" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,238 C1160,238 1160,434 1234.2,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,238 L1137.9,238 Q1145.9,238 1145.9,246 L1145.9,822 Q1145.9,830 1137.9,830 L1089.4,830" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1115,350 L1143.9,350 Q1151.9,350 1151.9,342 L1151.9,246 Q1151.9,238 1143.9,238 L1085.8,238" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1115,350 C1165.4,350 1165.4,642 1215.9,642" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,462 L1149.9,462 Q1157.9,462 1157.9,454 L1157.9,150 Q1157.9,142 1149.9,142 L1100.4,142" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,462 L1155.9,462 Q1163.9,462 1163.9,454 L1163.9,358 Q1163.9,350 1155.9,350 L1115,350" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,462 L1161.9,462 Q1169.9,462 1169.9,470 L1169.9,694 Q1169.9,702 1161.9,702 L1100.4,702" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1085.8,462 L1131.9,462 Q1139.9,462 1139.9,470 L1139.9,822 Q1139.9,830 1131.9,830 L1089.4,830" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1125.9,574 L1137.9,574 Q1145.9,574 1145.9,566 L1145.9,102 Q1145.9,94 1137.9,94 L494.3,94 Q486.3,94 486.3,102 L486.3,486 Q486.3,494 494.3,494 L517.3,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1125.9,574 L1143.9,574 Q1151.9,574 1151.9,566 L1151.9,470 Q1151.9,462 1143.9,462 L1085.8,462" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1125.9,574 L1149.9,574 Q1157.9,574 1157.9,582 L1157.9,694 Q1157.9,702 1149.9,702 L1100.4,702" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1100.4,702 C1165.4,702 1165.4,530 1230.5,530" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1100.4,702 L1155.9,702 Q1163.9,702 1163.9,694 L1163.9,470 Q1163.9,462 1155.9,462 L1085.8,462" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1100.4,702 L1161.9,702 Q1169.9,702 1169.9,694 L1169.9,582 Q1169.9,574 1161.9,574 L1125.9,574" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862.6,554 C927.7,554 927.7,462 992.8,462" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862.6,554 C920.4,554 920.4,702 978.2,702" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862.6,554 C925.9,554 925.9,830 989.1,830" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862.6,554 L869.6,554 Q876.6,554 876.6,546 L876.6,108 Q876.6,100 868.6,100 L229.7,100 Q221.7,100 221.7,108 L221.7,538 Q221.7,546 228.7,546 L235.7,546" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1089.4,830 L1137.9,830 Q1145.9,830 1145.9,822 L1145.9,102 Q1145.9,94 1137.9,94 L494.3,94 Q486.3,94 486.3,102 L486.3,486 Q486.3,494 494.3,494 L517.3,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1089.4,830 C1161.8,830 1161.8,434 1234.2,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1089.4,830 C1160,830 1160,530 1230.5,530" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1089.4,830 L1143.9,830 Q1151.9,830 1151.9,822 L1151.9,358 Q1151.9,350 1143.9,350 L1115,350" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1089.4,830 L1149.9,830 Q1157.9,830 1157.9,822 L1157.9,90 Q1157.9,82 1149.9,82 L716.4,82 Q708.4,82 708.4,90 L708.4,546 Q708.4,554 716.4,554 L740.4,554" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M145.7,546 C190.7,546 190.7,546 235.7,546" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1521.1,546 L1551.1,546 Q1559.1,546 1559.1,538 L1559.1,84 Q1559.1,76 1551.1,76 L710.4,76 Q702.4,76 702.4,84 L702.4,426 Q702.4,434 710.4,434 L751.4,434" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M416.3,546 C466.8,546 466.8,494 517.3,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M416.3,546 C461.3,546 461.3,606 506.3,606" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1330.8,642 L1366.8,642 Q1374.8,642 1374.8,634 L1374.8,78 Q1374.8,70 1366.8,70 L704.4,70 Q696.4,70 696.4,78 L696.4,546 Q696.4,554 704.4,554 L740.4,554" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M844.4,666 C911.3,666 911.3,142 978.2,142" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M844.4,666 C918.6,666 918.6,238 992.8,238" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M844.4,666 C904,666 904,350 963.6,350" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M844.4,666 C911.3,666 911.3,702 978.2,702" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M650.4,606 L657.4,606 Q664.4,606 664.4,598 L664.4,502 Q664.4,494 656.4,494 L639.5,494" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M650.4,606 L662.4,606 Q670.4,606 670.4,598 L670.4,102 Q670.4,94 662.4,94 L223.7,94 Q215.7,94 215.7,102 L215.7,538 Q215.7,546 223.7,546 L235.7,546" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1093.1,942 L1143.9,942 Q1151.9,942 1151.9,934 L1151.9,246 Q1151.9,238 1143.9,238 L1085.8,238" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="517.3" y="452" width="122.2" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="578.4" y="474" text-anchor="middle" font-weight="bold">n1</text>
+<text x="578.4" y="490" text-anchor="middle">aa -&gt; a;1</text>
+<text x="578.4" y="506" text-anchor="middle">aaa+ -&gt; forget</text>
+<text x="578.4" y="522" text-anchor="middle">a -&gt; a</text>
+<rect x="978.2" y="116" width="122.2" height="52" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="138" text-anchor="middle" font-weight="bold">n2</text>
+<text x="1039.3" y="154" text-anchor="middle">a(aaa)+ -&gt; a;3</text>
+<rect x="1234.2" y="408" width="78.4" height="52" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1273.4" y="430" text-anchor="middle" font-weight="bold">n3</text>
+<text x="1273.4" y="446" text-anchor="middle">aaa -&gt; a</text>
+<rect x="1230.5" y="496" width="85.7" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1273.4" y="518" text-anchor="middle" font-weight="bold">n4</text>
+<text x="1273.4" y="534" text-anchor="middle">a</text>
+<text x="1273.4" y="550" text-anchor="middle">a? -&gt; a;2</text>
+<rect x="751.4" y="392" width="100.3" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="801.5" y="414" text-anchor="middle" font-weight="bold">n5</text>
+<text x="801.5" y="430" text-anchor="middle">aa</text>
+<text x="801.5" y="446" text-anchor="middle">a -&gt; forget</text>
+<text x="801.5" y="462" text-anchor="middle">a(a)+ -&gt; a</text>
+<rect x="992.8" y="204" width="93" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="226" text-anchor="middle" font-weight="bold">n6</text>
+<text x="1039.3" y="242" text-anchor="middle">aaa</text>
+<text x="1039.3" y="258" text-anchor="middle">aaa -&gt; a;3</text>
+<rect x="963.6" y="308" width="151.4" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="330" text-anchor="middle" font-weight="bold">n7</text>
+<text x="1039.3" y="346" text-anchor="middle">a</text>
+<text x="1039.3" y="362" text-anchor="middle">a -&gt; a;3</text>
+<text x="1039.3" y="378" text-anchor="middle">aa(a)* -&gt; forget;1</text>
+<rect x="992.8" y="428" width="93" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="450" text-anchor="middle" font-weight="bold">n8</text>
+<text x="1039.3" y="466" text-anchor="middle">a</text>
+<text x="1039.3" y="482" text-anchor="middle">aaa -&gt; a;3</text>
+<rect x="952.6" y="532" width="173.3" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="554" text-anchor="middle" font-weight="bold">n9</text>
+<text x="1039.3" y="570" text-anchor="middle">a</text>
+<text x="1039.3" y="586" text-anchor="middle">a(aaa)? -&gt; a</text>
+<text x="1039.3" y="602" text-anchor="middle">aaa(aaa)* -&gt; forget;1</text>
+<rect x="978.2" y="652" width="122.2" height="100" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="674" text-anchor="middle" font-weight="bold">n10</text>
+<text x="1039.3" y="690" text-anchor="middle">a</text>
+<text x="1039.3" y="706" text-anchor="middle">aa -&gt; a</text>
+<text x="1039.3" y="722" text-anchor="middle">a -&gt; forget;2</text>
+<text x="1039.3" y="738" text-anchor="middle">a(aaa)+ -&gt; a;1</text>
+<rect x="740.4" y="512" width="122.2" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="801.5" y="534" text-anchor="middle" font-weight="bold">n11</text>
+<text x="801.5" y="550" text-anchor="middle">a</text>
+<text x="801.5" y="566" text-anchor="middle">aaa(aa)? -&gt; a</text>
+<text x="801.5" y="582" text-anchor="middle">aa -&gt; forget;3</text>
+<path d="M1089.4,846.8 L1129.4,846.8" stroke="#c05621" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="1133.4" y="850.8" fill="#c05621">env</text>
+<rect x="989.1" y="788" width="100.3" height="84" rx="14" fill="#fafafa" stroke="#c05621" stroke-width="2"/>
+<text x="1039.3" y="810" text-anchor="middle" font-weight="bold">n12 (out)</text>
+<text x="1039.3" y="826" text-anchor="middle">aaaaaaa</text>
+<text x="1039.3" y="842" text-anchor="middle">a -&gt; a;1</text>
+<text x="1039.3" y="858" text-anchor="middle">aa(a)* -&gt; a</text>
+<rect x="60" y="520" width="85.7" height="52" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="102.9" y="542" text-anchor="middle" font-weight="bold">n13</text>
+<text x="102.9" y="558" text-anchor="middle">a? -&gt; a;1</text>
+<rect x="1420.8" y="512" width="100.3" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1471" y="534" text-anchor="middle" font-weight="bold">n14</text>
+<text x="1471" y="550" text-anchor="middle">a</text>
+<text x="1471" y="566" text-anchor="middle">aaa* -&gt; a;1</text>
+<rect x="235.7" y="504" width="180.6" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="326" y="526" text-anchor="middle" font-weight="bold">n15</text>
+<text x="326" y="542" text-anchor="middle">aaaaaa</text>
+<text x="326" y="558" text-anchor="middle">aaaaa(aa)+ -&gt; forget;2</text>
+<text x="326" y="574" text-anchor="middle">aaa -&gt; a;2</text>
+<rect x="1215.9" y="600" width="114.9" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1273.4" y="622" text-anchor="middle" font-weight="bold">n16</text>
+<text x="1273.4" y="638" text-anchor="middle">aaaaa</text>
+<text x="1273.4" y="654" text-anchor="middle">aa(a)* -&gt; a</text>
+<text x="1273.4" y="670" text-anchor="middle">a -&gt; forget;3</text>
+<rect x="758.7" y="632" width="85.7" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="801.5" y="654" text-anchor="middle" font-weight="bold">n17</text>
+<text x="801.5" y="670" text-anchor="middle">a</text>
+<text x="801.5" y="686" text-anchor="middle">aaa? -&gt; a</text>
+<rect x="506.3" y="572" width="144.1" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="578.4" y="594" text-anchor="middle" font-weight="bold">n18</text>
+<text x="578.4" y="610" text-anchor="middle">a</text>
+<text x="578.4" y="626" text-anchor="middle">aaaaaa(a)? -&gt; a;2</text>
+<rect x="985.5" y="908" width="107.6" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="1039.3" y="930" text-anchor="middle" font-weight="bold">n19</text>
+<text x="1039.3" y="946" text-anchor="middle">aa</text>
+<text x="1039.3" y="962" text-anchor="middle">a(a)? -&gt; a;1</text>
+</svg>

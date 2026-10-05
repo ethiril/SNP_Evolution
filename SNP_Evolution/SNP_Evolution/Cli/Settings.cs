@@ -44,6 +44,11 @@ namespace SnpEvolution.Cli
         // saved networks to start the library with; without them every module is found by the run itself.
         public bool Modules { get; set; }
         public bool FreezeModules { get; set; } = true;
+
+        // Let every other side run build a part that waits for a trigger from the host, and evolve networks given a
+        // new module copy apart for this many generations before they join the main run (0 to send them in at once).
+        public bool TriggeredModules { get; set; } = true;
+        public int ModuleIncubation { get; set; } = 30;
         public IReadOnlyList<string> ModuleFiles { get; set; } = System.Array.Empty<string>();
         public int BenchmarkSeeds { get; set; } = 5;
         public long EvaluationBudget { get; set; } = 5_000;
@@ -77,7 +82,8 @@ namespace SnpEvolution.Cli
         public StagnationPolicy StagnationPolicy => new StagnationPolicy(Patience: StagnationPatience);
 
         // The modular loop reacts to a stall before stagnation recovery does.
-        public ModulePolicy ModulePolicy => new ModulePolicy(Patience: System.Math.Max(5, StagnationPatience / 2));
+        public ModulePolicy ModulePolicy => new ModulePolicy(
+            Patience: System.Math.Max(5, StagnationPatience / 2), Triggered: TriggeredModules, IncubationGenerations: ModuleIncubation);
 
         public BenchmarkSettings BenchmarkSettings => new BenchmarkSettings(
             BenchmarkSeeds, EvaluationBudget, BenchmarkPopulationSize, MutationRate, MaxSteps, Repetitions,

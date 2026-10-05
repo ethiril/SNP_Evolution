@@ -45,6 +45,11 @@ namespace SnpEvolution.Cli
                 notes.Add(settings.ModuleFiles.Count > 0
                     ? $"Building from modules, starting with {settings.ModuleFiles.Count} saved network(s) and adding any the run finds."
                     : "Building from modules the run finds: changes that pay off, solved stages and side runs on what is missing.");
+                if (settings.ModuleIncubation > 0)
+                {
+                    notes.Add($"Networks given a new module evolve apart for up to {settings.ModuleIncubation} generations before joining the run" +
+                        (settings.TriggeredModules ? "; every other side run builds a part that starts on a trigger from the host." : "."));
+                }
             }
             if (settings.Lexicase)
             {
@@ -75,14 +80,32 @@ namespace SnpEvolution.Cli
         public static IGeneticAlgorithm Evolve(Settings settings, BenchmarkTask task, Func<NetworkFactory, Network> createStartingNetwork, Random random, Action<string> log)
         {
             GenomeSpace space = settings.GenomeSpace(task.Task.InputCount) with { RuleForm = task.RuleForm };
-            var startingFactory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random), random);
-            var mutationFactory = new NetworkFactory(space, new ExpressionGenerator(settings.MutationTemplates, Settings.MaxSpikeGroupSize, random), random);
+            NetworkFactory StartingFactory(GenomeSpace bounds) => new NetworkFactory(bounds, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random), random);
+            NetworkFactory MutationFactory(GenomeSpace bounds) => new NetworkFactory(bounds, new ExpressionGenerator(settings.MutationTemplates, Settings.MaxSpikeGroupSize, random), random);
+            NetworkFactory startingFactory = StartingFactory(space);
+            NetworkFactory mutationFactory = MutationFactory(space);
             ModuleLibrary? library = settings.Modules ? NewLibrary(settings, log) : null;
             FitnessEvaluator CreateEvaluator(ITask stageTask) => new FitnessEvaluator(
                 settings.Engine.Create(settings), stageTask, settings.SimulationOptions with { Timing = task.Timing }, settings.SolvedRetestCount, random);
-            EvolutionContext Context(IPopulationEvaluator evaluator, MutationPressure? pressure, ModuleTracker? tracker) => new EvolutionContext(
-                settings.PopulationSize, settings.MutationRate, random, () => createStartingNetwork(startingFactory), evaluator, mutationFactory, log, pressure,
-                settings.Lexicase, library != null ? new ModuleSupport(library, settings.FreezeModules, tracker) : null);
+            EvolutionContext Context(IPopulationEvaluator evaluator, MutationPressure? pressure, ModuleTracker? tracker, Func<Network>? starting = null, NetworkFactory? mutation = null) =>
+                new EvolutionContext(settings.PopulationSize, settings.MutationRate, random, starting ?? (() => createStartingNetwork(startingFactory)), evaluator,
+                    mutation ?? mutationFactory, log, pressure, settings.Lexicase, library != null ? new ModuleSupport(library, settings.FreezeModules, tracker) : null);
+            // A side run for a part starts from random networks no bigger than a module, with the part's inputs,
+            // whatever the main run started from; one that incubates networks for the run's task starts from them.
+            IGeneticAlgorithm SideRun(ITask sideTask, IReadOnlyList<Network>? seeds)
+            {
+                if (seeds != null)
+                {
+                    return settings.Algorithm.Create(Context(CreateEvaluator(sideTask), null, null, () => seeds[random.Next(seeds.Count)]));
+                }
+                GenomeSpace part = space with
+                {
+                    InputCount = sideTask.InputCount,
+                    MaxNeurons = Math.Min(space.MaxNeurons, sideTask.InputCount + ModuleLibrary.MaxModuleNeurons),
+                };
+                NetworkFactory partStarting = StartingFactory(part);
+                return settings.Algorithm.Create(Context(CreateEvaluator(sideTask), null, null, partStarting.NewNetwork, MutationFactory(part)));
+            }
             IGeneticAlgorithm CreateAlgorithm(IPopulationEvaluator evaluator)
             {
                 var pressure = new MutationPressure();
@@ -92,8 +115,7 @@ namespace SnpEvolution.Cli
                 {
                     // Side runs share the library but not the tracker, which follows the main task.
                     Func<ITask> currentTask = evaluator is ITaskEvaluator taskEvaluator ? () => taskEvaluator.Task : () => task.Task;
-                    geneticAlgorithm = new ModularEvolution(geneticAlgorithm, library, tracker, currentTask,
-                        focus => settings.Algorithm.Create(Context(CreateEvaluator(focus), null, null)),
+                    geneticAlgorithm = new ModularEvolution(geneticAlgorithm, library, tracker, currentTask, SideRun,
                         settings.ModulePolicy, settings.PopulationSize, space.MaxNeurons, random, log);
                 }
                 return settings.StagnationRecovery
@@ -183,8 +205,8 @@ namespace SnpEvolution.Cli
             }
             if (Modular(geneticAlgorithm) is ModularEvolution modular)
             {
-                string modules = modular.Library.Describe();
-                log($"\nModules ({modular.SideRuns} side run(s)):\n{modules}");
+                string modules = $"{modular.SideRuns} side run(s), {modular.SideGenerationsRun} generation(s) on the side in all.{Environment.NewLine}{modular.Library.Describe()}";
+                log($"\nModules:\n{modules}");
                 NetworkFiles.SaveText(modules, Path.Combine(folder, fileStem + "-modules.txt"));
             }
             if (geneticAlgorithm.Best is Individual best)

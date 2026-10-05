@@ -15,7 +15,8 @@ namespace SnpEvolution.Evolution.Modules
         // Adds a copy of the module to the network: each input port gets a synapse from a random neuron already
         // there, and each output port sends to a random neuron that is not an input. A module cut from around an
         // output neuron becomes the network's output half the time, so a part that makes the right output can take
-        // over and the rest of the network can feed it. Unchanged when the network has no room.
+        // over and the rest of the network can feed it; the old output then sends to the new one, so what the
+        // network already made can still pass through. Unchanged when the network has no room.
         public static Network Insert(Network network, Module module, int instance, int maxNeurons, Random random)
         {
             int offset = network.Neurons.Count;
@@ -25,7 +26,10 @@ namespace SnpEvolution.Evolution.Modules
             }
             var tag = new ModuleTag(module.Id, instance);
             bool takesOutput = module.Body.Neurons.Any(neuron => neuron.IsOutput) && random.Next(2) == 0;
-            List<Neuron> neurons = network.Neurons.Select(neuron => takesOutput && neuron.IsOutput ? neuron.WithRoles(false, neuron.IsInput) : neuron).ToList();
+            int moduleOutput = offset + module.Body.Neurons.ToList().FindIndex(neuron => neuron.IsOutput) + 1;
+            List<Neuron> neurons = network.Neurons
+                .Select(neuron => takesOutput && neuron.IsOutput ? neuron.WithRoles(false, neuron.IsInput).WithConnections(neuron.Connections.Append(moduleOutput)) : neuron)
+                .ToList();
             neurons.AddRange(module.Body.Neurons.Select(neuron => neuron
                 .WithConnections(neuron.Connections.Select(target => target + offset))
                 .WithRoles(takesOutput && neuron.IsOutput, false)

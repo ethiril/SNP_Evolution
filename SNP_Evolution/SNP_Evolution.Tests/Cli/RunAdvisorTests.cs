@@ -48,6 +48,19 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        public void SuggestsModulesAndLexicaseOnlyForGrowingGaps()
+        {
+            Settings growing = ForSequence(1, 1, 2, 3, 5, 8, 13, 21);
+            Settings steady = ForSequence(2, 3, 2, 3, 2, 3);
+
+            Suggestion? modules = For(RunAdvisor.Advise(growing), "Modules and lexicase");
+            modules!.Apply(growing);
+
+            Assert.True(growing.Modules && growing.Lexicase);
+            Assert.Null(For(RunAdvisor.Advise(steady), "Modules and lexicase"));
+        }
+
+        [Fact]
         public void AdvisingDoesNotChangeTheSettings()
         {
             Settings settings = ForSequence(1, 1, 2, 3, 5, 8, 13, 21);
