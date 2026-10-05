@@ -41,7 +41,7 @@ namespace SnpEvolution.Networks
                 Neuron neuron = network.Neurons[index];
                 rows.Add(new[]
                 {
-                    Name(index + 1) + (neuron.IsInput ? " (in)" : "") + (neuron.IsOutput ? " (out)" : ""),
+                    Name(index + 1) + (neuron.IsInput ? " (in)" : "") + (neuron.IsOutput ? " (out)" : "") + (neuron.Module is ModuleTag tag ? $" [module {tag.Module}]" : ""),
                     Spikes(spikes[index]),
                     string.Join("  |  ", neuron.Rules.Select(Rule)),
                     neuron.Connections.Count == 0 ? "-" : string.Join(", ", neuron.Connections.Select(Name)),

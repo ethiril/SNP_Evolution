@@ -114,6 +114,20 @@ Structural mutation (`Evolution/Operators/StructuralMutations.cs`) is a weighted
 
 Every algorithm ranks equally fit networks smaller first.
 
+## Checks, lexicase selection and modules
+
+Every task also scores a network on each separate thing it checks: each gap of a sequence, each step of a binary word, each example of a function or acceptor, each number of a set. Two options in *Settings > Search* use these checks, and both are off by default:
+
+- **Lexicase parents** (`--lexicase on`): parents are picked by lexicase selection. Each pick goes through the checks in a random order and keeps only the networks that do best on each. A network that is the only one to get some part of the target right gets to breed even when its fitness is low.
+- **Build from modules** (`--modules on`): the run keeps a library of parts (modules) and builds networks out of them. Modules come from three places, all found by the run itself:
+  - a change that made a child get a check right that its parent did not, cut out with the neurons around it;
+  - the network that solved each stage of an iterative run;
+  - side runs. When the search stalls, the run finds the first check no network does yet, such as gap 7 of a sequence. It evolves a network for just the gaps around it on the side, and puts copies into the best networks to wire in.
+
+  Mutation can insert a copy of a module, picked by how often it has helped, or free one so its neurons evolve like any other. Inserted modules are frozen unless *Freeze modules* (`--freeze off`) is off: other edits cannot change their rules or inner synapses, only their initial spikes and how they are wired in. `--module-files a.json,b.json` starts the library with saved networks, such as the best network of an earlier run.
+
+  The run saves the library, with how often each module was tried and helped, as `-modules.txt` next to the network.
+
 ## Benchmarking and choosing an algorithm
 
 *Benchmark > Every algorithm* runs every algorithm on every suite task over several seeds. Each run has a budget of network evaluations, so the results compare fairly across machines and engines. For each algorithm and task it reports how many runs solved the task, the median evaluations to solve, the mean best fitness and the mean size of the solutions. It saves the results as `benchmark.txt` and `benchmark.csv`.
@@ -154,6 +168,7 @@ File Structure (under `SNP_Evolution/SNP_Evolution`):
   - `NetworkFactory` and `GenomeSpace` for random networks.
   - `Ranking`, the fitness functions and the evaluator.
   - `Tasks/` holds the tasks and the suite.
+  - `Modules/` holds the module library and the modular loop: cutting modules out of networks, inserting and freezing them, harvesting the changes that pay off, and side runs on what is missing.
   - `Benchmarking/` holds the benchmark harness and the algorithm selector.
 - `Storage/` saves and loads networks as JSON and fitness history as CSV.
 - `Cli/` holds the console menus, settings and command-line mode. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings menu offers. `EvolutionSession` runs and saves one evolution, for both the menu and the `evolve` command.

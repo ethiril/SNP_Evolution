@@ -78,6 +78,23 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
+        public void NetworkThatCyclesAfterItsInputIsSettledAsNeverHalting()
+        {
+            // Two neurons pass a spike back and forth forever; the repeated configuration ends the search early and exactly.
+            var network = new Network(new[]
+            {
+                InputNeuron(new[] { 2 }, Standard("a", 1)),
+                Neuron(0, new[] { 1 }, Standard("a", 1)),
+            });
+
+            TrialResult result = new ExhaustiveCpuEngine(maxConfigurations: 4).Run(
+                new[] { new Trial(network, InputSpikes.Numbers(3), Readout.Halting) }, Options, new Random(0))[0];
+
+            Assert.True(result.Exact);
+            Assert.False(result.CanHalt);
+        }
+
+        [Fact]
         public void FallsBackToSamplingWhenTheComputationTreeIsTooWide()
         {
             TrialResult result = new ExhaustiveCpuEngine(maxConfigurations: 1).Run(new[] { Trial.Generate(ReferenceNetworks.NaturalNumbers()) }, Options, new Random(0))[0];

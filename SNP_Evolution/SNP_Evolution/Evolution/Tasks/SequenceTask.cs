@@ -15,6 +15,7 @@ namespace SnpEvolution.Evolution.Tasks
     {
         private const float CloseIntervalCredit = 0.5f;
         private const int MaxGapBucket = 12;
+        private const int FocusLength = 3;
 
         public SequenceTask(string name, IReadOnlyList<int> expected)
         {
@@ -73,6 +74,33 @@ namespace SnpEvolution.Evolution.Tasks
             int longest = intervals.Count == 0 ? 0 : intervals.Max();
             int bucket = longest == 0 ? 0 : Math.Min(MaxGapBucket, (int)Math.Log2(longest) + 1);
             return (CorrectPrefix(intervals), bucket);
+        }
+
+        // Each gap, in its place, scored by the share of runs that get it right. Unlike the fitness this counts a gap
+        // even after an earlier mistake, so a network that can already make the later gaps stands out.
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results)
+        {
+            IReadOnlyList<IReadOnlyList<int>> trains = results[0].SpikeTrains;
+            var checks = new float[Expected.Count];
+            foreach (IReadOnlyList<int> train in trains)
+            {
+                List<int> intervals = SpikeTrains.Intervals(train).Take(Expected.Count).ToList();
+                for (int gap = 0; gap < intervals.Count; gap++)
+                {
+                    checks[gap] += intervals[gap] == Expected[gap] ? 1f / trains.Count : 0;
+                }
+            }
+            return checks;
+        }
+
+        public string CheckName(int check) => $"gap {check + 1} ({Expected[check]})";
+
+        // The gap before the check and the two after it, so a part evolved for them starts from a gap the main
+        // networks already make.
+        public ITask? Focus(int check)
+        {
+            int start = Math.Clamp(check - 1, 0, Expected.Count - 1);
+            return new SequenceTask($"{Name}, gaps {start + 1}-{Math.Min(Expected.Count, start + FocusLength)}", Expected.Skip(start).Take(FocusLength).ToList());
         }
 
         public int CorrectPrefix(IReadOnlyList<int> intervals)

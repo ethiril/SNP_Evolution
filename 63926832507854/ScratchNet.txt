@@ -1,0 +1,10 @@
+Neuron     Spikes   Rules                        Sends to
+n1         aa       a+/aaa -> aa;3               n3
+n2         aaa      aaa+ -> a  |  aa?/a -> a;1   n4
+n3         a        aaa+/a -> a;3                n2
+n4         aaaa     aaa(a)? -> a                 n2, n6, n8
+n5         aaaa     a(aaa)*/a -> aa              n1
+n6 (out)   a        a(aa)* -> a                  n4
+n7         a        aa* -> a;3                   n1, n4
+n8         a        a(aaa)*/a -> aa;2            n5
+n9         -        a* -> a;1                    n8

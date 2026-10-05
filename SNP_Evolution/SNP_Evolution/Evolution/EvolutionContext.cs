@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution
 {
-    // Everything an algorithm needs to start evolving, independent of which algorithm it is.
+    // Everything an algorithm needs to start evolving, independent of which algorithm it is. Lexicase makes parents
+    // be picked by lexicase selection where the algorithm picks parents; Modules lets mutation use a module library.
     public sealed record EvolutionContext(
         int PopulationSize,
         float MutationRate,
@@ -14,9 +16,13 @@ namespace SnpEvolution.Evolution
         IPopulationEvaluator Evaluator,
         NetworkFactory Factory,
         Action<string> Log,
-        MutationPressure? Pressure = null)
+        MutationPressure? Pressure = null,
+        bool Lexicase = false,
+        ModuleSupport? Modules = null)
     {
-        public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure);
+        public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure, Modules);
+
+        public IParentSelection Selection(IParentSelection usual) => Lexicase ? new LexicaseSelection(usual) : usual;
     }
 
     public sealed record AlgorithmChoice(string Name, Func<EvolutionContext, IGeneticAlgorithm> Create);
@@ -33,11 +39,12 @@ namespace SnpEvolution.Evolution
             new AlgorithmChoice("Generational, tournament of 3 (rule expressions only)", context =>
                 Generational(context, new TournamentSelection(3), new RuleExpressionCrossover(), new RuleExpressionMutation(context.MutationRate, context.Factory.NextExpression))),
             new AlgorithmChoice("Generational, tournament of 3, structural", context =>
-                Generational(context, new TournamentSelection(3), new NeuronCrossover(), context.StructuralMutation(Math.Max(context.MutationRate, 0.5f)))),
+                Generational(context, context.Selection(new TournamentSelection(3)), new NeuronCrossover(), context.StructuralMutation(Math.Max(context.MutationRate, 0.5f)))),
             new AlgorithmChoice("(mu + lambda) evolution strategy", context =>
                 new MuPlusLambdaStrategy(Math.Max(1, context.PopulationSize / 5), context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, context.StructuralMutation(1))),
             new AlgorithmChoice("MAP-Elites over network size", context =>
-                new MapElites(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1))),
+                new MapElites(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1),
+                    context.Lexicase ? new LexicaseSelection() : null)),
             new AlgorithmChoice("NEAT-style speciated", context =>
                 new SpeciatedAlgorithm(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1))),
         };

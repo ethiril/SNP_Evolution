@@ -26,6 +26,12 @@ namespace SnpEvolution.Evolution.Tasks
 
         public float Score(IReadOnlyList<TrialResult> results) => fitness.Score(results[0].Outputs);
 
+        // Whether each expected number is among the outputs.
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
+            ExpectedSet.Select(number => results[0].Outputs.Contains(number) ? 1f : 0f).ToList();
+
+        public string CheckName(int check) => $"output {ExpectedSet.ElementAt(check)}";
+
         public string Describe(IReadOnlyList<TrialResult> results) => "{" + string.Join(", ", results[0].Outputs.Distinct()) + "}";
     }
 }

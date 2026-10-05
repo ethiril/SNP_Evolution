@@ -10,7 +10,8 @@ namespace SnpEvolution.Evolution
     // the elite of their own cell. When the task describes behaviour (how much of a sequence a network gets right and
     // how long a gap it can make, say) cells are behaviours, so stepping stones that are wrong for now but can do
     // something new are kept. Otherwise cells are sizes (neuron count by rule count), so one run maps out how fitness
-    // trades against size and small networks are never crowded out by large ones.
+    // trades against size and small networks are never crowded out by large ones. Parents are picked from the archive
+    // at random unless a selection is given, such as lexicase, which favours elites right about different parts.
     public sealed class MapElites : IGeneticAlgorithm
     {
         private const double CrossoverChance = 0.3;
@@ -21,13 +22,16 @@ namespace SnpEvolution.Evolution
         private readonly IPopulationEvaluator evaluator;
         private readonly ICrossover crossover;
         private readonly IMutation mutation;
+        private readonly IParentSelection? parents;
         private readonly Dictionary<(bool Behaviour, int, int), Individual> archive = new Dictionary<(bool, int, int), Individual>();
         private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
         private List<Individual> elites = new List<Individual>();
         private List<Network> immigrants = new List<Network>();
 
-        public MapElites(int batchSize, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, ICrossover crossover, IMutation mutation)
+        public MapElites(int batchSize, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, ICrossover crossover, IMutation mutation,
+            IParentSelection? parents = null)
         {
+            this.parents = parents;
             this.batchSize = batchSize;
             this.random = random;
             this.createRandomNetwork = createRandomNetwork;
@@ -59,8 +63,9 @@ namespace SnpEvolution.Evolution
 
         public void NextGeneration()
         {
+            Func<Individual> chooseParent = parents != null && elites.Count > 0 ? parents.Prepare(elites, random) : () => elites[random.Next(elites.Count)];
             List<Individual> batch = immigrants.Take(batchSize)
-                .Concat(Enumerable.Range(0, Math.Max(0, batchSize - immigrants.Count)).Select(_ => NewNetwork()))
+                .Concat(Enumerable.Range(0, Math.Max(0, batchSize - immigrants.Count)).Select(_ => NewNetwork(chooseParent)))
                 .Select(network => new Individual(network))
                 .ToList();
             immigrants = new List<Network>();
@@ -100,16 +105,16 @@ namespace SnpEvolution.Evolution
             Best = elites[0];
         }
 
-        private Network NewNetwork()
+        private Network NewNetwork(Func<Individual> chooseParent)
         {
             if (elites.Count == 0)
             {
                 return createRandomNetwork();
             }
-            Network parent = elites[random.Next(elites.Count)].Genes;
+            Network parent = chooseParent().Genes;
             if (elites.Count > 1 && random.NextDouble() < CrossoverChance)
             {
-                parent = crossover.Cross(parent, elites[random.Next(elites.Count)].Genes, random);
+                parent = crossover.Cross(parent, chooseParent().Genes, random);
             }
             return mutation.Mutate(parent, random);
         }

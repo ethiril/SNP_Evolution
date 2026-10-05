@@ -179,6 +179,9 @@ namespace SnpEvolution.Cli
                     ConsoleUi.Row("Max spikes produced", settings.MaxProduce),
                     ConsoleUi.Row("Max initial spikes", settings.MaxInitialSpikes),
                     ConsoleUi.Row("Duplicate neurons", settings.DuplicateNeurons ? "on" : "off"),
+                    ConsoleUi.Row("Lexicase parents", settings.Lexicase ? "on" : "off"),
+                    ConsoleUi.Row("Build from modules", settings.Modules ? "on" : "off"),
+                    ConsoleUi.Row("Freeze modules", settings.FreezeModules ? "on" : "off"),
                 }, selection) is int choice)
             {
                 selection = choice;
@@ -210,6 +213,15 @@ namespace SnpEvolution.Cli
                         break;
                     case 8:
                         settings.DuplicateNeurons = !settings.DuplicateNeurons;
+                        break;
+                    case 9:
+                        settings.Lexicase = !settings.Lexicase;
+                        break;
+                    case 10:
+                        settings.Modules = !settings.Modules;
+                        break;
+                    case 11:
+                        settings.FreezeModules = !settings.FreezeModules;
                         break;
                 }
             }

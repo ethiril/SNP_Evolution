@@ -14,6 +14,7 @@ namespace SnpEvolution.Cli
     //   select --task NAME [--budget N] [--seeds N] [--population N]
     //   evolve --target VALUES [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]
     //          [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]
+    //          [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
     //   tasks | algorithms
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
@@ -25,6 +26,7 @@ namespace SnpEvolution.Cli
             "Usage: snp-evolution [benchmark|select|tasks|algorithms] [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME] [--engine exact|sampled] [--configurations N]\n" +
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
             "                    [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]\n" +
+            "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]";
 
         public static int Run(string[] args)
@@ -146,15 +148,23 @@ namespace SnpEvolution.Cli
             settings.PopulationSize = (int)Number(options, "population", settings.PopulationSize);
             settings.MaxNeurons = (int)Number(options, "neurons", settings.MaxNeurons);
             settings.StagnationPatience = (int)Number(options, "patience", settings.StagnationPatience);
-            if (options.GetValueOrDefault("iterative") is string iterative)
+            settings.IterativeEvolution = Switch(options, "iterative", settings.IterativeEvolution);
+            settings.Lexicase = Switch(options, "lexicase", settings.Lexicase);
+            settings.Modules = Switch(options, "modules", settings.Modules);
+            settings.FreezeModules = Switch(options, "freeze", settings.FreezeModules);
+            if (options.GetValueOrDefault("module-files") is string files)
             {
-                settings.IterativeEvolution = !string.Equals(iterative, "off", StringComparison.OrdinalIgnoreCase);
+                settings.ModuleFiles = files.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                settings.Modules = true;
             }
             if (options.GetValueOrDefault("algorithm") is string algorithm)
             {
                 settings.Algorithm = Catalog.Algorithms.FirstOrDefault(entry => entry.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
             }
         }
+
+        private static bool Switch(IReadOnlyDictionary<string, string> options, string name, bool fallback) =>
+            options.ContainsKey(name) ? IsOn(options, name) : fallback;
 
         private static bool IsOn(IReadOnlyDictionary<string, string> options, string name) =>
             options.GetValueOrDefault(name) is string value && !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase) && value != "0";

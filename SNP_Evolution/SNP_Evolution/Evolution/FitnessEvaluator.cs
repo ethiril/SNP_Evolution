@@ -9,8 +9,10 @@ using SnpEvolution.Simulation;
 namespace SnpEvolution.Evolution
 {
     // Outputs are the first case's, which for a generator is everything it produced. Exact is true when every case
-    // was followed exhaustively, so the fitness is certain rather than sampled. Niche is the task's behaviour cell.
-    public sealed record FitnessResult(float Fitness, IReadOnlyList<int> Outputs, string Description = "", bool Exact = false, (int, int)? Niche = null);
+    // was followed exhaustively, so the fitness is certain rather than sampled. Niche is the task's behaviour cell, and
+    // Checks the score on each separate thing the task checks (see ITask.Checks).
+    public sealed record FitnessResult(float Fitness, IReadOnlyList<int> Outputs, string Description = "", bool Exact = false, (int, int)? Niche = null,
+        IReadOnlyList<float>? Checks = null);
 
     // Scores a whole population in one call, so the simulation engine sees every network at once.
     public interface IPopulationEvaluator
@@ -18,7 +20,13 @@ namespace SnpEvolution.Evolution
         IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks);
     }
 
-    public sealed class FitnessEvaluator : IPopulationEvaluator
+    // An evaluator that can say which task it scores on, which can change during a run.
+    public interface ITaskEvaluator : IPopulationEvaluator
+    {
+        ITask Task { get; }
+    }
+
+    public sealed class FitnessEvaluator : ITaskEvaluator
     {
         public const float SolvedThreshold = 0.985f;
 
@@ -58,7 +66,7 @@ namespace SnpEvolution.Evolution
             return Enumerable.Range(0, networks.Count).Select(index =>
             {
                 List<TrialResult> own = results.Skip(index * cases.Count).Take(cases.Count).ToList();
-                return new FitnessResult(Task.Score(own), own[0].Outputs, Task.Describe(own), own.All(result => result.Exact), Task.Niche(own));
+                return new FitnessResult(Task.Score(own), own[0].Outputs, Task.Describe(own), own.All(result => result.Exact), Task.Niche(own), Task.Checks(own));
             }).ToList();
         }
 
