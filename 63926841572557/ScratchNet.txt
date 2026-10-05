@@ -1,0 +1,25 @@
+Neuron     Spikes      Rules                                                   Sends to
+n1         -           aa -> a;3                                               n2
+n2 (out)   aaaa        aa(aaa)*/aaa -> a                                       n3
+n3         aaaa        a -> aa  |  aaa(a)+/aaa -> a;2  |  aaa?/a -> forget;1   n4, n5, n10, n11
+n4         aaaaa       a*/aaa -> aa  |  aa?/a -> aaa;1                         n1, n3
+n5         aaaaaaaaa   a(aa)*/a -> aaa;2                                       n2
+n6         -           a?/a -> aa;3                                            n7
+n7         aaaaaaaa    aaaaaa*/a -> aa;1                                       n3
+n8         aaaaa       a*/aa -> a                                              n6, n9
+n9         aaaa        aaa(aaa)?/aa -> aaa;1                                   n8
+n10        aaa         aaa(aa)?/aa -> a;3                                      n11
+n11        a           aa/a -> aaa;3                                           n3, n10
+n12        -           aa?/aa -> aa;2                                          n4, n15
+n13        a           a(aaa)*/aaa -> aa;2                                     n16
+n14        aaaaa       aaa(aa)?/a -> a                                         n15, n18
+n15        a           aaa*/aa -> a;1                                          n16, n20
+n16        aaaaaa      aaa(aa)+/aa -> a;3                                      n12, n13
+n17        a           aa(aa)+/a -> a                                          n19, n21
+n18        -           aa/a -> a                                               n16, n22, n23, n24
+n19        aa          aaa+/a -> a                                             n14
+n20        aaaa        aaaa(a)?/a -> a                                         n17
+n21        a           a(aa)?/aaa -> a;2                                       n7
+n22        aa          aaa(a)+/aa -> aa;2                                      n19
+n23        -           aaa(aaa)*/aa -> a;3                                     n20
+n24        aa          aaaa+/aaaa -> aa;1                                      n19

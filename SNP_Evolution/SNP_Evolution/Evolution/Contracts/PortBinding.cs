@@ -4,12 +4,10 @@ using System.Linq;
 
 namespace SnpEvolution.Evolution.Contracts
 {
-    // Which neuron carries each of a part's out-ports and done ports, by 1-based position as Neuron.Connections numbers
-    // them. In-ports need no binding: start and the data in-ports feed the network's input neurons in contract order.
+    // 1-based neuron positions for out-ports and done ports; in-ports feed the input neurons in contract order instead.
     public sealed record PortBinding(IReadOnlyDictionary<string, int> Positions)
     {
-        // The neurons straight after the inputs, data out-ports first and then done ports, each in contract order. A
-        // task fixes this binding for evolution, so every network in a run reads its results from the same neurons.
+        // Evolution fixes this binding so every network in a run reads its results from the same neurons.
         public static PortBinding AfterInputs(Contract contract)
         {
             int inputs = 1 + contract.DataIn.Count();
@@ -17,12 +15,10 @@ namespace SnpEvolution.Evolution.Contracts
                 .ToDictionary(pair => pair.Name, pair => pair.Position));
         }
 
-        // Data out-ports then done ports, the order a binding lists them in.
         public static IEnumerable<Port> OutPorts(Contract contract) => contract.DataOut.Concat(contract.Done);
 
         public int this[string port] => Positions[port];
 
-        // The neurons a network must have for this binding.
         public int NeuronsNeeded => Positions.Values.DefaultIfEmpty(0).Max();
 
         // Throws ArgumentException unless every out-port and done port has its own neuron.

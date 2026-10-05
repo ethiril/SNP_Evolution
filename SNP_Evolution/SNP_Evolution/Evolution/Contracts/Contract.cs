@@ -10,17 +10,16 @@ namespace SnpEvolution.Evolution.Contracts
     [JsonConverter(typeof(StringEnumConverter))]
     public enum PortKind
     {
-        // Two spikes n steps apart, as SN P systems usually encode a number. n is at least 1.
+        // Two spikes n steps apart, as SN P systems usually encode a number, so n is at least 1.
         Interval,
 
         // n spikes in all; 0 is no spikes.
         Count,
 
-        // One spike, meaning start, done or a branch taken. As a data port its value is 1 when it fires and 0 when not.
+        // One spike meaning start, done or a branch taken; as a data port its value is 1 when it fires and 0 when not.
         Trigger,
 
-        // Bit i of n, least significant first, is a spike or silence on the i-th step of the word, for i below the
-        // port's width. Interval and count are unary, so a k-bit number costs up to 2^k steps; binary costs k.
+        // Bit i of n, least significant first, is a spike or silence on step i of a word as wide as the port, so k bits cost k steps rather than 2^k.
         Binary,
     }
 
@@ -39,12 +38,9 @@ namespace SnpEvolution.Evolution.Contracts
         public static Port In(string name, PortKind kind, int width = 0) => new Port(name, PortDirection.In, kind, width);
 
         public static Port Out(string name, PortKind kind, int width = 0) => new Port(name, PortDirection.Out, kind, width);
-
-        public override string ToString() => $"{Name} ({Direction} {Kind}{(Kind == PortKind.Binary ? " " + Width : "")})";
     }
 
-    // One test of a part: the value fed to each data in-port, the value expected on each data out-port, and the done
-    // port that should fire, which for a part with branches (a zero test) says which branch is right.
+    // Done names the done port that should fire, which for a part with branches (a zero test) says which branch is right.
     public sealed record ContractCase(IReadOnlyDictionary<string, int> Inputs, IReadOnlyDictionary<string, int> Outputs, string Done)
     {
         // Inputs as "n=3" or "a=1,b=2", in the given port order; empty when the part has no data in-ports.
@@ -52,10 +48,7 @@ namespace SnpEvolution.Evolution.Contracts
             string.Join(",", inPorts.Where(port => Inputs.ContainsKey(port.Name)).Select(port => $"{port.Name}={Inputs[port.Name]}"));
     }
 
-    // What a part does, independent of any network: it waits for a spike on Start, reads its data in-ports, writes its
-    // data out-ports and fires exactly one done port within MaxLatency steps, then is back where it started. Which
-    // neurons carry which ports is the part's business, not the contract's. MinLatency lets a timer demand that done
-    // fires no sooner than a given step, such as a delay that must take exactly k steps.
+    // MinLatency lets a timer such as a delay demand that done fires no sooner than a given step.
     public sealed record Contract(
         string Name,
         Port Start,
@@ -76,8 +69,7 @@ namespace SnpEvolution.Evolution.Contracts
 
         public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented);
 
-        // Everything wrong with the contract, one message each, naming the port or case at fault; empty when it is
-        // well formed. A malformed contract would otherwise only show up as a part that never scores.
+        // A malformed contract would otherwise only show up as a part that never scores, so each problem names the port or case at fault.
         public IReadOnlyList<string> Problems()
         {
             var problems = new List<string>();
@@ -135,8 +127,6 @@ namespace SnpEvolution.Evolution.Contracts
             }
             return problems;
         }
-
-        public bool IsValid => Problems().Count == 0;
 
         // Throws ArgumentException listing every problem.
         public Contract Validated()

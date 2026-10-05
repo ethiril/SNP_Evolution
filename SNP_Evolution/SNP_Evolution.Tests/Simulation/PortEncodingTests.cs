@@ -5,10 +5,9 @@ namespace SnpEvolution.Tests.Simulation
     public class PortEncodingTests
     {
         [Fact]
-        public void StartAndTriggerAreOneSpike()
+        public void TriggerIsOneSpike()
         {
-            Assert.Equal(new[] { 0 }, PortEncoding.Start());
-            Assert.Equal(new[] { 4 }, PortEncoding.Start(4));
+            Assert.Equal(new[] { 0 }, PortEncoding.Trigger());
             Assert.Equal(new[] { 3 }, PortEncoding.Trigger(3));
         }
 
@@ -50,16 +49,16 @@ namespace SnpEvolution.Tests.Simulation
                 Port.In("start", PortKind.Trigger),
                 new[] { Port.Out("done", PortKind.Trigger) },
                 new[] { Port.In("c", PortKind.Count), Port.In("b", PortKind.Binary, 3), Port.In("i", PortKind.Interval) },
-                new[] { new ContractCase(new Dictionary<string, int> { ["c"] = 2, ["b"] = 6, ["i"] = 4 }, new Dictionary<string, int>(), "done") },
+                new[] { new ContractCase(new Dictionary<string, int> { ["c"] = 2, ["b"] = 6, ["i"] = 1 }, new Dictionary<string, int>(), "done") },
                 MaxLatency: 5);
 
-            EncodedCase encoded = PortEncoding.ForCase(contract, contract.Cases[0], quietSteps: 2);
+            EncodedCase encoded = PortEncoding.ForCase(contract, contract.Cases[0]);
 
-            Assert.Equal(5, encoded.StartStep);
-            Assert.Equal(new[] { 5 }, encoded.Input.StepsPerInput[0]);
+            Assert.Equal(2, encoded.StartStep);
+            Assert.Equal(new[] { 2 }, encoded.Input.StepsPerInput[0]);
             Assert.Equal(new[] { 0, 1 }, encoded.Input.StepsPerInput[1]);
-            Assert.Equal(new[] { 6, 7 }, encoded.Input.StepsPerInput[2]);
-            Assert.Equal(new[] { 0, 4 }, encoded.Input.StepsPerInput[3]);
+            Assert.Equal(new[] { 3, 4 }, encoded.Input.StepsPerInput[2]);
+            Assert.Equal(new[] { 0, 1 }, encoded.Input.StepsPerInput[3]);
         }
 
         [Fact]

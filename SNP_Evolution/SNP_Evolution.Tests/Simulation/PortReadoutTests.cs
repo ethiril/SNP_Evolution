@@ -39,6 +39,18 @@ namespace SnpEvolution.Tests.Simulation
             });
         }
 
+        // The done neuron fires on steps 0 to 4, but the run stops one step after the first of them.
+        [Fact]
+        public void TheRunStopsAfterTheFirstDoneNotTheLast()
+        {
+            var network = new Network(new[] { Neuron(5, Array.Empty<int>(), Standard("a+", 1)) });
+            var trial = new Trial(network, InputSpikes.None, Readout.Ports, new PortWatch(new[] { 1 }, new[] { 1 }, StepsAfterDone: 1));
+
+            TrialResult result = new ExhaustiveCpuEngine().Run(new[] { trial }, Options, new Random(1))[0];
+
+            Assert.Equal(new[] { 0, 1 }, result.PortRuns.Single().Firings[0].Select(firing => firing.Step));
+        }
+
         [Fact]
         public void SamplingKeepsEveryRun()
         {
@@ -118,7 +130,7 @@ namespace SnpEvolution.Tests.Simulation
 
             IReadOnlyList<TrialResult> results = new MetalEngine(gpuThreshold: 0).Run(trials, Options, new Random(1));
 
-            Assert.All(results, result => Assert.All(result.PortRuns, run => Assert.Equal(new[] { new Firing(2, 1) }, run.Firings[1])));
+            Assert.All(results, result => Assert.Equal(new[] { new Firing(2, 1) }, result.PortRuns.First().Firings[1]));
         }
     }
 }

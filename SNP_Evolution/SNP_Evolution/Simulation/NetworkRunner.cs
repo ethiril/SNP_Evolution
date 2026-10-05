@@ -83,7 +83,7 @@ namespace SnpEvolution.Simulation
             return simulation;
         }
 
-        internal static bool IsOver(NetworkSimulation simulation, Readout readout) => readout switch
+        private static bool IsOver(NetworkSimulation simulation, Readout readout) => readout switch
         {
             Readout.Output => simulation.Output != null,
             Readout.Ports => simulation.PortRunOver || simulation.IsHalted,

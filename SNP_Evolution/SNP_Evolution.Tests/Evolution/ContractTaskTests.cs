@@ -8,16 +8,13 @@ namespace SnpEvolution.Tests.Evolution
 {
     public class ContractTaskTests
     {
-        private const int Quiet = 0, DoneOnce = 1, BackToStart = 2, OnTime = 3;
-
         private static FitnessResult Verify(ContractTask task, Network network) =>
             new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, new Random(0)).Evaluate(network);
 
         private static FitnessResult Verify(Part part) => Verify(part.Task(), part.Network);
 
-        // Each check of the given rule, one per case.
-        private static IEnumerable<float> RuleChecks(FitnessResult result, int rule) =>
-            result.Checks!.Where((_, check) => check % ContractTask.RuleCount == rule);
+        private static IEnumerable<float> RuleChecks(FitnessResult result, ContractRule rule) =>
+            result.Checks!.Where((_, check) => check % ContractTask.RuleCount == (int)rule);
 
         public static TheoryData<int> Delays => new TheoryData<int> { 1, 2, 3, 4 };
 
@@ -49,8 +46,8 @@ namespace SnpEvolution.Tests.Evolution
             FitnessResult result = Verify(ReferenceParts.DelayFiringDoneTwice(k));
 
             Assert.True(result.Exact);
-            Assert.All(RuleChecks(result, DoneOnce), score => Assert.Equal(0f, score));
-            Assert.All(new[] { Quiet, BackToStart, OnTime }.SelectMany(rule => RuleChecks(result, rule)), score => Assert.Equal(1f, score));
+            Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.Equal(0f, score));
+            Assert.All(new[] { ContractRule.QuietBeforeStart, ContractRule.BackToStart, ContractRule.OnTime }.SelectMany(rule => RuleChecks(result, rule)), score => Assert.Equal(1f, score));
         }
 
         [Fact]
@@ -59,8 +56,8 @@ namespace SnpEvolution.Tests.Evolution
             FitnessResult result = Verify(ReferenceParts.RegisterLeavingASpike(largest: 8));
 
             Assert.True(result.Exact);
-            Assert.All(RuleChecks(result, BackToStart), score => Assert.True(score < 1));
-            Assert.All(new[] { Quiet, DoneOnce, OnTime }.SelectMany(rule => RuleChecks(result, rule)), score => Assert.Equal(1f, score));
+            Assert.All(RuleChecks(result, ContractRule.BackToStart), score => Assert.True(score < 1));
+            Assert.All(new[] { ContractRule.QuietBeforeStart, ContractRule.DoneOnce, ContractRule.OnTime }.SelectMany(rule => RuleChecks(result, rule)), score => Assert.Equal(1f, score));
         }
 
         [Fact]
@@ -84,9 +81,9 @@ namespace SnpEvolution.Tests.Evolution
 
             FitnessResult result = Verify(ReferenceParts.Register(largest: 3).Task(), silent);
 
-            Assert.All(RuleChecks(result, Quiet), score => Assert.Equal(1f, score));
-            Assert.All(RuleChecks(result, DoneOnce), score => Assert.Equal(0f, score));
-            Assert.All(RuleChecks(result, OnTime), score => Assert.Equal(0f, score));
+            Assert.All(RuleChecks(result, ContractRule.QuietBeforeStart), score => Assert.Equal(1f, score));
+            Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.Equal(0f, score));
+            Assert.All(RuleChecks(result, ContractRule.OnTime), score => Assert.Equal(0f, score));
         }
 
         // The output fires once more than it should: close, so it earns part of the done-once check.
@@ -103,9 +100,46 @@ namespace SnpEvolution.Tests.Evolution
 
             FitnessResult result = Verify(new ContractTask(offByOne, register.Binding), register.Network);
 
-            Assert.All(RuleChecks(result, DoneOnce), score => Assert.InRange(score, 0.1f, 0.9f));
+            Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.InRange(score, 0.1f, 0.9f));
             Assert.InRange(result.Fitness, 0.5f, 0.99f);
         }
+
+        // Start is sent on step 2, so it reaches the part on step 3; done fires on step 10, and the binary word follows it.
+        private static readonly Contract IntervalTriggerAndWord = new Contract(
+            "outputs",
+            Port.In("start", PortKind.Trigger),
+            new[] { Port.Out("done", PortKind.Trigger) },
+            new[] { Port.Out("gap", PortKind.Interval), Port.Out("flag", PortKind.Trigger), Port.Out("word", PortKind.Binary, 3) },
+            new[] { new ContractCase(new Dictionary<string, int>(), new Dictionary<string, int> { ["gap"] = 3, ["flag"] = 1, ["word"] = 5 }, "done") },
+            MaxLatency: 8);
+
+        private static IReadOnlyList<float> ChecksFor(int[] gap, int[] flag, int[] word)
+        {
+            Firing[] At(int[] steps) => steps.Select(step => new Firing(step, 1)).ToArray();
+            var run = new PortRun(new[] { At(gap), At(flag), At(word), At(new[] { 10 }) }, new long[5], new long[5]);
+            return new ContractTask(IntervalTriggerAndWord).Checks(new[] { new TrialResult(Array.Empty<int>(), false, true, PortRuns: new[] { run }) });
+        }
+
+        [Fact]
+        public void ReadsIntervalTriggerAndBinaryOutputs() =>
+            Assert.Equal(new[] { 1f, 1f, 1f, 1f }, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 10, 12 }));
+
+        // The gap is one too long (0.25), the flag fires twice (0) and the word has one wrong bit of three (1/3).
+        [Fact]
+        public void ScoresWrongIntervalTriggerAndBinaryOutputs() =>
+            Assert.Equal((0.25f + 0 + 1 / 3f) / 3, ChecksFor(gap: new[] { 4, 8 }, flag: new[] { 5, 6 }, word: new[] { 10 })[(int)ContractRule.DoneOnce], 4);
+
+        [Fact]
+        public void AFiringOnTheStartStepIsNotQuiet() =>
+            Assert.Equal(0f, ChecksFor(gap: new[] { 2, 5 }, flag: new[] { 5 }, word: new[] { 10, 12 })[(int)ContractRule.QuietBeforeStart]);
+
+        [Fact]
+        public void ATriggerOnTheDoneStepIsLate() =>
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 10 }, word: new[] { 10, 12 })[(int)ContractRule.DoneOnce], 4);
+
+        [Fact]
+        public void ABinaryWordBeforeDoneIsWrong() =>
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 9, 12 })[(int)ContractRule.DoneOnce], 4);
 
         [Fact]
         public void ChecksAreNamedByCaseAndRule()
@@ -113,9 +147,9 @@ namespace SnpEvolution.Tests.Evolution
             ContractTask task = ReferenceParts.Register().Task();
 
             Assert.Equal("n=0: quiet before start", task.CheckName(0));
-            Assert.Equal("n=3: done once", task.CheckName(3 * ContractTask.RuleCount + DoneOnce));
-            Assert.Equal("n=8: on time", task.CheckName(8 * ContractTask.RuleCount + OnTime));
-            Assert.Equal("case 1: back to start", ReferenceParts.Delay(2).Task().CheckName(BackToStart));
+            Assert.Equal("n=3: done once", task.CheckName(ContractTask.CheckIndex(3, ContractRule.DoneOnce)));
+            Assert.Equal("n=8: on time", task.CheckName(ContractTask.CheckIndex(8, ContractRule.OnTime)));
+            Assert.Equal("case 1: back to start", ReferenceParts.Delay(2).Task().CheckName(ContractTask.CheckIndex(0, ContractRule.BackToStart)));
         }
 
         [Fact]
@@ -152,9 +186,11 @@ namespace SnpEvolution.Tests.Evolution
             Contract register = ReferenceParts.RegisterContract();
             var shared = new PortBinding(new Dictionary<string, int> { ["out"] = 3, ["done"] = 3 });
             var missing = new PortBinding(new Dictionary<string, int> { ["out"] = 3 });
+            var zero = new PortBinding(new Dictionary<string, int> { ["out"] = 0, ["done"] = 4 });
 
             Assert.Contains("share neuron 3", Assert.Throws<ArgumentException>(() => new ContractTask(register, shared)).Message);
             Assert.Contains("Port 'done' has no neuron", Assert.Throws<ArgumentException>(() => new ContractTask(register, missing)).Message);
+            Assert.Contains("positions start at 1", Assert.Throws<ArgumentException>(() => new ContractTask(register, zero)).Message);
         }
 
         public static TheoryData<string> Algorithms => new TheoryData<string> { "Generational, tournament of 3, structural", "MAP-Elites over network size" };

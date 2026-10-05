@@ -39,6 +39,12 @@ namespace SnpEvolution.Networks
         [JsonIgnore]
         public SpikeCondition Condition { get; }
 
+        // E/a^c -> a^p;d
+        public static Rule Standard(string expression, long consume, int produce = 1, int delay = 0) => new Rule(expression, delay, true, consume, produce);
+
+        // E/a^c -> λ
+        public static Rule Forget(string expression, long consume) => new Rule(expression, 0, false, consume);
+
         public bool Matches(long spikes) => Condition.Matches(spikes);
 
         // Whether the rule may be applied to a neuron holding this many spikes.
