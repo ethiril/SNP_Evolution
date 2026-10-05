@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SNP_Evolution.Tests/SNP_Evolution.Tests.csproj" />
+  <Project Path="SNP_Evolution/SNP_Evolution.csproj" />
+</Solution>
