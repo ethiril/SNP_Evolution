@@ -13,7 +13,7 @@ namespace SnpEvolution.Cli
 
         public int MaxSteps { get; set; } = 50;
         public int Repetitions { get; set; } = 50;
-        public int PopulationSize { get; set; } = 4;
+        public int PopulationSize { get; set; } = 50;
         public float MutationRate { get; set; } = 0.1f;
         public int MaxGenerations { get; set; } = 125;
         public int SolvedRetestCount { get; set; } = 5;
@@ -22,6 +22,19 @@ namespace SnpEvolution.Cli
         public RuleForm RuleForm { get; set; } = RuleForm.Legacy;
         public OutputTiming OutputTiming { get; set; } = OutputTiming.Legacy;
         public int MaxNeurons { get; set; } = 7;
+        public int MaxDelay { get; set; } = 1;
+        public int MaxProduce { get; set; } = 2;
+        public int MaxInitialSpikes { get; set; } = MaxSpikeGroupSize;
+        public bool DuplicateNeurons { get; set; }
+
+        // Evolve sequences and binary words a few values at a time. Zero start length or step means automatic.
+        public bool IterativeEvolution { get; set; } = true;
+        public int IterativeStartLength { get; set; }
+        public int IterativeStep { get; set; }
+
+        // React when the best fitness stops improving for StagnationPatience generations.
+        public bool StagnationRecovery { get; set; } = true;
+        public int StagnationPatience { get; set; } = 50;
         public int BenchmarkSeeds { get; set; } = 5;
         public long EvaluationBudget { get; set; } = 5_000;
         public int BenchmarkPopulationSize { get; set; } = 40;
@@ -39,15 +52,30 @@ namespace SnpEvolution.Cli
         public BenchmarkTask SelectedTask => Task.Create(this) with { RuleForm = RuleForm, Timing = OutputTiming };
 
         public GenomeSpace GenomeSpace(int inputCount) =>
-            new GenomeSpace(InputCount: inputCount, RuleForm: RuleForm, MaxNeurons: MaxNeurons, MaxInitialSpikes: MaxSpikeGroupSize);
+            new GenomeSpace(InputCount: inputCount, RuleForm: RuleForm, MaxNeurons: MaxNeurons, MaxDelay: MaxDelay, MaxInitialSpikes: MaxInitialSpikes, MaxProduce: MaxProduce,
+                DuplicateNeurons: DuplicateNeurons);
+
+        // The stages for an iterative run, automatic unless a start length or step has been set.
+        public CurriculumPlan CurriculumFor(IPrefixTask task)
+        {
+            CurriculumPlan automatic = CurriculumPlan.For(task);
+            return new CurriculumPlan(
+                IterativeStartLength > 0 ? IterativeStartLength : automatic.StartLength,
+                IterativeStep > 0 ? IterativeStep : automatic.Step);
+        }
+
+        public StagnationPolicy StagnationPolicy => new StagnationPolicy(Patience: StagnationPatience);
 
         public BenchmarkSettings BenchmarkSettings => new BenchmarkSettings(
             BenchmarkSeeds, EvaluationBudget, BenchmarkPopulationSize, MutationRate, MaxSteps, Repetitions,
             GenomeSpace(0), MutationTemplates, MaxSpikeGroupSize, () => Engine.Create(this));
 
+        // A copy to try changes on without touching these settings.
+        public Settings Copy() => (Settings)MemberwiseClone();
+
         public static Settings Defaults() => new Settings
         {
-            PopulationSize = 10,
+            PopulationSize = 50,
             MaxGenerations = 25,
             Target = OutputTarget.Set(new[] { 2, 4, 6, 8, 10, 12, 14, 16 }),
         };

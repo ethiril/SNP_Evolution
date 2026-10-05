@@ -9,8 +9,8 @@ using SnpEvolution.Simulation;
 namespace SnpEvolution.Evolution
 {
     // Outputs are the first case's, which for a generator is everything it produced. Exact is true when every case
-    // was followed exhaustively, so the fitness is certain rather than sampled.
-    public sealed record FitnessResult(float Fitness, IReadOnlyList<int> Outputs, string Description = "", bool Exact = false);
+    // was followed exhaustively, so the fitness is certain rather than sampled. Niche is the task's behaviour cell.
+    public sealed record FitnessResult(float Fitness, IReadOnlyList<int> Outputs, string Description = "", bool Exact = false, (int, int)? Niche = null);
 
     // Scores a whole population in one call, so the simulation engine sees every network at once.
     public interface IPopulationEvaluator
@@ -58,7 +58,7 @@ namespace SnpEvolution.Evolution
             return Enumerable.Range(0, networks.Count).Select(index =>
             {
                 List<TrialResult> own = results.Skip(index * cases.Count).Take(cases.Count).ToList();
-                return new FitnessResult(Task.Score(own), own[0].Outputs, Task.Describe(own), own.All(result => result.Exact));
+                return new FitnessResult(Task.Score(own), own[0].Outputs, Task.Describe(own), own.All(result => result.Exact), Task.Niche(own));
             }).ToList();
         }
 

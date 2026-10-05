@@ -13,41 +13,90 @@ namespace SnpEvolution.Simulation
     {
         private static readonly ConditionalWeakTable<Network, CompiledNetwork> Cache = new ConditionalWeakTable<Network, CompiledNetwork>();
 
-        private readonly long[] initialSpikes;
-        private readonly bool[] isOutput;
-        private readonly int[] ruleStart;
-        private readonly int[] ruleDelay;
-        private readonly bool[] ruleFires;
-        private readonly long[] ruleConsume;
-        private readonly int[] ruleProduce;
-        private readonly int[] acceptStart;
-        private readonly int[] acceptTail;
-        private readonly int[] acceptPeriod;
-        private readonly bool[] accepts;
-        private readonly int[] targetStart;
-        private readonly int[] targets;
-        private readonly int[] inputNeurons;
+        // Internal so the simulation's step loop indexes the arrays directly.
+        internal readonly long[] initialSpikes;
+        internal readonly bool[] isOutput;
+        internal readonly int[] ruleStart;
+        internal readonly int[] ruleDelay;
+        internal readonly bool[] ruleFires;
+        internal readonly long[] ruleConsume;
+        internal readonly int[] ruleProduce;
+        internal readonly int[] acceptStart;
+        internal readonly int[] acceptTail;
+        internal readonly int[] acceptPeriod;
+        internal readonly bool[] accepts;
+        internal readonly int[] targetStart;
+        internal readonly int[] targets;
+        internal readonly int[] inputNeurons;
 
         private CompiledNetwork(Network network)
         {
             IReadOnlyList<Neuron> neurons = network.Neurons;
-            List<Rule> rules = neurons.SelectMany(neuron => neuron.Rules).ToList();
             NeuronCount = neurons.Count;
-            MaxRulesPerNeuron = neurons.Select(neuron => neuron.Rules.Count).DefaultIfEmpty(0).Max();
-            initialSpikes = neurons.Select(neuron => neuron.InitialSpikes).ToArray();
-            isOutput = neurons.Select(neuron => neuron.IsOutput).ToArray();
-            ruleStart = Offsets(neurons.Select(neuron => neuron.Rules.Count));
-            ruleDelay = rules.Select(rule => rule.Delay).ToArray();
-            ruleFires = rules.Select(rule => rule.Fire).ToArray();
-            ruleConsume = rules.Select(rule => rule.Consume ?? ConsumesAll).ToArray();
-            ruleProduce = rules.Select(rule => rule.Fire ? (rule.IsStandard ? rule.Produce : 1) : 0).ToArray();
-            acceptStart = Offsets(rules.Select(rule => rule.Condition.Accepts.Length));
-            acceptTail = rules.Select(rule => rule.Condition.TailLength).ToArray();
-            acceptPeriod = rules.Select(rule => rule.Condition.Period).ToArray();
-            accepts = rules.SelectMany(rule => rule.Condition.Accepts.ToArray()).ToArray();
-            targetStart = Offsets(neurons.Select(neuron => neuron.Connections.Count));
-            targets = neurons.SelectMany(neuron => neuron.Connections.Select(position => position - 1)).ToArray();
-            inputNeurons = Enumerable.Range(0, NeuronCount).Where(index => neurons[index].IsInput).ToArray();
+            int ruleCount = 0;
+            int targetCount = 0;
+            foreach (Neuron neuron in neurons)
+            {
+                ruleCount += neuron.Rules.Count;
+                targetCount += neuron.Connections.Count;
+                MaxRulesPerNeuron = Math.Max(MaxRulesPerNeuron, neuron.Rules.Count);
+            }
+            initialSpikes = new long[NeuronCount];
+            isOutput = new bool[NeuronCount];
+            ruleStart = new int[NeuronCount + 1];
+            targetStart = new int[NeuronCount + 1];
+            targets = new int[targetCount];
+            ruleDelay = new int[ruleCount];
+            ruleFires = new bool[ruleCount];
+            ruleConsume = new long[ruleCount];
+            ruleProduce = new int[ruleCount];
+            acceptStart = new int[ruleCount];
+            acceptTail = new int[ruleCount];
+            acceptPeriod = new int[ruleCount];
+            var inputs = new List<int>();
+            // Rules with the same condition share one accept table; conditions are cached per expression.
+            var tableStart = new Dictionary<SpikeCondition, int>(ReferenceEqualityComparer.Instance);
+            var acceptTables = new List<bool>();
+            int rule = 0;
+            int target = 0;
+            for (int index = 0; index < NeuronCount; index++)
+            {
+                Neuron neuron = neurons[index];
+                initialSpikes[index] = neuron.InitialSpikes;
+                isOutput[index] = neuron.IsOutput;
+                if (neuron.IsInput)
+                {
+                    inputs.Add(index);
+                }
+                ruleStart[index] = rule;
+                foreach (Rule source in neuron.Rules)
+                {
+                    SpikeCondition condition = source.Condition;
+                    if (!tableStart.TryGetValue(condition, out int start))
+                    {
+                        start = acceptTables.Count;
+                        tableStart[condition] = start;
+                        acceptTables.AddRange(condition.Accepts);
+                    }
+                    ruleDelay[rule] = source.Delay;
+                    ruleFires[rule] = source.Fire;
+                    ruleConsume[rule] = source.Consume ?? ConsumesAll;
+                    ruleProduce[rule] = source.Fire ? (source.IsStandard ? source.Produce : 1) : 0;
+                    acceptStart[rule] = start;
+                    acceptTail[rule] = condition.TailLength;
+                    acceptPeriod[rule] = condition.Period;
+                    rule++;
+                }
+                targetStart[index] = target;
+                foreach (int position in neuron.Connections)
+                {
+                    targets[target++] = position - 1;
+                }
+            }
+            ruleStart[NeuronCount] = rule;
+            targetStart[NeuronCount] = target;
+            accepts = acceptTables.ToArray();
+            inputNeurons = inputs.ToArray();
         }
 
         // RuleConsume holds this for a legacy rule, which empties the neuron.
@@ -92,6 +141,7 @@ namespace SnpEvolution.Simulation
         public static CompiledNetwork Of(Network network) => Cache.GetValue(network, created => new CompiledNetwork(created));
 
         // Mirrors SpikeCondition.Matches over the flattened tables.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RuleMatches(int rule, long spikes)
         {
             int tail = acceptTail[rule];
@@ -100,16 +150,7 @@ namespace SnpEvolution.Simulation
         }
 
         // A standard rule also needs at least the spikes it consumes.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RuleApplies(int rule, long spikes) => spikes >= ruleConsume[rule] && RuleMatches(rule, spikes);
-
-        private static int[] Offsets(IEnumerable<int> lengths)
-        {
-            var offsets = new List<int> { 0 };
-            foreach (int length in lengths)
-            {
-                offsets.Add(offsets[^1] + length);
-            }
-            return offsets.ToArray();
-        }
     }
 }

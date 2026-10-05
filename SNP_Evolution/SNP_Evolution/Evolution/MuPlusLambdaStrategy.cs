@@ -20,6 +20,7 @@ namespace SnpEvolution.Evolution
         private readonly IMutation mutation;
         private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
         private List<Individual> parents = new List<Individual>();
+        private List<Network> immigrants = new List<Network>();
 
         public MuPlusLambdaStrategy(int mu, int lambda, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, IMutation mutation)
         {
@@ -43,12 +44,29 @@ namespace SnpEvolution.Evolution
         {
             List<Individual> children = parents.Count == 0
                 ? Enumerable.Range(0, Math.Max(mu, lambda)).Select(_ => new Individual(createRandomNetwork())).ToList()
-                : Enumerable.Range(0, lambda).Select(_ => new Individual(Mutate(parents[random.Next(parents.Count)].Genes))).ToList();
+                : immigrants.Take(lambda).Select(network => new Individual(network))
+                    .Concat(Enumerable.Range(0, Math.Max(0, lambda - immigrants.Count)).Select(_ => new Individual(Mutate(parents[random.Next(parents.Count)].Genes))))
+                    .ToList();
+            immigrants = new List<Network>();
             Evaluation.Evaluate(evaluator, children);
             fitnessHistory.Add(children.Select(child => child.Fitness).Where(GeneticAlgorithm.IsRecordableFitness).ToList());
             parents = Ranking.Rank(children.Concat(parents)).Take(mu).ToList();
             Best = parents[0];
             Generation++;
+        }
+
+        // Newcomers take the place of children, so they must still beat the parents to survive.
+        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants = newcomers.ToList();
+
+        public void Rescore()
+        {
+            if (parents.Count == 0)
+            {
+                return;
+            }
+            Evaluation.Evaluate(evaluator, parents);
+            parents = Ranking.Rank(parents);
+            Best = parents[0];
         }
 
         // A mutation can leave the network as it was, which would waste an evaluation, so it gets a few tries.

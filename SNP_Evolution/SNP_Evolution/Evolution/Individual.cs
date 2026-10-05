@@ -23,12 +23,16 @@ namespace SnpEvolution.Evolution
 
         public bool IsEvaluated { get; private set; }
 
+        // The task's behaviour cell for this network, if the task has one.
+        public (int, int)? Niche { get; private set; }
+
         public void Record(FitnessResult result)
         {
             Fitness = result.Fitness;
             Outputs = result.Outputs;
             Description = result.Description;
             Exact = result.Exact;
+            Niche = result.Niche;
             IsEvaluated = true;
         }
     }

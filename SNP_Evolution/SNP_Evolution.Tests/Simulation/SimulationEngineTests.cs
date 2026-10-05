@@ -38,6 +38,17 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
+        public void ParallelEngineSplitsRunsWithoutLosingAny()
+        {
+            // 20 runs make three chunks, the last one short.
+            IReadOnlyList<IReadOnlyList<int>> outputs = new ParallelCpuEngine().CollectOutputs(Batch(), Options with { Repetitions = 20 }, new Random(2));
+
+            Assert.Equal(Enumerable.Repeat(1, 20), outputs[3]);
+            Assert.Equal(20, outputs[0].Count);
+            Assert.Empty(new ParallelCpuEngine().CollectOutputs(Batch(), Options with { Repetitions = 0 }, new Random(2))[3]);
+        }
+
+        [Fact]
         public void HugeSpikeCountsRunAsFastAsSmallOnes()
         {
             // Two neurons pass a spike back and forth while a third, holding billions, waits to reach an odd count.

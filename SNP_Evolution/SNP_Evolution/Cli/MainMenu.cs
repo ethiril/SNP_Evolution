@@ -60,13 +60,14 @@ namespace SnpEvolution.Cli
                     $"For the selected task: {settings.SelectedTask.Name}",
                     "Starting from the natural numbers network",
                     "Starting from the even numbers network",
+                    $"Suggest settings for: {settings.SelectedTask.Name}",
                 }, selection) is int choice)
             {
                 selection = choice;
                 switch (choice)
                 {
                     case 0:
-                        if (SettingsMenu.EditTarget(settings) && SettingsMenu.EditTargetGenerations(settings))
+                        if (SettingsMenu.EditTarget(settings) && SettingsMenu.EditTargetGenerations(settings) && ReviewAdvice())
                         {
                             EvolveFromScratch("TargetNet");
                         }
@@ -79,6 +80,10 @@ namespace SnpEvolution.Cli
                         break;
                     case 3:
                         Evolve("EvenNumsNet", "Evens", TargetTask(), factory => ReferenceNetworks.EvenNumbers().WithRandomExpressions(factory.NextExpression));
+                        break;
+                    case 4:
+                        ReviewAdvice();
+                        ConsoleUi.WaitForEnter(" Press enter to return to the menu.");
                         break;
                 }
             }
@@ -120,6 +125,42 @@ namespace SnpEvolution.Cli
                     SelectAlgorithm();
                 }
             }
+        }
+
+        // Shows what the advisor suggests for the selected task and applies it if the user agrees, then offers a pilot
+        // that picks the algorithm. False when the user backs out at the first question.
+        private bool ReviewAdvice()
+        {
+            const long PilotBudget = 500;
+            Advice advice = RunAdvisor.Advise(settings);
+            Console.Clear();
+            ConsoleUi.PrintHeader();
+            ConsoleUi.WriteLineColoured(ConsoleColor.Yellow, " Suggested settings for: " + settings.SelectedTask.Name);
+            Console.WriteLine();
+            foreach (string line in RunAdvisor.Format(advice))
+            {
+                Console.WriteLine(" " + line);
+            }
+            Console.WriteLine();
+            if (advice.Suggestions.Count > 0)
+            {
+                if (!ConsoleUi.WaitForEnterOrEscape(" Press enter to apply these suggestions, or ESC to keep the current settings."))
+                {
+                    Console.WriteLine(" Keeping the current settings.");
+                }
+                else
+                {
+                    RunAdvisor.ApplyAll(settings, advice);
+                    Console.WriteLine(" Applied.");
+                }
+            }
+            if (ConsoleUi.WaitForEnterOrEscape(" Press enter to run a quick pilot that picks the algorithm, or ESC to skip it."))
+            {
+                AlgorithmChoice winner = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
+                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == winner.Name);
+                Console.WriteLine(" The pilot picked {0}.", winner.Name);
+            }
+            return true;
         }
 
         // The reference networks are generators, so they evolve towards the target whatever task is selected.

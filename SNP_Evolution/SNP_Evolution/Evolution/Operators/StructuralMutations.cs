@@ -209,29 +209,59 @@ namespace SnpEvolution.Evolution.Operators
         }
     }
 
+    // Copies a neuron that is not an input, with its rules, spikes and synapses out, and has every neuron that sends
+    // to the original send to the copy too. The copy runs in step with the original, so evolution can then reuse a
+    // working part, such as a counter, and specialise one of the two.
+    public sealed class DuplicateNeuron : IMutation
+    {
+        private readonly GenomeSpace space;
+
+        public DuplicateNeuron(GenomeSpace space) => this.space = space;
+
+        public Network Mutate(Network network, Random random)
+        {
+            List<int> candidates = Enumerable.Range(0, network.Neurons.Count).Where(index => !network.Neurons[index].IsInput).ToList();
+            if (network.Neurons.Count >= space.MaxNeurons || candidates.Count == 0)
+            {
+                return network;
+            }
+            int original = candidates[random.Next(candidates.Count)];
+            int originalPosition = original + 1;
+            int copyPosition = network.Neurons.Count + 1;
+            Neuron source = network.Neurons[original];
+            Network fedBoth = new Network(network.Neurons
+                .Select(neuron => neuron.Connections.Contains(originalPosition) ? neuron.WithConnections(neuron.Connections.Append(copyPosition)) : neuron)
+                .ToList());
+            return NetworkEdits.AddNeuron(fedBoth, new Neuron(source.Rules, source.InitialSpikes, source.Connections, false));
+        }
+    }
+
     public sealed record WeightedEdit(string Name, IMutation Edit, double Weight);
 
     // With probability rate, makes one edit chosen by weight, and keeps making more with probability repeatChance,
-    // so most children are one small step away while a few take a bigger leap.
+    // so most children are one small step away while a few take a bigger leap. Under pressure every child is mutated
+    // and gets that many extra edits on top.
     public sealed class WeightedMutation : IMutation
     {
         private readonly float rate;
         private readonly IReadOnlyList<WeightedEdit> edits;
         private readonly double repeatChance;
         private readonly double totalWeight;
+        private readonly MutationPressure? pressure;
 
-        public WeightedMutation(float rate, IReadOnlyList<WeightedEdit> edits, double repeatChance = 0.3)
+        public WeightedMutation(float rate, IReadOnlyList<WeightedEdit> edits, double repeatChance = 0.3, MutationPressure? pressure = null)
         {
             this.rate = rate;
             this.edits = edits;
             this.repeatChance = repeatChance;
+            this.pressure = pressure;
             totalWeight = edits.Sum(edit => edit.Weight);
         }
 
         public IReadOnlyList<WeightedEdit> Edits => edits;
 
         // Every edit, weighted towards small changes to the rules over changes to the structure.
-        public static WeightedMutation Structural(float rate, NetworkFactory factory)
+        public static WeightedMutation Structural(float rate, NetworkFactory factory, MutationPressure? pressure = null)
         {
             var edits = new List<WeightedEdit>
             {
@@ -247,16 +277,21 @@ namespace SnpEvolution.Evolution.Operators
                 new WeightedEdit("Add neuron", new AddNeuron(factory), 0.5),
                 new WeightedEdit("Remove neuron", new RemoveNeuron(factory.Space), 0.75),
             };
+            if (factory.Space.DuplicateNeurons)
+            {
+                edits.Add(new WeightedEdit("Duplicate neuron", new DuplicateNeuron(factory.Space), 0.25));
+            }
             if (factory.Space.RuleForm == RuleForm.Mixed)
             {
                 edits.Add(new WeightedEdit("Switch rule form", new SwitchRuleForm(), 0.5));
             }
-            return new WeightedMutation(rate, edits);
+            return new WeightedMutation(rate, edits, pressure: pressure);
         }
 
         public Network Mutate(Network network, Random random)
         {
-            if (random.NextDouble() >= rate)
+            int extraEdits = pressure?.ExtraEdits ?? 0;
+            if (extraEdits == 0 && random.NextDouble() >= rate)
             {
                 return network;
             }
@@ -265,6 +300,10 @@ namespace SnpEvolution.Evolution.Operators
                 network = Choose(random).Mutate(network, random);
             }
             while (random.NextDouble() < repeatChance);
+            for (int edit = 0; edit < extraEdits; edit++)
+            {
+                network = Choose(random).Mutate(network, random);
+            }
             return network;
         }
 

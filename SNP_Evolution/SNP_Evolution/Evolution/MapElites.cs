@@ -6,9 +6,11 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution
 {
-    // MAP-Elites: an archive keeps the best network for every size (neuron count by rule count). Children of random
-    // elites compete only with the elite of their own size, so one run maps out how fitness trades against size and
-    // small networks are never crowded out by large ones.
+    // MAP-Elites: an archive keeps the best network for every cell, and children of random elites compete only with
+    // the elite of their own cell. When the task describes behaviour (how much of a sequence a network gets right and
+    // how long a gap it can make, say) cells are behaviours, so stepping stones that are wrong for now but can do
+    // something new are kept. Otherwise cells are sizes (neuron count by rule count), so one run maps out how fitness
+    // trades against size and small networks are never crowded out by large ones.
     public sealed class MapElites : IGeneticAlgorithm
     {
         private const double CrossoverChance = 0.3;
@@ -19,9 +21,10 @@ namespace SnpEvolution.Evolution
         private readonly IPopulationEvaluator evaluator;
         private readonly ICrossover crossover;
         private readonly IMutation mutation;
-        private readonly Dictionary<(int Neurons, int Rules), Individual> archive = new Dictionary<(int, int), Individual>();
+        private readonly Dictionary<(bool Behaviour, int, int), Individual> archive = new Dictionary<(bool, int, int), Individual>();
         private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
         private List<Individual> elites = new List<Individual>();
+        private List<Network> immigrants = new List<Network>();
 
         public MapElites(int batchSize, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, ICrossover crossover, IMutation mutation)
         {
@@ -44,14 +47,50 @@ namespace SnpEvolution.Evolution
 
         public static (int Neurons, int Rules) Cell(Network network) => (network.Neurons.Count, network.RuleCount);
 
+        public static (bool Behaviour, int, int) CellOf(Individual individual)
+        {
+            if (individual.Niche is (int first, int second))
+            {
+                return (true, first, second);
+            }
+            (int neurons, int rules) = Cell(individual.Genes);
+            return (false, neurons, rules);
+        }
+
         public void NextGeneration()
         {
-            List<Individual> batch = Enumerable.Range(0, batchSize).Select(_ => new Individual(NewNetwork())).ToList();
+            List<Individual> batch = immigrants.Take(batchSize)
+                .Concat(Enumerable.Range(0, Math.Max(0, batchSize - immigrants.Count)).Select(_ => NewNetwork()))
+                .Select(network => new Individual(network))
+                .ToList();
+            immigrants = new List<Network>();
             Evaluation.Evaluate(evaluator, batch);
             fitnessHistory.Add(batch.Select(individual => individual.Fitness).Where(GeneticAlgorithm.IsRecordableFitness).ToList());
-            foreach (Individual candidate in batch)
+            Archive(batch);
+            Generation++;
+        }
+
+        // Newcomers make up part of the next batch, and only displace an elite they beat.
+        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants = newcomers.ToList();
+
+        // Every elite is scored again and the archive rebuilt, since both scores and behaviours can change.
+        public void Rescore()
+        {
+            List<Individual> previous = archive.Values.ToList();
+            archive.Clear();
+            if (previous.Count == 0)
             {
-                (int, int) cell = Cell(candidate.Genes);
+                return;
+            }
+            Evaluation.Evaluate(evaluator, previous);
+            Archive(previous);
+        }
+
+        private void Archive(IEnumerable<Individual> candidates)
+        {
+            foreach (Individual candidate in candidates)
+            {
+                (bool, int, int) cell = CellOf(candidate);
                 if (!archive.TryGetValue(cell, out Individual? incumbent) || Ranking.Compare(candidate, incumbent) <= 0)
                 {
                     archive[cell] = candidate;
@@ -59,7 +98,6 @@ namespace SnpEvolution.Evolution
             }
             elites = Ranking.Rank(archive.Values);
             Best = elites[0];
-            Generation++;
         }
 
         private Network NewNetwork()

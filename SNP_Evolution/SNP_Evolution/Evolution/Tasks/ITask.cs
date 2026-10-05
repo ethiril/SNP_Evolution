@@ -25,5 +25,20 @@ namespace SnpEvolution.Evolution.Tasks
 
         // A short human-readable account of the results, for progress output.
         string Describe(IReadOnlyList<TrialResult> results);
+
+        // Where the results fall in a grid of behaviours, for algorithms that keep the best network of each kind of
+        // behaviour rather than only the fittest overall. Null when the task has no such grid.
+        (int, int)? Niche(IReadOnlyList<TrialResult> results) => null;
+    }
+
+    // A task whose target is a list that can be cut short, such as a sequence of intervals or a binary word, so it
+    // can be learned a few values at a time.
+    public interface IPrefixTask : ITask
+    {
+        // How many values the whole target has.
+        int Length { get; }
+
+        // The same task with only the first length values of the target.
+        ITask Prefix(int length);
     }
 }

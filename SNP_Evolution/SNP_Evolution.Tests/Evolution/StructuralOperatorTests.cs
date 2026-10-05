@@ -8,7 +8,7 @@ namespace SnpEvolution.Tests.Evolution
     public class StructuralOperatorTests
     {
         private static NetworkFactory Factory(int seed, int inputCount = 1, RuleForm form = RuleForm.Mixed) =>
-            new NetworkFactory(new GenomeSpace(InputCount: inputCount, RuleForm: form, MaxNeurons: 6),
+            new NetworkFactory(new GenomeSpace(InputCount: inputCount, RuleForm: form, MaxNeurons: 6, DuplicateNeurons: true),
                 new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, new Random(seed)), new Random(seed));
 
         private static void AssertWellFormed(Network network, GenomeSpace space)
@@ -58,6 +58,36 @@ namespace SnpEvolution.Tests.Evolution
                     AssertWellFormed(network, factory.Space);
                 }
             }
+        }
+
+        [Fact]
+        public void DuplicateNeuronCopiesANeuronAndItsIncomingSynapses()
+        {
+            NetworkFactory factory = Factory(7, inputCount: 0);
+            Network network = new Network(new[]
+            {
+                Neuron(2, new[] { 2 }, Standard("aa", 2)),
+                Neuron(0, new[] { 3 }, Standard("a", 1)),
+                OutputNeuron(0, Standard("a", 1)),
+            });
+
+            Network duplicated = Enumerable.Range(0, 20).Select(seed => new DuplicateNeuron(factory.Space).Mutate(network, new Random(seed)))
+                .First(candidate => candidate.Neurons[^1].Rules[0].Expression == "a" && candidate.Neurons[^1].Connections.SequenceEqual(new[] { 3 }));
+
+            Assert.Equal(4, duplicated.Neurons.Count);
+            Assert.False(duplicated.Neurons[3].IsOutput);
+            Assert.Equal(new[] { 2, 4 }, duplicated.Neurons[0].Connections);
+            AssertWellFormed(duplicated, factory.Space with { InputCount = 0 });
+        }
+
+        [Fact]
+        public void DuplicationIsOnlyOfferedWhenAllowed()
+        {
+            NetworkFactory allowed = Factory(1);
+            var notAllowed = new NetworkFactory(allowed.Space with { DuplicateNeurons = false }, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, 4, new Random(1)), new Random(1));
+
+            Assert.Contains(WeightedMutation.Structural(1, allowed).Edits, edit => edit.Edit is DuplicateNeuron);
+            Assert.DoesNotContain(WeightedMutation.Structural(1, notAllowed).Edits, edit => edit.Edit is DuplicateNeuron);
         }
 
         [Fact]

@@ -18,7 +18,11 @@ namespace SnpEvolution.Cli
             new CatalogEntry<Settings, ISimulationEngine>("CPU, all cores", _ => new ParallelCpuEngine()),
             new CatalogEntry<Settings, ISimulationEngine>("CPU, single thread", _ => new SequentialCpuEngine()),
             new CatalogEntry<Settings, ISimulationEngine>("Exhaustive (exact outputs), all cores", _ => new ExhaustiveCpuEngine()),
-        };
+        }
+        .Concat(MetalEngine.IsAvailable
+            ? new[] { new CatalogEntry<Settings, ISimulationEngine>("GPU (Metal), for large networks", _ => new MetalEngine()) }
+            : Array.Empty<CatalogEntry<Settings, ISimulationEngine>>())
+        .ToList();
 
         public static readonly IReadOnlyList<CatalogEntry<Settings, IFitnessFunction>> FitnessFunctions = new[]
         {
@@ -42,7 +46,9 @@ namespace SnpEvolution.Cli
         public static CatalogEntry<EvolutionContext, IGeneticAlgorithm> StructuralDefault => Algorithms.First(entry => entry.Name.StartsWith("MAP-Elites"));
 
         // Rule-only algorithms keep the starting network's structure, so they cannot build a network from scratch.
-        public static bool EvolvesRulesOnly(CatalogEntry<EvolutionContext, IGeneticAlgorithm> entry) => entry.Name.Contains("rule expressions only");
+        public static bool EvolvesRulesOnly(CatalogEntry<EvolutionContext, IGeneticAlgorithm> entry) => EvolvesRulesOnly(entry.Name);
+
+        public static bool EvolvesRulesOnly(string algorithmName) => algorithmName.Contains("rule expressions only");
 
         public static AlgorithmChoice ChoiceFor(CatalogEntry<EvolutionContext, IGeneticAlgorithm> entry) => new AlgorithmChoice(entry.Name, entry.Create);
     }

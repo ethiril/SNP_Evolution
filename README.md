@@ -93,6 +93,7 @@ The last two read the whole output spike train (`Readout.SpikeTrain`), not just 
 
 - **CPU, all cores** and **CPU, single thread** sample a number of random runs of each network, as before.
 - **Exhaustive (exact outputs)** follows every possible computation, merging those that reach the same configuration. Its outputs are therefore the exact set the network can produce within the step limit, with no luck in the score. An exact solution is accepted without retesting. If a network's computations branch too widely, the engine samples it instead. It always samples spike trains, because merging computations would lose the trains that led to them.
+- **GPU (Metal), for large networks** is listed on Macs. It samples like the CPU engines, but runs every run of every network in the population at once on the GPU, with one threadgroup per run. On an M5 Pro it is about 6 to 12 times faster than all CPU cores for networks of a thousand neurons or more. Its rule choices come from a hash of the seed rather than `System.Random`, so individual runs differ from the CPU engines' while following the same distribution, and the same seed repeats them. Batches too small to repay the GPU round trip, and networks with more than 64 output neurons, delays above 65,535 or emissions above 32,767, run on the CPU instead.
 
 ## Algorithms
 

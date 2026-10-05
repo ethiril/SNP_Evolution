@@ -59,7 +59,46 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.Equal(1f, task.Score(new[] { Trains(new[] { 4, 5, 6, 8, 11, 20 }) }));
             Assert.Equal(0.5f, task.Score(new[] { Trains(new[] { 0, 1, 2 }) }));
-            Assert.Equal(0.5f, task.Score(new[] { Trains(new[] { 0, 1, 2, 4, 7 }, Array.Empty<int>()) }));
+            // Half the runs right and half silent: the mean is a half and the worst run nothing, so a quarter.
+            Assert.Equal(0.25f, task.Score(new[] { Trains(new[] { 0, 1, 2, 4, 7 }, Array.Empty<int>()) }));
+        }
+
+        [Fact]
+        public void SequenceScoreStopsAtTheFirstWrongGap()
+        {
+            var task = new SequenceTask("fib", new[] { 1, 1, 2, 3 });
+
+            // Gaps 1,2,2,3: one right, then 2 for 1 earns a quarter, and the 2,3 after the mistake earn nothing.
+            Assert.Equal(0.3125f, task.Score(new[] { Trains(new[] { 0, 1, 3, 5, 8 }) }), precision: 5);
+        }
+
+        [Fact]
+        public void SequenceNicheIsTheRightPrefixByTheLongestGap()
+        {
+            var task = new SequenceTask("fib", new[] { 1, 1, 2, 3, 5 });
+
+            Assert.Equal((3, 3), task.Niche(new[] { Trains(new[] { 0, 1, 2, 4, 9 }) }));
+            Assert.Equal((0, 0), task.Niche(new[] { Trains(new[] { 4 }) }));
+        }
+
+        [Fact]
+        public void PrefixesKeepTheOpeningValues()
+        {
+            var sequence = new SequenceTask("fib", new[] { 1, 1, 2, 3, 5 });
+            var word = new SpikeWordTask("w", new[] { true, false, true, true });
+
+            Assert.Equal(new[] { 1, 1, 2 }, ((SequenceTask)sequence.Prefix(3)).Expected);
+            Assert.Equal(new[] { true, false }, ((SpikeWordTask)word.Prefix(2)).Expected);
+            Assert.True(sequence.Prefix(3).StepsNeeded < sequence.StepsNeeded);
+        }
+
+        [Fact]
+        public void SpikeWordNicheIsTheRightPrefixBySpikeCount()
+        {
+            var task = new SpikeWordTask("w", new[] { true, false, true, true });
+
+            // Fires on steps 0 and 2: right for three steps, with two spikes, as shares of 16 and 8 buckets.
+            Assert.Equal((12, 4), task.Niche(new[] { Trains(new[] { 0, 2 }) }));
         }
 
         [Fact]

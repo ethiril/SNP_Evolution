@@ -29,17 +29,18 @@ namespace SnpEvolution.Simulation
         private readonly InputSpikes input;
         private readonly OutputTiming timing;
         private readonly long[] spikes;
-        private readonly int[] selectedRule;
         private readonly int[] legacyDelay;
         private readonly SpikeRelease[] legacyPending;
         private readonly int[] closedFor;
         private readonly long[] pendingEmission;
         private readonly long[] emitting;
         private readonly bool[] closed;
+        private readonly int[] emitters;
         private readonly int[] matchingRules;
         private readonly List<int>? outputSpikeSteps;
         private int outputCounter;
         private bool outputEngaged;
+        private int emitterCount;
 
         public NetworkSimulation(Network network, Random random)
             : this(CompiledNetwork.Of(network), random, InputSpikes.None, OutputTiming.Legacy)
@@ -55,13 +56,13 @@ namespace SnpEvolution.Simulation
             this.timing = timing;
             int count = network.NeuronCount;
             spikes = network.InitialSpikes.ToArray();
-            selectedRule = new int[count];
             legacyDelay = new int[count];
             legacyPending = new SpikeRelease[count];
             closedFor = new int[count];
             pendingEmission = new long[count];
             emitting = new long[count];
             closed = new bool[count];
+            emitters = new int[count];
             matchingRules = new int[network.MaxRulesPerNeuron];
             outputSpikeSteps = recordSpikeTrain ? new List<int>() : null;
         }
@@ -127,12 +128,14 @@ namespace SnpEvolution.Simulation
             {
                 throw new InvalidOperationException("This simulation has no random to choose rules with; use Apply.");
             }
+            // Choosing a neuron's rule reads only its own state, so each neuron chooses and applies in one pass.
+            emitterCount = 0;
             for (int neuron = 0; neuron < network.NeuronCount; neuron++)
             {
                 int matchingCount = CollectApplicableRules(neuron, matchingRules);
-                selectedRule[neuron] = matchingCount > 0 ? matchingRules[random.Next(matchingCount)] : NoRule;
+                Release(neuron, matchingCount > 0 ? matchingRules[random.Next(matchingCount)] : NoRule);
             }
-            Advance();
+            Deliver();
         }
 
         // Writes the rules the neuron could apply this step into the buffer and returns how many there are.
@@ -143,9 +146,11 @@ namespace SnpEvolution.Simulation
                 return 0;
             }
             int count = 0;
-            for (int rule = network.RuleStart[neuron]; rule < network.RuleStart[neuron + 1]; rule++)
+            long held = spikes[neuron];
+            int[] ruleStart = network.ruleStart;
+            for (int rule = ruleStart[neuron], end = ruleStart[neuron + 1]; rule < end; rule++)
             {
-                if (network.RuleApplies(rule, spikes[neuron]))
+                if (network.RuleApplies(rule, held))
                 {
                     buffer[count++] = rule;
                 }
@@ -156,8 +161,12 @@ namespace SnpEvolution.Simulation
         // Steps with the given rule per neuron (NoRule for none), each of which must come from CollectApplicableRules.
         public void Apply(ReadOnlySpan<int> rules)
         {
-            rules.CopyTo(selectedRule);
-            Advance();
+            emitterCount = 0;
+            for (int neuron = 0; neuron < network.NeuronCount; neuron++)
+            {
+                Release(neuron, rules[neuron]);
+            }
+            Deliver();
         }
 
         // Everything that decides the future of the computation, so equal snapshots at the same step can be merged.
@@ -192,28 +201,35 @@ namespace SnpEvolution.Simulation
 
         private bool IsBusy(int neuron) => legacyDelay[neuron] > 0 || closedFor[neuron] > 0;
 
-        private void Advance()
+        // Applies the neuron's part of this step with the chosen rule, and notes it as an emitter if it sends spikes.
+        private void Release(int neuron, int rule)
         {
-            for (int neuron = 0; neuron < network.NeuronCount; neuron++)
+            SpikeRelease release = ReleaseSpikes(neuron, rule);
+            if (network.isOutput[neuron])
             {
-                SpikeRelease release = ReleaseSpikes(neuron);
-                if (network.IsOutput[neuron])
-                {
-                    RecordOutputNeuron(release);
-                }
+                RecordOutputNeuron(release);
             }
-            for (int neuron = 0; neuron < network.NeuronCount; neuron++)
+            if (emitting[neuron] > 0)
             {
-                if (emitting[neuron] == 0)
+                emitters[emitterCount++] = neuron;
+            }
+        }
+
+        // Sends what this step's emitters release, then the environment's input, once every neuron has released.
+        private void Deliver()
+        {
+            int[] targetStart = network.targetStart;
+            int[] targets = network.targets;
+            for (int index = 0; index < emitterCount; index++)
+            {
+                int neuron = emitters[index];
+                long sent = emitting[neuron];
+                for (int target = targetStart[neuron], end = targetStart[neuron + 1]; target < end; target++)
                 {
-                    continue;
-                }
-                for (int target = network.TargetStart[neuron]; target < network.TargetStart[neuron + 1]; target++)
-                {
-                    int receiver = network.Targets[target];
+                    int receiver = targets[target];
                     if (!closed[receiver])
                     {
-                        spikes[receiver] += emitting[neuron];
+                        spikes[receiver] += sent;
                     }
                 }
             }
@@ -229,7 +245,7 @@ namespace SnpEvolution.Simulation
         }
 
         // Applies the neuron's part of this step, setting what it emits and whether it is closed to incoming spikes.
-        private SpikeRelease ReleaseSpikes(int neuron)
+        private SpikeRelease ReleaseSpikes(int neuron, int rule)
         {
             emitting[neuron] = 0;
             closed[neuron] = false;
@@ -249,7 +265,6 @@ namespace SnpEvolution.Simulation
                 pendingEmission[neuron] = 0;
                 return emitting[neuron] > 0 ? SpikeRelease.Fired : SpikeRelease.Forgot;
             }
-            int rule = selectedRule[neuron];
             if (legacyPending[neuron] != SpikeRelease.None)
             {
                 // The original program let a rule chosen on this step emit, while the delayed rule emptied the neuron.

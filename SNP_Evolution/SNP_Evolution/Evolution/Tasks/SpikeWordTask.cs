@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Simulation;
@@ -7,8 +8,11 @@ namespace SnpEvolution.Evolution.Tasks
     // The network runs with no input, and its output spike train should spell the expected binary word: a 1 on every
     // step the output neuron fires, a 0 on every step it does not, from the first step. Scored per run by balanced
     // accuracy over the ones and zeros, so a silent or always-firing network only earns a half.
-    public sealed class SpikeWordTask : ITask
+    public sealed class SpikeWordTask : IPrefixTask
     {
+        private const int PrefixBuckets = 16;
+        private const int SpikeBuckets = 8;
+
         public SpikeWordTask(string name, IReadOnlyList<bool> expected)
         {
             Name = name;
@@ -25,6 +29,10 @@ namespace SnpEvolution.Evolution.Tasks
 
         public int StepsNeeded => Expected.Count;
 
+        public int Length => Expected.Count;
+
+        public ITask Prefix(int length) => new SpikeWordTask(Name, Expected.Take(Math.Clamp(length, 1, Expected.Count)).ToList());
+
         public float Score(IReadOnlyList<TrialResult> results) =>
             results[0].SpikeTrains.Count == 0 ? 0 : results[0].SpikeTrains.Average(train => ScoreRun(SpikeTrains.Word(train, Expected.Count)));
 
@@ -38,6 +46,22 @@ namespace SnpEvolution.Evolution.Tasks
             string varies = trains.Any(train => !SpikeTrains.Word(train, Expected.Count).SequenceEqual(SpikeTrains.Word(trains[0], Expected.Count)))
                 ? " (varies between runs)" : "";
             return $"spikes {SpikeTrains.Format(SpikeTrains.Word(trains[0], Expected.Count))} / {SpikeTrains.Format(Expected)}{varies}";
+        }
+
+        // How far into the word the first run is right, by how many times it fires, each as a share of the word.
+        public (int, int)? Niche(IReadOnlyList<TrialResult> results)
+        {
+            if (results[0].SpikeTrains.Count == 0)
+            {
+                return (0, 0);
+            }
+            bool[] word = SpikeTrains.Word(results[0].SpikeTrains[0], Expected.Count);
+            int prefix = 0;
+            while (prefix < Expected.Count && word[prefix] == Expected[prefix])
+            {
+                prefix++;
+            }
+            return (prefix * PrefixBuckets / Expected.Count, word.Count(bit => bit) * SpikeBuckets / Expected.Count);
         }
 
         private float ScoreRun(IReadOnlyList<bool> word)

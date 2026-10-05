@@ -19,6 +19,8 @@ namespace SnpEvolution.Evolution
     }
 
     // The bounds evolution searches within. The first InputCount neurons of every network are its input neurons.
+    // DuplicateNeurons lets mutation copy working neurons, which helps build repeated parts such as counters but
+    // disrupts small networks, so it is off unless asked for.
     public sealed record GenomeSpace(
         int InputCount = 0,
         RuleForm RuleForm = RuleForm.Legacy,
@@ -27,7 +29,8 @@ namespace SnpEvolution.Evolution
         int MaxRulesPerNeuron = 3,
         int MaxDelay = 1,
         int MaxInitialSpikes = 4,
-        int MaxProduce = 2)
+        int MaxProduce = 2,
+        bool DuplicateNeurons = false)
     {
         public int SmallestNetwork => Math.Max(MinNeurons, InputCount + 1);
     }

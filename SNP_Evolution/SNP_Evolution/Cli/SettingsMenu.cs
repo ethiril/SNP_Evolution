@@ -17,7 +17,7 @@ namespace SnpEvolution.Cli
         public static Settings Edit(Settings settings)
         {
             int selection = 0;
-            while (ConsoleUi.Choose(settings, "Settings", new[] { "Evolution >", "Simulation >", "Benchmarks >", "Reset to defaults" }, selection) is int choice)
+            while (ConsoleUi.Choose(settings, "Settings", new[] { "Evolution >", "Search >", "Simulation >", "Benchmarks >", "Reset to defaults" }, selection) is int choice)
             {
                 selection = choice;
                 switch (choice)
@@ -26,12 +26,15 @@ namespace SnpEvolution.Cli
                         EditEvolution(settings);
                         break;
                     case 1:
-                        EditSimulation(settings);
+                        EditSearch(settings);
                         break;
                     case 2:
-                        EditBenchmarks(settings);
+                        EditSimulation(settings);
                         break;
                     case 3:
+                        EditBenchmarks(settings);
+                        break;
+                    case 4:
                         if (ConsoleUi.Confirm(settings, "Load the default configuration?"))
                         {
                             settings = Settings.Defaults();
@@ -159,6 +162,60 @@ namespace SnpEvolution.Cli
                 }
             }
         }
+
+        // How the search copes with long targets and dead ends, and the limits on what a network can express.
+        private static void EditSearch(Settings settings)
+        {
+            const string NotNonNegativeInteger = "Number was not a whole number of 0 or more.";
+            int selection = 0;
+            while (ConsoleUi.Choose(settings, "Settings > Search", new[]
+                {
+                    ConsoleUi.Row("Iterative evolution", settings.IterativeEvolution ? "on" : "off"),
+                    ConsoleUi.Row("First stage length", Automatic(settings.IterativeStartLength)),
+                    ConsoleUi.Row("Values added per stage", Automatic(settings.IterativeStep)),
+                    ConsoleUi.Row("Stagnation recovery", settings.StagnationRecovery ? "on" : "off"),
+                    ConsoleUi.Row("Stagnation patience", settings.StagnationPatience),
+                    ConsoleUi.Row("Max delay", settings.MaxDelay),
+                    ConsoleUi.Row("Max spikes produced", settings.MaxProduce),
+                    ConsoleUi.Row("Max initial spikes", settings.MaxInitialSpikes),
+                    ConsoleUi.Row("Duplicate neurons", settings.DuplicateNeurons ? "on" : "off"),
+                }, selection) is int choice)
+            {
+                selection = choice;
+                switch (choice)
+                {
+                    case 0:
+                        settings.IterativeEvolution = !settings.IterativeEvolution;
+                        break;
+                    case 1:
+                        PromptFor<int>("Values in the first stage, or 0 for automatic", NotNonNegativeInteger, InputParsing.TryNonNegativeInt, value => settings.IterativeStartLength = value);
+                        break;
+                    case 2:
+                        PromptFor<int>("Values each later stage adds, or 0 for automatic", NotNonNegativeInteger, InputParsing.TryNonNegativeInt, value => settings.IterativeStep = value);
+                        break;
+                    case 3:
+                        settings.StagnationRecovery = !settings.StagnationRecovery;
+                        break;
+                    case 4:
+                        PromptFor<int>("Generations without improvement before reacting", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.StagnationPatience = value);
+                        break;
+                    case 5:
+                        PromptFor<int>("Longest delay a rule can have", NotNonNegativeInteger, InputParsing.TryNonNegativeInt, value => settings.MaxDelay = value);
+                        break;
+                    case 6:
+                        PromptFor<int>("Most spikes a rule can send at once", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.MaxProduce = value);
+                        break;
+                    case 7:
+                        PromptFor<int>("Most spikes a new neuron can start with", NotNonNegativeInteger, InputParsing.TryNonNegativeInt, value => settings.MaxInitialSpikes = value);
+                        break;
+                    case 8:
+                        settings.DuplicateNeurons = !settings.DuplicateNeurons;
+                        break;
+                }
+            }
+        }
+
+        private static string Automatic(int value) => value > 0 ? value.ToString() : "automatic";
 
         private static void EditSimulation(Settings settings)
         {

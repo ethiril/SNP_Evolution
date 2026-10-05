@@ -85,6 +85,21 @@ namespace SnpEvolution.Evolution
             Generation++;
         }
 
+        // The champion is first in the population waiting to be scored, so newcomers replace children from the end.
+        public void Immigrate(IReadOnlyList<Network> newcomers)
+        {
+            int keep = Math.Max(1, population.Count - newcomers.Count);
+            population = population.Take(keep).Concat(newcomers.Take(population.Count - keep).Select(network => new Individual(network))).ToList();
+        }
+
+        // The population waiting is scored next generation anyway; the best ever and the species' records are from
+        // the old task, so they go.
+        public void Rescore()
+        {
+            Best = null;
+            species.Clear();
+        }
+
         private static bool SameRule(Rule? first, Rule? second) =>
             first != null && second != null
             && (first.Expression, first.Delay, first.Fire, first.Consume, first.Produce) == (second.Expression, second.Delay, second.Fire, second.Consume, second.Produce);

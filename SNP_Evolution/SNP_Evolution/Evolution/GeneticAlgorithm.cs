@@ -73,6 +73,16 @@ namespace SnpEvolution.Evolution
             Generation++;
         }
 
+        // The population waiting to be scored is ranked elite first, so newcomers replace the last children bred.
+        public void Immigrate(IReadOnlyList<Network> newcomers)
+        {
+            int keep = Math.Max(elitism, population.Count - newcomers.Count);
+            population = population.Take(keep).Concat(newcomers.Take(population.Count - keep).Select(network => new Individual(network))).ToList();
+        }
+
+        // Every network waiting for the next generation is scored then anyway, so only the best is forgotten.
+        public void Rescore() => Best = null;
+
         private void Evaluate(IReadOnlyList<Individual> individuals) => Evaluation.Evaluate(evaluator, individuals);
 
         private void EvaluateUntilViable()

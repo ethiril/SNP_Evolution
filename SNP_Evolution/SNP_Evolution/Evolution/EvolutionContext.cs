@@ -13,9 +13,10 @@ namespace SnpEvolution.Evolution
         Func<Network> CreateStartingNetwork,
         IPopulationEvaluator Evaluator,
         NetworkFactory Factory,
-        Action<string> Log)
+        Action<string> Log,
+        MutationPressure? Pressure = null)
     {
-        public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory);
+        public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure);
     }
 
     public sealed record AlgorithmChoice(string Name, Func<EvolutionContext, IGeneticAlgorithm> Create);
