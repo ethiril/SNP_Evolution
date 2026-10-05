@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SnpEvolution.Cli
 {
@@ -9,7 +10,8 @@ namespace SnpEvolution.Cli
 
         private static readonly string[] Options =
         {
-            "Max Steps", "Step-Through Amount", "GA Population Size", "Mutation Rate", "Max Generations", "Expected Set", "Experimental Rules", "Default Config",
+            "Max Steps", "Step-Through Amount", "GA Population Size", "Mutation Rate", "Max Generations", "Expected Set", "Experimental Rules",
+            "Simulation Engine", "Fitness Function", "Genetic Algorithm", "Default Config",
         };
 
         // Returns the settings to use from now on, which is a fresh instance when defaults are restored.
@@ -43,6 +45,15 @@ namespace SnpEvolution.Cli
                     }
                     break;
                 case 7:
+                    settings.Engine = ChooseEntry(settings, "Please select which simulation engine to run networks on: ", Catalog.Engines) ?? settings.Engine;
+                    break;
+                case 8:
+                    settings.FitnessFunction = ChooseEntry(settings, "Please select which fitness function to score networks with: ", Catalog.FitnessFunctions) ?? settings.FitnessFunction;
+                    break;
+                case 9:
+                    settings.Algorithm = ChooseEntry(settings, "Please select which genetic algorithm to evolve networks with: ", Catalog.Algorithms) ?? settings.Algorithm;
+                    break;
+                case 10:
                     if (ConsoleUi.Choose(settings, "Please confirm whether to load default values for the configuration: ", new[] { "YES", "NO" }) == 0)
                     {
                         return Settings.Defaults();
@@ -51,6 +62,10 @@ namespace SnpEvolution.Cli
             }
             return settings;
         }
+
+        // Returns null when the user presses ESC.
+        private static CatalogEntry<TContext, T>? ChooseEntry<TContext, T>(Settings settings, string message, IReadOnlyList<CatalogEntry<TContext, T>> entries) =>
+            ConsoleUi.Choose(settings, message, entries.Select(entry => entry.Name).ToList()) is int choice ? entries[choice] : null;
 
         private static void PromptFor<T>(string request, string invalidMessage, InputParser<T> parse, Action<T> assign) =>
             ConsoleUi.PromptUntilAccepted(request, invalidMessage, input =>

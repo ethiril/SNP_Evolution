@@ -19,7 +19,7 @@ namespace SnpEvolution.Tests.Storage
             Network? network = NetworkFiles.FromJson(LegacyJson);
 
             Neuron neuron = Assert.Single(Assert.IsType<Network>(network).Neurons);
-            Assert.Equal("aa", neuron.InitialSpikes);
+            Assert.Equal(2, neuron.InitialSpikes);
             Assert.Equal(new[] { 1 }, neuron.Connections);
             Assert.True(neuron.IsOutput);
             Rule rule = Assert.Single(neuron.Rules);
@@ -36,6 +36,23 @@ namespace SnpEvolution.Tests.Storage
             Assert.Equal(json, NetworkFiles.ToJson(Assert.IsType<Network>(NetworkFiles.FromJson(json))));
             Assert.Contains("\"SpikeCount\"", json);
             Assert.Contains("\"RuleExpression\"", json);
+        }
+
+        [Fact]
+        public void SavesSpikeCountsAsNumbers()
+        {
+            string json = NetworkFiles.ToJson(new Network(new[] { TestNetworks.OutputNeuron(5_000_000_000, new Rule("a+", 0, true)) }));
+
+            Assert.Contains("\"SpikeCount\": 5000000000", json);
+            Assert.Equal(5_000_000_000, NetworkFiles.FromJson(json)?.Neurons[0].InitialSpikes);
+        }
+
+        [Theory]
+        [InlineData("\"ab\"")]
+        [InlineData("-1")]
+        public void RejectsAnInvalidSpikeCount(string spikeCount)
+        {
+            Assert.Null(NetworkFiles.FromJson(LegacyJson.Replace("\"SpikeCount\": \"aa\"", "\"SpikeCount\": " + spikeCount)));
         }
 
         [Fact]

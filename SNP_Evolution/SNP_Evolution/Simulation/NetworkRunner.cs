@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using SnpEvolution.Networks;
 
-namespace SnpEvolution.Networks
+namespace SnpEvolution.Simulation
 {
     public static class NetworkRunner
     {

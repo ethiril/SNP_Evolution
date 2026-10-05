@@ -15,7 +15,7 @@ namespace SnpEvolution.Evolution
             {
                 List<Rule> rules = CreateRules(expressions, random);
                 List<int> connections = CreateConnections(index + 1, neuronCount, random);
-                string initialSpikes = new string('a', random.Next(0, maxInitialSpikes + 1));
+                long initialSpikes = random.Next(0, maxInitialSpikes + 1);
                 neurons.Add(new Neuron(rules, initialSpikes, connections, index + 1 == outputPosition));
             }
             return new Network(neurons);

@@ -1,6 +1,7 @@
 using SnpEvolution.Networks;
+using SnpEvolution.Simulation;
 
-namespace SnpEvolution.Tests.Networks
+namespace SnpEvolution.Tests.Simulation
 {
     public class NetworkRunnerTests
     {
@@ -28,7 +29,7 @@ namespace SnpEvolution.Tests.Networks
         {
             var network = new Network(new[]
             {
-                TestNetworks.OutputNeuron("a", new Rule("a", 0, false), new Rule("a", 0, false)),
+                TestNetworks.OutputNeuron(1, new Rule("a", 0, false), new Rule("a", 0, false)),
             });
             var random = new CountingRandom();
 

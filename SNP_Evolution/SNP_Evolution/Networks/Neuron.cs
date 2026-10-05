@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Networks
 {
     public sealed class Neuron
     {
-        public Neuron(IReadOnlyList<Rule> rules, [JsonProperty("SpikeCount")] string initialSpikes, IReadOnlyList<int> connections, bool isOutput)
+        public Neuron(
+            IReadOnlyList<Rule> rules,
+            [JsonProperty("SpikeCount"), JsonConverter(typeof(SpikeCountJsonConverter))] long initialSpikes,
+            IReadOnlyList<int> connections,
+            bool isOutput)
         {
             Rules = rules;
             InitialSpikes = initialSpikes;
@@ -16,9 +21,8 @@ namespace SnpEvolution.Networks
 
         public IReadOnlyList<Rule> Rules { get; }
 
-        // One 'a' per spike, so rule expressions can match it directly.
-        [JsonProperty("SpikeCount")]
-        public string InitialSpikes { get; }
+        [JsonProperty("SpikeCount"), JsonConverter(typeof(SpikeCountJsonConverter))]
+        public long InitialSpikes { get; }
 
         // 1-based positions of the target neurons within the network.
         public IReadOnlyList<int> Connections { get; }

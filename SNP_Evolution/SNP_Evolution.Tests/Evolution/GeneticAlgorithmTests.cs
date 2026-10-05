@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Tests.Evolution
@@ -7,7 +8,7 @@ namespace SnpEvolution.Tests.Evolution
     {
         private static Network SingleRuleNetwork(string expression) => new Network(new[]
         {
-            TestNetworks.OutputNeuron("a", new Rule(expression, 0, true)),
+            TestNetworks.OutputNeuron(1, new Rule(expression, 0, true)),
         });
 
         private static GeneticAlgorithm Create(
@@ -15,15 +16,27 @@ namespace SnpEvolution.Tests.Evolution
             Func<Network> createRandomNetwork,
             Func<Network, float> fitness,
             float mutationRate = 0,
-            Func<string>? createRandomExpression = null) =>
+            Func<string>? createRandomExpression = null,
+            IParentSelection? selection = null) =>
             new GeneticAlgorithm(
                 populationSize,
                 new Random(0),
                 createRandomNetwork,
-                createRandomExpression ?? (() => "a"),
-                network => new FitnessResult(fitness(network), new[] { 42 }),
-                elitism: 1,
-                mutationRate);
+                new DelegateEvaluator(network => new FitnessResult(fitness(network), new[] { 42 })),
+                new GeneticOperators(
+                    selection ?? new RouletteWheelSelection(),
+                    new RuleExpressionCrossover(),
+                    new RuleExpressionMutation(mutationRate, createRandomExpression ?? (() => "a"))),
+                elitism: 1);
+
+        private sealed class DelegateEvaluator : IPopulationEvaluator
+        {
+            private readonly Func<Network, FitnessResult> evaluate;
+
+            public DelegateEvaluator(Func<Network, FitnessResult> evaluate) => this.evaluate = evaluate;
+
+            public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) => networks.Select(evaluate).ToList();
+        }
 
         [Fact]
         public void FirstGenerationReplacesNetworksWithoutAViableFitness()
@@ -62,7 +75,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Empty(algorithm.FitnessHistory);
 
             algorithm.NextGeneration();
-            Assert.Equal(new[] { new List<float> { 0.4f } }, algorithm.FitnessHistory);
+            Assert.Equal(new[] { 0.4f }, Assert.Single(algorithm.FitnessHistory));
             Assert.Equal(0.4f, algorithm.Best?.Fitness);
         }
 
@@ -82,7 +95,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Network ManyRules(string expression) => new Network(new[]
             {
-                TestNetworks.OutputNeuron("a", Enumerable.Range(0, 20).Select(_ => new Rule(expression, 0, true)).ToArray()),
+                TestNetworks.OutputNeuron(1, Enumerable.Range(0, 20).Select(_ => new Rule(expression, 0, true)).ToArray()),
             });
             int created = 0;
             var algorithm = Create(10, () => ManyRules(created++ % 2 == 0 ? "a" : "aa"), _ => 0.5f);
@@ -91,6 +104,21 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.Contains(algorithm.Population.Skip(1), child =>
                 child.Genes.Neurons[0].Rules.Select(rule => rule.Expression).Distinct().Count() == 2);
+        }
+
+        [Fact]
+        public void TournamentSelectionBreedsMostlyFromTheFittest()
+        {
+            int created = 0;
+            var algorithm = Create(
+                50,
+                () => SingleRuleNetwork(created++ == 0 ? "aa" : "a"),
+                network => network.Neurons[0].Rules[0].Expression == "aa" ? 0.9f : 0.1f,
+                selection: new TournamentSelection(10));
+
+            algorithm.NextGeneration();
+
+            Assert.True(algorithm.Population.Count(individual => individual.Genes.Neurons[0].Rules[0].Expression == "aa") > 5);
         }
 
         [Fact]
