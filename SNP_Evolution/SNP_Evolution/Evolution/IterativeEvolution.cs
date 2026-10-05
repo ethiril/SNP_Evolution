@@ -123,11 +123,13 @@ namespace SnpEvolution.Evolution
         private string StageAnnouncement() => $"Stage {Stage + 1}/{StageCount}: evolving for the first {StageLength} of {task.Length} values.";
 
         // Scores with whichever stage's evaluator is current.
-        private sealed class StageEvaluator : IPopulationEvaluator
+        private sealed class StageEvaluator : ITaskEvaluator
         {
             public StageEvaluator(FitnessEvaluator current) => Current = current;
 
             public FitnessEvaluator Current { get; set; }
+
+            public ITask Task => Current.Task;
 
             public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) => Current.EvaluateAll(networks);
         }

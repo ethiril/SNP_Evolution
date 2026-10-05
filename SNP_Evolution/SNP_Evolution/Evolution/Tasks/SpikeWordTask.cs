@@ -12,6 +12,8 @@ namespace SnpEvolution.Evolution.Tasks
     {
         private const int PrefixBuckets = 16;
         private const int SpikeBuckets = 8;
+        private const int FocusLead = 4;
+        private const int FocusLength = 8;
 
         public SpikeWordTask(string name, IReadOnlyList<bool> expected)
         {
@@ -62,6 +64,32 @@ namespace SnpEvolution.Evolution.Tasks
                 prefix++;
             }
             return (prefix * PrefixBuckets / Expected.Count, word.Count(bit => bit) * SpikeBuckets / Expected.Count);
+        }
+
+        // Each step of the word, scored by the share of runs that get it right.
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results)
+        {
+            IReadOnlyList<IReadOnlyList<int>> trains = results[0].SpikeTrains;
+            var checks = new float[Expected.Count];
+            foreach (IReadOnlyList<int> train in trains)
+            {
+                bool[] word = SpikeTrains.Word(train, Expected.Count);
+                for (int step = 0; step < Expected.Count; step++)
+                {
+                    checks[step] += word[step] == Expected[step] ? 1f / trains.Count : 0;
+                }
+            }
+            return checks;
+        }
+
+        public string CheckName(int check) => $"step {check + 1} ({(Expected[check] ? 1 : 0)})";
+
+        // A few steps before the check and a few after, spelled from the first step.
+        public ITask? Focus(int check)
+        {
+            int start = Math.Clamp(check - FocusLead, 0, Math.Max(0, Expected.Count - FocusLength));
+            List<bool> window = Expected.Skip(start).Take(FocusLength).ToList();
+            return window.Contains(true) ? new SpikeWordTask($"{Name}, steps {start + 1}-{start + window.Count}", window) : null;
         }
 
         private float ScoreRun(IReadOnlyList<bool> word)

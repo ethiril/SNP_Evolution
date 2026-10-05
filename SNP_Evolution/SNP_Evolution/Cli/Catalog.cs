@@ -13,8 +13,14 @@ namespace SnpEvolution.Cli
     // needs to implement its interface and be listed here; the first entry of each list is the default.
     internal static class Catalog
     {
+        // The default: the GPU where there is one, which itself hands batches too small for it to the CPU.
+        public static readonly CatalogEntry<Settings, ISimulationEngine> AutoEngine = MetalEngine.IsAvailable
+            ? new CatalogEntry<Settings, ISimulationEngine>("Auto: fastest available (GPU here, CPU for small batches)", _ => new MetalEngine())
+            : new CatalogEntry<Settings, ISimulationEngine>("Auto: fastest available (CPU, all cores here)", _ => new ParallelCpuEngine());
+
         public static readonly IReadOnlyList<CatalogEntry<Settings, ISimulationEngine>> Engines = new[]
         {
+            AutoEngine,
             new CatalogEntry<Settings, ISimulationEngine>("CPU, all cores", _ => new ParallelCpuEngine()),
             new CatalogEntry<Settings, ISimulationEngine>("CPU, single thread", _ => new SequentialCpuEngine()),
             new CatalogEntry<Settings, ISimulationEngine>("Exhaustive (exact outputs), all cores", _ => new ExhaustiveCpuEngine()),

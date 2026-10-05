@@ -1,0 +1,10 @@
+{
+  "M1": {
+    "title": "M1: Composing modules into machines",
+    "description": "Parts with start/done contracts, evolved and verified on their own, wired by port type, composed by search and promoted into new parts, ending in arithmetic. Spec: the Claude Doc 'Composing SN P Modules into Machines' and RESEARCH.md."
+  },
+  "M2": {
+    "title": "M2: Toward hardware",
+    "description": "A hardware rule profile, exporters checked by co-simulation, bounded contract verification, streaming tasks and timing robustness. Spec: 'Use cases and a practical path' in RESEARCH.md."
+  }
+}

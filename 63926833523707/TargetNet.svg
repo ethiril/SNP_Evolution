@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="743" height="420" viewBox="0 0 743 420" font-family="Menlo, Consolas, monospace" font-size="12">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#444"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<path d="M365.2,166 L372.2,166 Q379.2,166 379.2,174 L379.2,262 Q379.2,270 371.2,270 L354.3,270" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M606.6,150 L655.1,150 Q663.1,150 663.1,142 L663.1,102 Q663.1,94 655.1,94 L252.9,94 Q244.9,94 244.9,102 L244.9,158 Q244.9,166 252.9,166 L264.9,166" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M354.3,270 C423,270 423,150 491.7,150" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M354.3,270 C404.7,270 404.7,262 455.2,262" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M174.9,158 C219.9,158 219.9,166 264.9,166" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M643.1,262 L661.1,262 Q669.1,262 669.1,254 L669.1,96 Q669.1,88 661.1,88 L246.9,88 Q238.9,88 238.9,96 L238.9,158 Q238.9,166 246.9,166 L264.9,166" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M171.3,270 C223.6,270 223.6,270 275.9,270" fill="none" stroke="#444" stroke-width="1.3" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M365.2,182.8 L405.2,182.8" stroke="#c05621" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="409.2" y="186.8" fill="#c05621">env</text>
+<rect x="264.9" y="124" width="100.3" height="84" rx="14" fill="#fafafa" stroke="#c05621" stroke-width="2"/>
+<text x="315.1" y="146" text-anchor="middle" font-weight="bold">n1 (out)</text>
+<text x="315.1" y="162" text-anchor="middle">aaaaa</text>
+<text x="315.1" y="178" text-anchor="middle">aa+ -&gt; a;1</text>
+<text x="315.1" y="194" text-anchor="middle">a(aa)? -&gt; a</text>
+<rect x="491.7" y="116" width="114.9" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="549.2" y="138" text-anchor="middle" font-weight="bold">n2</text>
+<text x="549.2" y="154" text-anchor="middle">a</text>
+<text x="549.2" y="170" text-anchor="middle">aa(a)* -&gt; a;2</text>
+<rect x="275.9" y="244" width="78.4" height="52" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="315.1" y="266" text-anchor="middle" font-weight="bold">n3</text>
+<text x="315.1" y="282" text-anchor="middle">aa? -&gt; a</text>
+<rect x="60" y="116" width="114.9" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="117.5" y="138" text-anchor="middle" font-weight="bold">n4</text>
+<text x="117.5" y="154" text-anchor="middle">aaaaa</text>
+<text x="117.5" y="170" text-anchor="middle">aaaaa+ -&gt; a;2</text>
+<text x="117.5" y="186" text-anchor="middle">a -&gt; a;1</text>
+<rect x="455.2" y="220" width="187.9" height="84" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="549.2" y="242" text-anchor="middle" font-weight="bold">n5</text>
+<text x="549.2" y="258" text-anchor="middle">aaaaaa</text>
+<text x="549.2" y="274" text-anchor="middle">aa(aaa)? -&gt; a;1</text>
+<text x="549.2" y="290" text-anchor="middle">aaaa(aaaa)* -&gt; forget;2</text>
+<rect x="63.7" y="236" width="107.6" height="68" rx="14" fill="#fafafa" stroke="#333" stroke-width="1.3"/>
+<text x="117.5" y="258" text-anchor="middle" font-weight="bold">n6</text>
+<text x="117.5" y="274" text-anchor="middle">aaaaaaa</text>
+<text x="117.5" y="290" text-anchor="middle">a* -&gt; forget</text>
+</svg>

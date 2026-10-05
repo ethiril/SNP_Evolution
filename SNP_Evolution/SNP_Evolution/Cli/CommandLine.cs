@@ -14,7 +14,11 @@ namespace SnpEvolution.Cli
     //   select --task NAME [--budget N] [--seeds N] [--population N]
     //   evolve --target VALUES [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]
     //          [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]
+    //          [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]
+    //          [--triggered on|off] [--incubate N]
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
+    //   compile --target VALUES [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--population N] [--seed N]:
+    //          compiles a recurrence (sequence) or register program (set, evolved unless --program gives one), then shrinks it
     //   tasks | algorithms
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
     // NAME matches any task or algorithm whose name contains it, ignoring case.
@@ -25,7 +29,10 @@ namespace SnpEvolution.Cli
             "Usage: snp-evolution [benchmark|select|tasks|algorithms] [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME] [--engine exact|sampled] [--configurations N]\n" +
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
             "                    [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]\n" +
-            "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]";
+            "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
+            "                    [--triggered on|off] [--incubate N]\n" +
+            "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
+            "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]";
 
         public static int Run(string[] args)
         {
@@ -50,6 +57,8 @@ namespace SnpEvolution.Cli
                     return Evolve(options);
                 case "advise":
                     return Advise(options);
+                case "compile":
+                    return Compile(options);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;
@@ -107,6 +116,21 @@ namespace SnpEvolution.Cli
             return EvolutionSession.IsSolved(geneticAlgorithm) ? 0 : 2;
         }
 
+        // Compiles the target into a network that is correct by construction, then shrinks it for --shrink
+        // generations (300 unless given; 0 skips shrinking). --generations and --lexicase (on unless given) are for
+        // evolving a register program.
+        private static int Compile(IReadOnlyDictionary<string, string> options)
+        {
+            if (TargetSettings(options) is not Settings settings)
+            {
+                return 1;
+            }
+            var random = options.ContainsKey("seed") ? new Random((int)Number(options, "seed", 0)) : new Random();
+            int shrink = options.TryGetValue("shrink", out string? value) && int.TryParse(value, out int generations) && generations >= 0 ? generations : 300;
+            var compile = new CompileSession.Options(shrink, (int)Number(options, "generations", 2000), options.GetValueOrDefault("program"), Switch(options, "lexicase", true));
+            return CompileSession.Run(settings, compile, random, Console.WriteLine);
+        }
+
         private static int Advise(IReadOnlyDictionary<string, string> options)
         {
             if (TargetSettings(options) is not Settings settings)
@@ -131,7 +155,7 @@ namespace SnpEvolution.Cli
             if (kind == null || !options.TryGetValue("target", out string? values) || !OutputTarget.TryParse(kind.Value, values, out OutputTarget target))
             {
                 Console.Error.WriteLine(Usage);
-                Console.Error.WriteLine("evolve and advise need a --target of positive numbers, or of 0s and 1s with --kind binary.");
+                Console.Error.WriteLine("evolve, advise and compile need a --target of positive numbers, or of 0s and 1s with --kind binary.");
                 return null;
             }
             var settings = new Settings { Target = target, Task = Catalog.TargetTask };
@@ -146,15 +170,25 @@ namespace SnpEvolution.Cli
             settings.PopulationSize = (int)Number(options, "population", settings.PopulationSize);
             settings.MaxNeurons = (int)Number(options, "neurons", settings.MaxNeurons);
             settings.StagnationPatience = (int)Number(options, "patience", settings.StagnationPatience);
-            if (options.GetValueOrDefault("iterative") is string iterative)
+            settings.IterativeEvolution = Switch(options, "iterative", settings.IterativeEvolution);
+            settings.Lexicase = Switch(options, "lexicase", settings.Lexicase);
+            settings.Modules = Switch(options, "modules", settings.Modules);
+            settings.FreezeModules = Switch(options, "freeze", settings.FreezeModules);
+            settings.TriggeredModules = Switch(options, "triggered", settings.TriggeredModules);
+            settings.ModuleIncubation = (int)Number(options, "incubate", settings.ModuleIncubation);
+            if (options.GetValueOrDefault("module-files") is string files)
             {
-                settings.IterativeEvolution = !string.Equals(iterative, "off", StringComparison.OrdinalIgnoreCase);
+                settings.ModuleFiles = files.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                settings.Modules = true;
             }
             if (options.GetValueOrDefault("algorithm") is string algorithm)
             {
                 settings.Algorithm = Catalog.Algorithms.FirstOrDefault(entry => entry.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
             }
         }
+
+        private static bool Switch(IReadOnlyDictionary<string, string> options, string name, bool fallback) =>
+            options.ContainsKey(name) ? IsOn(options, name) : fallback;
 
         private static bool IsOn(IReadOnlyDictionary<string, string> options, string name) =>
             options.GetValueOrDefault(name) is string value && !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase) && value != "0";

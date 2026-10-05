@@ -198,7 +198,17 @@ namespace SnpEvolution.Cli
                     "More spikes to start with gives counters something to count down from.",
                     target => target.MaxInitialSpikes = 8));
             }
+            // On 16 values of Fibonacci over 15 seeds, the two together solved 7.3 values on average against 6.5 for
+            // a run without them given as many generations as their side runs added on average.
+            if (grows && !(settings.Modules && settings.Lexicase))
+            {
+                suggestions.Add(new Suggestion("Modules and lexicase", $"{OnOff(settings.Modules)} and {OnOff(settings.Lexicase)}", "on and on",
+                    "Growing gaps are built from parts; lexicase keeps networks that are right about different gaps, and side runs build the parts nothing makes yet.",
+                    target => (target.Modules, target.Lexicase) = (true, true)));
+            }
         }
+
+        private static string OnOff(bool value) => value ? "on" : "off";
 
         // A rough count of the simulation steps the run could take, with the suggestions applied.
         private static string CostNote(Settings settings, BenchmarkTask task, IReadOnlyList<Suggestion> suggestions)

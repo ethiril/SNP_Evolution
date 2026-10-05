@@ -5,6 +5,9 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Networks
 {
+    // Marks a neuron as part of a copy of a library module: which module, and which copy of it in the network.
+    public sealed record ModuleTag(int Module, int Instance);
+
     public sealed class Neuron
     {
         public Neuron(
@@ -12,8 +15,10 @@ namespace SnpEvolution.Networks
             [JsonProperty("SpikeCount"), JsonConverter(typeof(SpikeCountJsonConverter))] long initialSpikes,
             IReadOnlyList<int> connections,
             bool isOutput,
-            bool isInput = false)
+            bool isInput = false,
+            ModuleTag? module = null)
         {
+            Module = module;
             Rules = rules;
             InitialSpikes = initialSpikes;
             Connections = connections;
@@ -34,13 +39,19 @@ namespace SnpEvolution.Networks
         // Input neurons also receive spikes from the environment, which is how a task feeds a network its arguments.
         public bool IsInput { get; }
 
-        public Neuron WithRules(IEnumerable<Rule> rules) => new Neuron(rules.ToList(), InitialSpikes, Connections, IsOutput, IsInput);
+        // Set when the neuron came from a library module and still belongs to it; the simulation ignores it.
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public ModuleTag? Module { get; }
 
-        public Neuron WithInitialSpikes(long initialSpikes) => new Neuron(Rules, initialSpikes, Connections, IsOutput, IsInput);
+        public Neuron WithRules(IEnumerable<Rule> rules) => new Neuron(rules.ToList(), InitialSpikes, Connections, IsOutput, IsInput, Module);
+
+        public Neuron WithInitialSpikes(long initialSpikes) => new Neuron(Rules, initialSpikes, Connections, IsOutput, IsInput, Module);
 
         public Neuron WithConnections(IEnumerable<int> connections) =>
-            new Neuron(Rules, InitialSpikes, connections.Distinct().OrderBy(position => position).ToList(), IsOutput, IsInput);
+            new Neuron(Rules, InitialSpikes, connections.Distinct().OrderBy(position => position).ToList(), IsOutput, IsInput, Module);
 
-        public Neuron WithRoles(bool isOutput, bool isInput) => new Neuron(Rules, InitialSpikes, Connections, isOutput, isInput);
+        public Neuron WithRoles(bool isOutput, bool isInput) => new Neuron(Rules, InitialSpikes, Connections, isOutput, isInput, Module);
+
+        public Neuron WithModule(ModuleTag? module) => new Neuron(Rules, InitialSpikes, Connections, IsOutput, IsInput, module);
     }
 }

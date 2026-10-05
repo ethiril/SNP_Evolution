@@ -26,6 +26,11 @@ Dong, Stachowicz, Zhang, Cavaliere, Rong, Paul, "Automatic Design of Spiking Neu
 | 4 | Exact fitness by exploring every computation (`ExhaustiveCpuEngine`) | New as a fitness method; exploration exists only for simulation and verification |
 | 5 | Regexes compiled into eventually-periodic lookup tables | Looks new as engineering; the theory (unary regular languages are semilinear) is known |
 
+| 6 | Modules discovered during evolution, kept in a library and composed (no hand-built modules by default) | Looks new: no modules, ADFs or libraries in any SN P evolution found; nearest is Cao et al. 2010 (hand-built library, stochastic P systems) |
+| 7 | Compile a register-machine program into SN P with the standard modules, then evolve it smaller | Looks new as an automated method; neuron reduction so far is by hand |
+| 8 | Modules with contracts (what they compute, on typed ports), composed by wiring port to port, with solved compositions kept as new modules | Looks new for SN P; nearest are ECGP and functional modularity in GP. See "Composing modules into machines" |
+| 9 | Compile a linear recurrence on output gaps into an SN P system whose gaps are exact and never stop (Fibonacci in 15 neurons, 2 or 3 rules each) | Looks new: no SN P system generating Fibonacci as output gaps found (see searches below); check before claiming |
+
 Nothing found on automatic design of asynchronous or time-free SN P systems, so that is still open.
 
 Suggested framing: lead with 3 and 4 (exact-fitness comparison of algorithms, plus MAP-Elites fitness-vs-size maps). Use acceptors and the step up from the baseline as supporting results. Don't headline n1+n2.
@@ -46,7 +51,157 @@ Suggested framing: lead with 3 and 4 (exact-fitness comparison of algorithms, pl
   - Leporati et al. (2023), "Inferring P systems from their computing steps", *Swarm & Evol. Comp.*: a (μ+λ) EA. https://www.sciencedirect.com/science/article/abs/pii/S2210650222001894
   - Nadizar, Pietropolli (2023), grammatical evolution for inferring P systems, JMC. https://doi.org/10.1007/s41965-023-00125-w
 
+### Modules, compilation and finding what is missing
+
+Second literature check, 2026-10-05, for contributions 6 and 7. Citations confirmed by web search, mostly at title or abstract level.
+
+SN P constructions and their size:
+- **Ionescu, Păun, Yokomori (2006)**, "Spiking neural P systems", *Fundamenta Informaticae* 71(2-3):279-308. https://doi.org/10.3233/FUN-2006-712-308 — The standard ADD, SUB and FIN modules for simulating register machines (a register holding n is 2n spikes). The compiler for contribution 7.
+- **Păun, Păun (2007)**, "Small universal spiking neural P systems", *BioSystems* 90(1):48-60. https://www.sciencedirect.com/science/article/abs/pii/S0303264706001158 — 84 neurons, reduced by merging consecutive instructions into compound modules (ADD-ADD, SUB-ADD). Reduction by hand.
+- **Zhang, Zeng, Pan (2008)**, *Fundamenta Informaticae* 87(1):117-136, and **Neary (2015)**, "Three small universal SN P systems", *TCS* 567:2-20 — Smaller universal systems (Neary: 17 neurons with standard rules). Size references.
+- **Ibarra, Păun, Păun, Rodríguez-Patón, Sosík, Woodworth (2007)**, "Normal forms for spiking neural P systems", *TCS* 372:196-217. https://doi.org/10.1016/j.tcs.2006.11.025 and **Macababayao, Cabarle, de la Cruz, Zeng (2022)**, *Information Sciences* 595:344-363 — Normal forms; could restrict the genome.
+- **Ibarra, Pérez-Jiménez, Yokomori (2010)**, "On spiking neural P systems", *Natural Computing*. https://link.springer.com/article/10.1007/s11047-009-9159-3 — SN P modules with input and output neurons; a formal interface for composing modules.
+- P-Lingua/MeCoSim, CuSNP and WebSnapse specify and simulate systems; none compiles programs or assembles systems from a module library.
+
+Evolving P systems with modules:
+- **Cao, Romero-Campero, Heeb, Cámara, Krasnogor (2010)**, "Evolving cell models for systems and synthetic biology", *Systems and Synthetic Biology* 4(1):55-84. https://pmc.ncbi.nlm.nih.gov/articles/PMC2816226/ — Nested EA: structure from a hand-built module library, parameters by an inner GA. Closest precedent for 6; our modules are discovered instead.
+- **Huang, Zhang, Rong, Ipate (2011)**, "Evolutionary design of a simple membrane system", CMC 2011, LNCS 7184. https://link.springer.com/chapter/10.1007/978-3-642-28024-5_14 — Fixed rule pool, no modules.
+- **Paul, Sosík, Ciencialová (2024)**, survey of learning in SN P systems, *Natural Computing*. https://arxiv.org/abs/2403.18609 — Up-to-date survey to cite. *Abstract.*
+
+Modularity and library learning:
+- **Koza (1994)**, *Genetic Programming II*, MIT Press — Automatically defined functions.
+- **Angeline, Pollack (1993)**, "Evolutionary module acquisition", Proc. 2nd Conf. on Evolutionary Programming, 154-163 — Compress and expand mutations that freeze subtrees into a library.
+- **Rosca, Ballard (1996)**, "Discovery of subroutines in genetic programming" (adaptive representation through learning), *Advances in GP 2*. https://cdn.aaai.org/Symposia/Fall/1995/FS-95-01/FS95-01-011.pdf — New subroutines from the parts of a child that beat its parents; unused ones are dropped. The model for harvesting modules on fitness jumps.
+- **Ellis et al. (2021)**, "DreamCoder", PLDI. https://dspace.mit.edu/bitstream/handle/1721.1/145949/3453483.3454080.pdf; **Bowers et al. (2023)**, "Top-down synthesis for library learning" (Stitch), POPL. https://arxiv.org/abs/2211.16605; **Grand et al. (2024)**, "LILO", ICLR. https://arxiv.org/abs/2310.19791 — Solve, then compress solutions into a library.
+- **Berlot-Attwell, Rudzicz, Si (2024)**, "Library learning doesn't", NeurIPS MATH-AI workshop. https://arxiv.org/abs/2410.20274 — Learned libraries were rarely reused. Measure reuse, not only fitness.
+- **Reisinger, Stanley, Miikkulainen (2004)**, "Evolving reusable neural modules", GECCO, LNCS 3103. https://link.springer.com/chapter/10.1007/978-3-540-24855-2_7; **Miikkulainen et al. (2017)**, CoDeepNEAT. https://arxiv.org/abs/1703.00548 — Modules and blueprints co-evolved.
+- **Kashtan, Alon (2005)**, "Spontaneous evolution of modularity and network motifs", *PNAS* 102(39):13773. https://www.pnas.org/doi/10.1073/pnas.0503610102; **Clune, Mouret, Lipson (2013)**, "The evolutionary origins of modularity", *Proc. R. Soc. B*. https://arxiv.org/abs/1207.2743 — Changing goals and a connection cost make modularity emerge.
+
+Giving new parts time to be wired in, and parts that start on a signal:
+- **Stanley, Miikkulainen (2002)**, "Evolving neural networks through augmenting topologies" (NEAT), *Evolutionary Computation* 10(2):99-127. https://doi.org/10.1162/106365602320169811 — Speciation protects new structure until its weights are tuned. Incubation does the same for a network given a module copy: it competes only with other such networks for a while.
+- **Hornby (2006)**, "ALPS: the age-layered population structure for reducing the problem of premature convergence", GECCO, 815-822. https://doi.org/10.1145/1143997.1144142 — Newcomers compete only with individuals of similar age. Another way to keep new material alive; a baseline for incubation.
+- The ADD and SUB modules of Ionescu, Păun, Yokomori (2006) start when a spike reaches their instruction neuron and end by sending one to the next. Triggered side runs evolve parts with the same kind of interface: start on a spike from the host, then make the missing gaps.
+
+Finding what is missing:
+- **Krawiec, Liskowski (2015)**, "Automatic derivation of search objectives for test-based GP" (DOC), EuroGP, LNCS 9025:53-65. https://doi.org/10.1007/978-3-319-16501-1_5; **Krawiec (2016)**, *Behavioral Program Synthesis with Genetic Programming*, Springer. https://link.springer.com/book/10.1007/978-3-319-27565-9 — Per-test outcomes as a matrix; cases nothing passes show what is missing.
+- **Helmuth, Spector, Matheson (2015)**, "Solving uncompromising problems with lexicase selection", *IEEE TEVC* 19(5):630-643. https://doi.org/10.1109/TEVC.2014.2362729 — Keeps specialists on different cases alive.
+- **Li, Miikkulainen**, "Evolving multimodal behavior through subtask and switch neural networks" (ModNEAT), ALIFE 2014 *(venue unconfirmed)* — Adds a module when fitness stalls.
+- **Moraglio, Krawiec, Johnson (2012)**, geometric semantic GP, PPSN XII; **Solar-Lezama et al. (2006)**, sketching, ASPLOS. https://doi.org/10.1145/1168857.1168907
+- **Lehman et al. (2022)**, "Evolution through large models". https://arxiv.org/abs/2206.08896; **Romera-Paredes et al. (2024)**, FunSearch, *Nature* 625:468; **Novikov et al. (2025)**, AlphaEvolve. https://arxiv.org/abs/2506.13131 — An LLM as an optional mutation proposer.
+
+Correct first, then smaller:
+- **Schkufza, Sharma, Aiken (2013)**, "Stochastic superoptimization" (STOKE), ASPLOS. https://arxiv.org/abs/1211.0557 — Search from compiled code under a correctness-plus-cost objective.
+- **Vasicek, Sekanina (2011)**, "Formal verification of candidate solutions for post-synthesis evolutionary optimization in evolvable hardware", *GPEM* 12:305-327. https://link.springer.com/article/10.1007/s10710-011-9132-7 — Start from a working circuit, keep only edits that stay correct, let size fall. The template for 7; the exhaustive engine can play the SAT checker.
+- **Luke, Panait (2006)**, "A comparison of bloat control methods for GP", *Evolutionary Computation* 14(3):309-344 — Lexicographic parsimony as a baseline.
+
+What was built for 7 and 9 (`compile`):
+- Register programs are compiled with the Ionescu ADD/SUB modules written as standard rules, and checked against an interpreter that follows every choice. Evolving the program is the weak step. A (μ+λ) search over instruction lists gets stuck on programs that generate too much. Lexicase selection over the target numbers, plus a "nothing extra" check, fixes much of that (10 seeds each, lexicase against fittest-only parents): {2,4,6} found 10/10 against 3/10, {1,2,3,5,8,13} found 2/10 against 0/10. On the Fibonacci set up to 987, 9 of 10 seeds reached numbers up to 34, while without lexicase none got past 5. The programs found for larger sets hit the 16-instruction cap and list numbers rather than compute them. A hand-written 13-instruction Fibonacci program compiles and matches its interpreter.
+- Textbook modules cannot give exact gap sequences: each instruction takes a fixed 2 to 4 steps, so a gap of 1 is impossible and larger gaps come out as a multiple of the value plus overhead. Gap sequences are compiled from a fitted recurrence instead. Each value is a pair of neurons holding 2v spikes. One neuron of the pair drains one unit per step into the pairs that store the next value; the other stays silent until the last unit, then starts the next pair, so the drains run back to back. A gap lasts exactly as long as the sum of the values drained in it.
+- Shrinking compiled Fibonacci (15 neurons, 29 rules, size 1834) for 2000 generations reached 10 neurons and 18 rules (size 1208 to 1210) on 4 of 5 seeds, and 12 neurons on the fifth. Every shrunk network still gave the next 4 values of the recurrence, past the 16 it was checked on, so shrinking did not overfit here. For comparison, evolving from scratch with modules and lexicase (100 neurons, 2000 generations) solved at most 10 of the 16 values.
+
+### Composing modules into machines
+
+Design notes, 2026-10-05. Large Fibonacci gaps were out of reach because the search is scored only on the output gaps. To make gaps that keep growing, a network has to store two numbers, add them, wait that many steps and repeat, so the flat search has to find storage, addition, timing and control all at once. The aim here is to evolve those parts separately, verify each one, and then search over ways of wiring them together.
+
+Where the current module system falls short of this:
+- A module has no record of what it computes. `Module.Origin` is a string, so nothing can say that module 7 computes n+1.
+- `ModuleEdits.Insert` wires each port to a random neuron, so chaining parts on purpose cannot be expressed.
+- Side runs (`SequenceTask.Focus` and `Triggered`) evolve parts for a few output gaps. That is still matching the output, only a smaller piece of it.
+- `ModuleLibrary.Add` removes duplicates by structure. Two networks that compute the same thing are kept as two modules.
+- `MaxModuleNeurons = 24` caps every module, so a solved composition can never become a module itself.
+- The readouts are `Output` (the gap between two spikes), `Halting` and `SpikeTrain`. Nothing reads the number of spikes a neuron holds, and no part says when its result is ready.
+
+Ways to encode a number at a port:
+- **Interval**: two spikes n steps apart. `FunctionTask` already uses this, and so do the hand-built adder, subtracter, multiplier and divider of Zeng et al. (2012).
+- **Count**: n (or 2n) spikes held in a neuron. This is how the registers of Ionescu, Păun, Yokomori (2006) hold numbers.
+- **Trigger**: one spike that means start or done, as in the ADD and SUB instruction neurons.
+
+With the count encoding, addition costs nothing: two synapses into one neuron add their spikes. The hard parts are control (what runs when) and converting between counts and intervals. Turning a count into an interval is exactly what a gap of the output needs.
+
+Fibonacci in these terms (a hand derivation, used as a test and not as a seed): keep registers A = F(k-1) and B = F(k). Each round, B is drained one unit per step. Each unit sends one spike to the output, one to a new A' and one to a new B'. A is drained into B' at the same time, and finishes first because A ≤ B. The output gap is then B, A' = B and B' = A + B, and the next round swaps the old and new registers. This is a short register-machine program, so contributions 7 and 8 meet here. Building it by hand from verified parts would show whether the composition genome can express the answer at all, and its size gives MAP-Elites a target to beat.
+
+A generic set of first parts, which are arithmetic and not specific to Fibonacci, so the default of automatic discovery still holds:
+- delay and identity, and fan-out (copy a number to two ports);
+- n+1, 2n and n1+n2, in both the interval and the count encoding;
+- interval → count, and count → interval (a timer);
+- zero test or compare (SUB-like, with two trigger outputs);
+- a sequencer: a trigger in, then triggers out in order.
+
+Each part is an ordinary task with typed ports. Evolution finds them, the exhaustive engine verifies them, and MAP-Elites makes them smaller. The paper should say which parts were given as goals.
+
+The loop that keeps itself going:
+1. **Solve**: evolve each open contract. The exhaustive engine verifies the result and MAP-Elites shrinks it.
+2. **Store**: a module keeps its body, its contract, and its ports with their encodings. Duplicates are found by behaviour (the same results on the contract's inputs), so a smaller network that does the same thing replaces the larger one.
+3. **Compose**: the genome is a graph of module instances, glue neurons, and wires between type-compatible ports, flattened into an SN P network to be scored. This is the blueprint level of ECGP and CoDeepNEAT. Its mutations add an instance, move a wire to another compatible port, add a glue neuron, or swap an instance for a smaller module with the same behaviour. Raw neuron-level mutation is still allowed on the glue.
+4. **Promote**: a solved composition becomes a module with the target as its contract. It refers to its parts rather than copying them, so the size cap no longer applies, and modules can be built from modules.
+5. **Propose**: when composition stalls, propose new contracts. They can come from the failing checks, as now, or from the shape of the target: finite differences or a fitted linear recurrence (gap_k = gap_{k-1} + gap_{k-2}) suggest which operations are missing. That works for any recurrent sequence, not only Fibonacci. An LLM proposer (FunSearch, AlphaEvolve) can be added as an option.
+
+Timing: SN P systems are synchronous, so parts wired together go wrong if a part takes a step longer than expected. Two ways to handle it are a fixed, recorded latency for every part, or a start and done trigger on every part, as in the Ionescu modules. The trigger approach is the safer one, since a smaller replacement part with a different latency still fits. It costs a few neurons per part.
+
+Toward arithmetic: n1+n2, then n1−n2, then n1·n2 (a counter loop of additions), then division and comparison. The hand-built systems of Zeng et al. (2012) and the evolved ones of Dong et al. (2023) give neuron counts to compare against. Measure reuse as well as success (Berlot-Attwell et al. 2024): how often promoted modules show up in later solutions.
+
+Related work for this section:
+- **Zeng, Song, Zhang, Pan (2012)**, "Performing four basic arithmetic operations with spiking neural P systems", *IEEE Trans. NanoBioscience* 11(4):366-374. https://www.researchgate.net/publication/230671821_Performing_Four_Basic_Arithmetic_Operations_With_Spiking_Neural_P_Systems — Hand-built adder, subtracter, multiplier and divider. Numbers are intervals between input spikes and the result is the interval between output spikes, the same as `FunctionTask`. *Abstract.*
+- **Gutiérrez-Naranjo, Leporati (2009)**, "First steps towards a CPU made of spiking neural P systems", *IJCCC* 4(3):244-252 — Arithmetic circuits built by hand from SN P parts. *Not read.*
+- **Walker, Miller (2008)**, "The automatic acquisition, evolution and reuse of modules in Cartesian genetic programming" (ECGP), *IEEE TEVC* 12(4):397-417 — Modules acquired and reused during the run inside a graph genome. The closest model for step 3.
+- **Krawiec, Wieloch (2009)**, "Functional modularity for genetic programming", GECCO. https://dl.acm.org/doi/10.1145/1569901.1570037 — Modules identified by what they compute, not by their structure. The model for removing duplicates by behaviour. *Title only.*
+
+Searched with no relevant hits: modules, ADFs or library learning in SN P evolution; automated compilers from programs to SN P systems; evolutionary minimisation of SN P systems; an SN P system generating Fibonacci as output gaps. Chinese-language venues and CMC/BWMC proceedings are poorly indexed, so check again before claiming novelty.
+
 Searched with no relevant hits: MAP-Elites or quality-diversity for P systems; SAT/SMT synthesis of SN P systems; automatic design of asynchronous or time-free SN P systems; simulators that compile regexes into periodic tables.
+
+### Use cases and a practical path
+
+Notes from 2026-10-05. The published applications fall into two groups:
+- Some variants keep the SN P name but have real-valued neurons trained by gradient or tuned by experts. These are practical, but they are not the model we evolve.
+- The rest are exact, integer, deterministic circuits like ours, and every one of them was designed by hand.
+
+Nobody evolves the exact circuits, so that is the niche. The realistic practical claim is automatic design of small, verified spiking circuits for neuromorphic chips or FPGAs. General computing is out: no published work shows SN P beating conventional hardware at it.
+
+| Area | What is published | Fit with this project |
+|---|---|---|
+| Fault diagnosis (power grids, locomotives, motors) | Fuzzy-reasoning SN P (FRSN P), built by hand from expert cause-and-effect rules and evaluated as matrix operations. | Poor. Spikes are fuzzy truth values, not counts. |
+| Forecasting and NLP | Nonlinear SN P (NSNP) and LSTM-SNP are real-valued recurrent networks trained by gradient. | Poor. They share the name but not the model. |
+| Image processing (skeletons, edges, segmentation) | Classic parallel algorithms, recoded by hand as SN P systems with weights and run on GPUs. | Partial. These are per-pixel local rules; a per-pixel module could be evolved. |
+| Arithmetic | Adders, subtracters, multipliers and dividers, including time-free versions. A 2024 paper puts 64-bit circuits using communication on request onto a low-area FPGA. | Strong. These are exact targets with published sizes to beat. |
+| Cryptography and security | ElGamal encryption built on SN P arithmetic (2025), and a 2024 review of SN P in cybersecurity. | Downstream: this needs arithmetic first. |
+| Robot control | Enzymatic numerical SN P controllers for wall following, built test-first in Webots. | Partial. It needs streaming input ports and real-valued variables. |
+| NP-hard problems | SAT and Subset Sum solved in polynomial time using neuron division, budding or plasticity. | Poor. The extra workspace grows exponentially, which no physical device provides. |
+
+The closest neighbours lie outside membrane computing, in neuromorphic algorithm work:
+- **Fugu** composes spiking-algorithm "bricks". Each brick declares how many input and output neurons it has, how long its input and output last, and its depth. It also has a control neuron that fires on completion, and Fugu pads parallel branches to equal depth or flushes buffers with control neurons. This is our start/done contract, already in use, but its bricks are hand-written scripts. So the claim in the table above narrows from "composition is new" to "evolving parts with contracts and composing them automatically is new". Fugu has to be cited in the composition section.
+- **Adders on Loihi 2** (2025) encode one bit per time step, as a spike or no spike. Serial adders take O(n) steps; parallel adders take O(1) steps but need about n² or n√n synapses. Their neuron and synapse counts are a baseline for evolved adders.
+- **Shortest paths with spikes** (SPAA 2020): the time until the first spike encodes the distance, the same idea as our interval encoding. They prove a polynomial speed-up over conventional algorithms for the k-hop version. This is the one place where spike timing is the answer and also an advantage.
+- **NIR** (Nature Communications 2024) is a shared intermediate representation that runs on 7 simulators and 4 digital hardware platforms. Its primitives are leaky integrate-and-fire style neurons, so our regex rules do not map onto it directly.
+- **Loihi 2 microcode** allows nearly any discrete-time neuron model, and its graded spikes carry an integer payload of up to 32 bits. Matching a `SpikeCondition` is a modulo plus a table lookup (a tail followed by a repeating period), and `Produce` > 1 could ride on a graded spike. That makes running our neurons on Loihi 2 plausible, but it is not demonstrated.
+
+What to build, in order of payoff:
+1. **Binary port encoding**: one bit per step, a spike for 1 and silence for 0. Interval and count are both unary, so a k-bit number costs up to 2^k steps or spikes. The hardware and SN P arithmetic papers all use bits, and any practical arithmetic needs them. Add it as a fourth `PortKind` in build PR 1.
+2. **Published circuits as benchmark tasks**: the adder, subtracter, multiplier and divider of Zeng 2012, the time-free versions, and the Loihi 2 serial adder. Report neurons, synapses, rules and steps, evolved against hand-designed. This gives the paper a clean comparison table. Fits build PR 6.
+3. **Hardware cost as an objective**: neurons, synapses, distinct rules, the most spikes any neuron holds (register width) and lasso table size. Add these as MAP-Elites dimensions or tie-breakers.
+4. **Hardware profile**: an option that limits rules to threshold-and-reset forms (`a^{≥k}`, consuming everything, sending one spike). Networks evolved under it are integrate-and-fire networks and can be exported to NIR or Lava. It costs expressiveness, so measure how much harder tasks get with it on.
+5. **Exporters**, checked by co-simulation: replay each export against our engine and require the spike traces to match bit for bit.
+   - Verilog for any network: one module per neuron, built from a spike counter, the lasso table, a delay counter and a closed flag.
+   - NIR or Lava for networks built under the hardware profile.
+6. **Formal check of contracts**: SN P systems have been translated to Uppaal timed automata, PRISM, Petri nets and kernel P systems. First, a bounded check in the exhaustive engine: done fires exactly once and the system returns to its initial state, for every input up to a bound. A model-checker export can come later.
+7. **Streaming tasks**: sensor spikes in and actuator spikes out, without start or done. Examples are a debouncer, a rate detector, or a small wall-follower like the ENSNP robot controllers. This is a different task family from the arithmetic one.
+8. **Timing robustness**: score parts under random extra delays, following time-free SN P. Asynchronous hardware jitters, and a part that only works under lock-step timing breaks there. The start/done triggers already go some way towards this.
+
+Items 1 and 3 belong in the existing build PRs; items 4 to 6 would be new PRs after build PR 6.
+
+Sources for this section:
+- **Aimone, Severa, Vineyard (2019)**, "Composing neural algorithms with Fugu", ICONS. https://arxiv.org/abs/1905.12130 — Bricks with declared sizes and timing, a control neuron that fires on completion, and a NetworkX graph as output. *HTML read.*
+- **von Seeler, Offenberg, Michaelis, Luboeinski, Lehr, Tetzlaff (2025)**, "Adding numbers with spiking neural circuits on neuromorphic hardware", *Neuromorph. Comput. Eng.* https://arxiv.org/abs/2503.10387 — Serial and parallel adders in Lava on Loihi 2. *Abstract.*
+- **Aimone et al. (2020)**, "Provable neuromorphic advantages for computing shortest paths", SPAA. https://www.osti.gov/servlets/purl/1808434 — Distance encoded as the time to first spike. *Title and summary.*
+- **Pedersen et al. (2024)**, "Neuromorphic intermediate representation", *Nat. Commun.* 15:8122. https://arxiv.org/abs/2311.14641 — *Abstract.*
+- **Peng, Wang, Pérez-Jiménez et al. (2013)**, "Fuzzy reasoning spiking neural P system for fault diagnosis", *Information Sciences*. https://www.sciencedirect.com/science/article/abs/pii/S0020025512004793 — *Title only.*
+- **Liu, Long, Peng et al. (2021)**, "LSTM-SNP", and **Long, Liu, Peng et al. (2022)**, NSNP multivariate forecasting, *Knowledge-Based Systems* and *Neural Networks*. https://www.sciencedirect.com/science/article/abs/pii/S0950705121009187 — *Abstract.*
+- "New high-speed arithmetic circuits based on SN P systems with communication on request implemented in a low-area FPGA", *Mathematics* 12(22):3472 (2024). https://doi.org/10.3390/math12223472 — *Title and search summary; the page returned 403.*
+- "First ElGamal encryption/decryption scheme based on SN P systems…", *Mathematics* 13(9):1366 (2025). https://doi.org/10.3390/math13091366, and "Applications of spiking neural P systems in cybersecurity", *J. Membrane Computing* (2024). https://link.springer.com/article/10.1007/s41965-024-00166-9 — *Title only.*
+- "Enzymatic numerical spiking neural membrane systems and their application in designing membrane controllers", *IJNS* (2022). https://pubmed.ncbi.nlm.nih.gov/36254796 — *Title only.*
+- "Towards a general methodology for formal verification on spiking neural P systems", *TCS* (2024). https://www.sciencedirect.com/science/article/pii/S0304397524003220, and "Modelling and verification of weighted spiking neural systems" (Uppaal), *TCS* (2016). https://www.sciencedirect.com/science/article/pii/S0304397515009792 — *Title only.*
+- Hernández-Tello, Martínez-del-Amor, Orellana-Martín, Cabarle (2024), "Sparse spiking neural-like membrane systems on GPUs". https://arxiv.org/abs/2408.04343 — For comparison with our Metal engine. *Abstract.*
+- Two books from 2024 to read for wider coverage: *Spiking Neural P Systems: Theory, Applications and Implementations* and *Advanced Spiking Neural P Systems: Models and Applications* (Springer). Also the 2025 narrative review in *J. Membrane Computing*: https://link.springer.com/article/10.1007/s41965-025-00206-y (paywalled).
 
 ## Next steps
 

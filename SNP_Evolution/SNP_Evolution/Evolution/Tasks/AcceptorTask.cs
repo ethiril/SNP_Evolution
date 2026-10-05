@@ -38,6 +38,11 @@ namespace SnpEvolution.Evolution.Tasks
             return accuracy.Length == 0 ? 0 : accuracy.Average();
         }
 
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
+            Examples.Select((example, index) => results[index].CanHalt == example.Accept ? 1f : 0f).ToList();
+
+        public string CheckName(int check) => $"{(Examples[check].Accept ? "accept" : "reject")} {Examples[check].Number}";
+
         public string Describe(IReadOnlyList<TrialResult> results) =>
             "accepts {" + string.Join(",", Examples.Where((_, index) => results[index].CanHalt).Select(example => example.Number)) + "}";
     }

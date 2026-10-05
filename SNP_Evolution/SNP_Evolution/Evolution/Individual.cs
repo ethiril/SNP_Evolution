@@ -26,6 +26,9 @@ namespace SnpEvolution.Evolution
         // The task's behaviour cell for this network, if the task has one.
         public (int, int)? Niche { get; private set; }
 
+        // The score, from 0 to 1, on each separate thing the task checks; empty when the task does not say.
+        public IReadOnlyList<float> Checks { get; private set; } = Array.Empty<float>();
+
         public void Record(FitnessResult result)
         {
             Fitness = result.Fitness;
@@ -33,6 +36,7 @@ namespace SnpEvolution.Evolution
             Description = result.Description;
             Exact = result.Exact;
             Niche = result.Niche;
+            Checks = result.Checks ?? Array.Empty<float>();
             IsEvaluated = true;
         }
     }

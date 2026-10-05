@@ -56,9 +56,15 @@ namespace SnpEvolution.Cli
                 "Sequence: gaps between output spikes, in order, e.g. 1,1,2,3,5,8,13",
                 "Binary word: the spike train step by step, e.g. 0110100110010110",
             };
-            if (ConsoleUi.Choose(settings, "What kind of output should the system produce?", labels, Array.IndexOf(kinds, settings.Target.Kind)) is not int choice)
+            IReadOnlyList<SavedRun> savedTargets = SavedRuns.Default.Targets();
+            IReadOnlyList<string> options = savedTargets.Count > 0 ? labels.Append("Saved: a target from a saved run >").ToList() : labels;
+            if (ConsoleUi.Choose(settings, "What kind of output should the system produce?", options, Array.IndexOf(kinds, settings.Target.Kind)) is not int choice)
             {
                 return false;
+            }
+            if (choice == kinds.Length)
+            {
+                return ChooseSavedTarget(settings, savedTargets) || EditTarget(settings);
             }
             TargetKind kind = kinds[choice];
             bool accepted = false;
@@ -89,6 +95,19 @@ namespace SnpEvolution.Cli
                 settings.Task = Catalog.TargetTask;
             }
             return accepted;
+        }
+
+        // Makes matching a saved run's target the task; false when the user goes back.
+        private static bool ChooseSavedTarget(Settings settings, IReadOnlyList<SavedRun> savedTargets)
+        {
+            if (ConsoleUi.Choose(settings, "Match the target of:",
+                savedTargets.Select(run => $"{run.Settings.Target.Kind} {run.Settings.Target}   ({run.Name})").ToList()) is not int choice)
+            {
+                return false;
+            }
+            settings.Target = savedTargets[choice].Settings.Target;
+            settings.Task = Catalog.TargetTask;
+            return true;
         }
 
         // Asks how many generations to evolve a target for; false when the user backs out. Empty input means 1000.
@@ -179,6 +198,12 @@ namespace SnpEvolution.Cli
                     ConsoleUi.Row("Max spikes produced", settings.MaxProduce),
                     ConsoleUi.Row("Max initial spikes", settings.MaxInitialSpikes),
                     ConsoleUi.Row("Duplicate neurons", settings.DuplicateNeurons ? "on" : "off"),
+                    ConsoleUi.Row("Lexicase parents", settings.Lexicase ? "on" : "off"),
+                    ConsoleUi.Row("Build from modules", settings.Modules ? "on" : "off"),
+                    ConsoleUi.Row("Freeze modules", settings.FreezeModules ? "on" : "off"),
+                    ConsoleUi.Row("Triggered modules", settings.TriggeredModules ? "on" : "off"),
+                    ConsoleUi.Row("Module incubation", settings.ModuleIncubation),
+                    ConsoleUi.Row("Module files", settings.ModuleFiles.Count == 0 ? "none" : string.Join(", ", settings.ModuleFiles.Select(System.IO.Path.GetFileName))),
                 }, selection) is int choice)
             {
                 selection = choice;
@@ -211,8 +236,43 @@ namespace SnpEvolution.Cli
                     case 8:
                         settings.DuplicateNeurons = !settings.DuplicateNeurons;
                         break;
+                    case 9:
+                        settings.Lexicase = !settings.Lexicase;
+                        break;
+                    case 10:
+                        settings.Modules = !settings.Modules;
+                        break;
+                    case 11:
+                        settings.FreezeModules = !settings.FreezeModules;
+                        break;
+                    case 12:
+                        settings.TriggeredModules = !settings.TriggeredModules;
+                        break;
+                    case 13:
+                        PromptFor<int>("Generations networks given a new module evolve apart, or 0 for none", NotNonNegativeInteger, InputParsing.TryNonNegativeInt, value => settings.ModuleIncubation = value);
+                        break;
+                    case 14:
+                        EditModuleFiles(settings);
+                        break;
                 }
             }
+        }
+
+        // Saved networks to start the module library with; giving any turns building from modules on.
+        private static void EditModuleFiles(Settings settings)
+        {
+            ConsoleUi.PromptUntilAccepted("Network files to start the module library with, separated by commas", "Could not load a network from every file.", input =>
+            {
+                string[] files = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (files.Any(file => Storage.NetworkFiles.Load(file) == null))
+                {
+                    return false;
+                }
+                settings.ModuleFiles = files;
+                settings.Modules |= files.Length > 0;
+                return true;
+            }, "Saved .json networks, such as the best network of an earlier run.", "Leave it empty to start with an empty library, so every module is found by the run.",
+                "Giving any turns Build from modules on.");
         }
 
         private static string Automatic(int value) => value > 0 ? value.ToString() : "automatic";

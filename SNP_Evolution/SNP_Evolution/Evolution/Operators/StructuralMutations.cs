@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Operators
@@ -240,7 +241,7 @@ namespace SnpEvolution.Evolution.Operators
 
     // With probability rate, makes one edit chosen by weight, and keeps making more with probability repeatChance,
     // so most children are one small step away while a few take a bigger leap. Under pressure every child is mutated
-    // and gets that many extra edits on top.
+    // and gets that many extra edits on top. A tracker is told which network each changed child came from.
     public sealed class WeightedMutation : IMutation
     {
         private readonly float rate;
@@ -248,20 +249,23 @@ namespace SnpEvolution.Evolution.Operators
         private readonly double repeatChance;
         private readonly double totalWeight;
         private readonly MutationPressure? pressure;
+        private readonly ModuleTracker? tracker;
 
-        public WeightedMutation(float rate, IReadOnlyList<WeightedEdit> edits, double repeatChance = 0.3, MutationPressure? pressure = null)
+        public WeightedMutation(float rate, IReadOnlyList<WeightedEdit> edits, double repeatChance = 0.3, MutationPressure? pressure = null, ModuleTracker? tracker = null)
         {
             this.rate = rate;
             this.edits = edits;
             this.repeatChance = repeatChance;
             this.pressure = pressure;
+            this.tracker = tracker;
             totalWeight = edits.Sum(edit => edit.Weight);
         }
 
         public IReadOnlyList<WeightedEdit> Edits => edits;
 
-        // Every edit, weighted towards small changes to the rules over changes to the structure.
-        public static WeightedMutation Structural(float rate, NetworkFactory factory, MutationPressure? pressure = null)
+        // Every edit, weighted towards small changes to the rules over changes to the structure. With modules, copies
+        // of library modules can be put in and freed, and when they are frozen no other edit changes their insides.
+        public static WeightedMutation Structural(float rate, NetworkFactory factory, MutationPressure? pressure = null, ModuleSupport? modules = null)
         {
             var edits = new List<WeightedEdit>
             {
@@ -285,7 +289,16 @@ namespace SnpEvolution.Evolution.Operators
             {
                 edits.Add(new WeightedEdit("Switch rule form", new SwitchRuleForm(), 0.5));
             }
-            return new WeightedMutation(rate, edits, pressure: pressure);
+            if (modules != null)
+            {
+                if (modules.Freeze)
+                {
+                    edits = edits.Select(edit => edit with { Edit = new ProtectModules(edit.Edit) }).ToList();
+                }
+                edits.Add(new WeightedEdit("Insert module", new InsertModule(modules.Library, factory.Space), 0.75));
+                edits.Add(new WeightedEdit("Dissolve module", new DissolveModule(), 0.1));
+            }
+            return new WeightedMutation(rate, edits, pressure: pressure, tracker: modules?.Tracker);
         }
 
         public Network Mutate(Network network, Random random)
@@ -295,16 +308,21 @@ namespace SnpEvolution.Evolution.Operators
             {
                 return network;
             }
+            Network child = network;
             do
             {
-                network = Choose(random).Mutate(network, random);
+                child = Choose(random).Mutate(child, random);
             }
             while (random.NextDouble() < repeatChance);
             for (int edit = 0; edit < extraEdits; edit++)
             {
-                network = Choose(random).Mutate(network, random);
+                child = Choose(random).Mutate(child, random);
             }
-            return network;
+            if (child != network)
+            {
+                tracker?.RecordChild(network, child);
+            }
+            return child;
         }
 
         private IMutation Choose(Random random)

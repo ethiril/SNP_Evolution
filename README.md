@@ -42,9 +42,18 @@ Move with the arrow keys and press Enter to select, or press an option's number.
     - **Binary word**: the output spike train step by step, 1 for a spike, e.g. `001001001001`.
   - *For the selected task*: evolve from scratch for the task chosen in Settings > Evolution: the target or a suite task.
   - *Starting from the natural numbers or even numbers network*: evolve a hand-designed network towards the target. To evolve only its rules, as in the original paper, first pick a "rule expressions only" algorithm in Settings > Evolution.
+  - *Suggest settings*: show what the advisor recommends for the selected task, apply it if you agree, and optionally run a quick pilot that picks the algorithm. *Match a target* does this before every run.
+  - *Compile a target, then shrink it*: type a sequence or set target, then build a network that is correct by construction and evolve it smaller (see [Compile, then shrink](#compile-then-shrink)). For a set you can give a register program file, or leave it empty to evolve one. Leave the shrink generations empty for 300, or enter 0 to only compile.
+  - *Redo a saved run*: after a run you can save it under a name. Saved runs can be run again as they were, have their settings loaded to change first, or be deleted.
 - **Run a network**: run the natural numbers or even numbers network, or import one from a JSON file.
 - **Benchmark**: run every algorithm on the task suite, or find the best algorithm for the selected task.
-- **Settings**: grouped into Evolution (task, target, fitness function, algorithm, population, mutation rate, generations, maximum neurons, experimental rules), Simulation (engine, steps, runs per network, rule form, output timing) and Benchmarks. *Reset to defaults* restores the default configuration.
+- **Settings**: grouped into:
+  - **Evolution**: task, target, fitness function, algorithm, population, mutation rate, generations, maximum neurons and experimental rules.
+  - **Search**: iterative evolution and its stages, stagnation recovery, genome limits (delay, spikes produced, initial spikes, duplicate neurons), lexicase parents, and modules (build from modules, freeze, triggered, incubation, and module files that start the library).
+  - **Simulation**: engine, steps, runs per network, rule form and output timing.
+  - **Benchmarks**.
+
+  *Reset to defaults* restores the default configuration.
 
 Sequence and binary targets have some limits:
 
@@ -91,6 +100,7 @@ The last two read the whole output spike train (`Readout.SpikeTrain`), not just 
 
 ## Engines
 
+- **Auto: fastest available** is the default. It is the GPU engine below on a Mac, and CPU, all cores elsewhere.
 - **CPU, all cores** and **CPU, single thread** sample a number of random runs of each network, as before.
 - **Exhaustive (exact outputs)** follows every possible computation, merging those that reach the same configuration. Its outputs are therefore the exact set the network can produce within the step limit, with no luck in the score. An exact solution is accepted without retesting. If a network's computations branch too widely, the engine samples it instead. It always samples spike trains, because merging computations would lose the trains that led to them.
 - **GPU (Metal), for large networks** is listed on Macs. It samples like the CPU engines, but runs every run of every network in the population at once on the GPU, with one threadgroup per run. On an M5 Pro it is about 6 to 12 times faster than all CPU cores for networks of a thousand neurons or more. Its rule choices come from a hash of the seed rather than `System.Random`, so individual runs differ from the CPU engines' while following the same distribution, and the same seed repeats them. Batches too small to repay the GPU round trip, and networks with more than 64 output neurons, delays above 65,535 or emissions above 32,767, run on the CPU instead.
@@ -112,6 +122,57 @@ Structural mutation (`Evolution/Operators/StructuralMutations.cs`) is a weighted
 - nudge initial spikes.
 
 Every algorithm ranks equally fit networks smaller first.
+
+## Checks, lexicase selection and modules
+
+Every task also scores a network on each separate thing it checks: each gap of a sequence, each step of a binary word, each example of a function or acceptor, each number of a set. Two options in *Settings > Search* use these checks, and both are off by default:
+
+- **Lexicase parents** (`--lexicase on`): parents are picked by lexicase selection. Each pick goes through the checks in a random order and keeps only the networks that do best on each. A network that is the only one to get some part of the target right gets to breed even when its fitness is low.
+- **Build from modules** (`--modules on`): the run keeps a library of parts (modules) and builds networks out of them. Modules come from three places, all found by the run itself:
+  - a change that made a child get a check right that its parent did not, cut out with the neurons around it;
+  - the network that solved each stage of an iterative run;
+  - side runs. When the search stalls, the run finds the first check no network does yet, such as gap 7 of a sequence. It evolves a small network (at most 24 neurons) for just the gaps around it on the side. With *Triggered modules* on (`--triggered off` to stop it), every other side run instead builds a part that waits for a spike on an input before it makes the missing gaps, so it can follow on from what a host already does rather than run beside it from the first step. A part that a side run solved is reused the next time the same gap is missing, rather than evolved again.
+
+  Copies of the new module go into the best networks. With *Module incubation* above 0 (`--incubate N`, 30 generations by default) those networks first evolve on their own, seeded only with each other, until one beats the main run or the generations run out; the best of them then join the main run, and the module is credited with whether it led to a better network. When a module takes over as the output, the old output neuron sends to it, so what the host already made can still pass through. Side runs and incubation cost evaluations the main run's generation count does not show; `-modules.txt` gives how many generations ran on the side.
+
+  Mutation can insert a copy of a module, picked by how often it has helped, or free one so its neurons evolve like any other. Inserted modules are frozen unless *Freeze modules* (`--freeze off`) is off: other edits cannot change their rules or inner synapses, only their initial spikes and how they are wired in. `--module-files a.json,b.json` (*Module files* in the menu) starts the library with saved networks, such as the best network of an earlier run.
+
+  The run saves the library, with how often each module was tried and helped, as `-modules.txt` next to the network.
+
+For gap sequences that keep growing, such as Fibonacci, the advisor suggests turning both on. On 16 values of Fibonacci (100 neurons, 2000 generations, 15 seeds), runs with both solved 7.3 values on average. Runs without them solved 5.9, or 6.5 when given as many extra generations as the side runs added on average.
+
+## Compile, then shrink
+
+`compile` builds a network that is correct by construction instead of evolving one from scratch, then evolves it smaller while it stays correct:
+
+```
+snp-evolution compile --target "1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987" --shrink 2000
+snp-evolution compile --kind set --target "2,3" --generations 400
+snp-evolution compile --kind set --target "2,4,6" --program my-program.txt
+```
+
+- **Sequences** are fitted with a recurrence: a few starting values, then each value is a fixed sum of the ones before it, such as `g(n) = g(n-1) + g(n-2)` for Fibonacci. Up to three values back are tried, each counted up to four times. The network holds each value as spikes in pairs of neurons. Each gap is made by draining, one spike per step, the pairs that hold the values it is the sum of, while the drained spikes are written into fresh pairs for the gaps that come later. Gaps come out exact and never stop, so the network keeps going past the values given. Fibonacci compiles to 15 neurons and is right for every value checked, not only the 16 given. Shrinking it for 2000 generations reached 10 neurons on 4 of 5 seeds. After shrinking, the run checks the next 4 values of the recurrence, since shrinking only sees the values given; every shrunk Fibonacci network so far still got them right. A sequence that follows no recurrence of that kind cannot be compiled.
+- **Sets** are generated by a register program, as in the SN P universality proofs: `ADD`, `SUB` and `HALT` instructions, where register 0 is the output and can only be added to. The program is compiled with the standard ADD and SUB modules (Ionescu, Păun & Yokomori 2006) using standard rules, and it outputs the interval between two spikes. Programs are evolved unless `--program FILE` gives one, one instruction per line:
+
+  ```
+  0: ADD r1 -> 1          # add one to r1, go to 1
+  1: ADD r0 -> 2 | 3      # add one to r0, go to 2 or 3 at random
+  2: SUB r1 -> 1 else 3   # take one from r1 and go to 1, or go to 3 if r1 is zero
+  3: HALT                 # generates the value of r0
+  ```
+
+  The program search scores a program by following every choice, which is far cheaper than simulating its network. It learns the set a few numbers at a time, and its last stage looks beyond the largest number, so programs that overshoot are caught. Parents are picked by lexicase selection over the target numbers plus a "nothing extra" check (`--lexicase off` to pick the fittest instead). Without it, the search usually gets stuck on a program that generates too much, such as every even number. Over 10 seeds of 3000 generations each:
+
+  | Target | Lexicase | Fittest only |
+  |---|---|---|
+  | {2,4,6} | 10 found | 3 found |
+  | {1,2,3,5,8,13} | 2 found | 0 found |
+  | Fibonacci up to 987 | 0 found; 9 seeds got as far as 34 | 0 found; every seed stuck before 5 |
+
+  The programs it finds for larger sets fill all 16 instructions and list the numbers rather than compute them, so for sets such as Fibonacci's give the program yourself.
+- **Shrinking** (`--shrink N` generations, 300 by default, 0 to skip) starts every network from the compiled one. Children compete on fitness first and size second, and a smaller network only counts once it passes the same retests that stop a run. It uses the usual edits apart from those that only add, plus two more: bypassing a neuron (whatever sent to it sends on to its targets) and merging two neurons with the same rules.
+
+The run saves `Program.txt` (the recurrence or program), `Compiled.*` and `Shrunk.*` (network, notation, graph and page) and `Shrunk.csv` (fitness history).
 
 ## Benchmarking and choosing an algorithm
 
@@ -153,6 +214,7 @@ File Structure (under `SNP_Evolution/SNP_Evolution`):
   - `NetworkFactory` and `GenomeSpace` for random networks.
   - `Ranking`, the fitness functions and the evaluator.
   - `Tasks/` holds the tasks and the suite.
+  - `Modules/` holds the module library and the modular loop: cutting modules out of networks, inserting and freezing them, harvesting the changes that pay off, and side runs on what is missing.
   - `Benchmarking/` holds the benchmark harness and the algorithm selector.
 - `Storage/` saves and loads networks as JSON and fitness history as CSV.
 - `Cli/` holds the console menus, settings and command-line mode. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings menu offers. `EvolutionSession` runs and saves one evolution, for both the menu and the `evolve` command.

@@ -1,0 +1,20 @@
+Neuron      Spikes    Rules                                          Sends to
+n1          -         aa -> a;1  |  aaa+ -> forget  |  a -> a        n5, n11, n15, n17
+n2          -         a(aaa)+ -> a;3                                 n6, n11
+n3          -         aaa -> a                                       n1, n14
+n4          a         a? -> a;2                                      n3, n5, n8, n9, n10, n12, n17
+n5          aa        a -> forget  |  a(a)+ -> a                     n9, n12, n19
+n6          aaa       aaa -> a;3                                     n1, n2, n3, n12
+n7          a         a -> a;3  |  aa(a)* -> forget;1                n6, n16
+n8          a         aaa -> a;3                                     n2, n7, n10, n12
+n9          a         a(aaa)? -> a  |  aaa(aaa)* -> forget;1         n1, n8, n10
+n10         a         aa -> a  |  a -> forget;2  |  a(aaa)+ -> a;1   n4, n8, n9
+n11         a         aaa(aa)? -> a  |  aa -> forget;3               n8, n10, n12, n15
+n12 (out)   aaaaaaa   a -> a;1  |  aa(a)* -> a                       n1, n3, n4, n7, n11
+n13         -         a? -> a;1                                      n15
+n14         a         aaa* -> a;1                                    n5
+n15         aaaaaa    aaaaa(aa)+ -> forget;2  |  aaa -> a;2          n1, n18
+n16         aaaaa     aa(a)* -> a  |  a -> forget;3                  n11
+n17         a         aaa? -> a                                      n2, n6, n7, n10
+n18         a         aaaaaa(a)? -> a;2                              n1, n15
+n19         aa        a(a)? -> a;1                                   n6

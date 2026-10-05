@@ -1,0 +1,119 @@
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa+",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a(aa)?",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 5,
+      "Connections": [
+        3
+      ],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa(a)*",
+          "Delay": 2,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        1
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa?",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        2,
+        5
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa+",
+          "Delay": 2,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 5,
+      "Connections": [
+        1
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa(aaa)?",
+          "Delay": 1,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaaa(aaaa)*",
+          "Delay": 2,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 6,
+      "Connections": [
+        1
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a*",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 7,
+      "Connections": [
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    }
+  ]
+}

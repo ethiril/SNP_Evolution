@@ -42,6 +42,11 @@ namespace SnpEvolution.Evolution.Tasks
             string.Join("  ", Examples.Select((example, index) =>
                 $"f({string.Join(",", example.Arguments)})={{{string.Join(",", results[index].Outputs.Distinct())}}}/{example.Result}"));
 
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
+            Examples.Select((example, index) => ScoreCase(results[index].Outputs, example.Result)).ToList();
+
+        public string CheckName(int check) => $"f({string.Join(",", Examples[check].Arguments)})={Examples[check].Result}";
+
         private static float ScoreCase(IReadOnlyList<int> outputs, int expected) =>
             outputs.Count == 0 ? 0 : (float)outputs.Average(output => output == expected ? 1 : CloseOutputCredit / (1 + Math.Abs(output - expected)));
     }
