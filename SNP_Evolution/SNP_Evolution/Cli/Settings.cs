@@ -126,14 +126,21 @@ namespace SnpEvolution.Cli
         public static string WorkingRoot()
         {
             string start = System.IO.Directory.GetCurrentDirectory();
+            return RepositoryRootAbove(start) ?? start;
+        }
+
+        public static string? RepositoryRootAbove(string start)
+        {
             for (string? folder = start; folder != null; folder = System.IO.Path.GetDirectoryName(folder))
             {
-                if (System.IO.Directory.Exists(System.IO.Path.Combine(folder, ".git")))
+                string marker = System.IO.Path.Combine(folder, ".git");
+                // .git is a file in a worktree.
+                if (System.IO.Directory.Exists(marker) || System.IO.File.Exists(marker))
                 {
                     return folder;
                 }
             }
-            return start;
+            return null;
         }
 
         public static Settings Defaults() => new Settings

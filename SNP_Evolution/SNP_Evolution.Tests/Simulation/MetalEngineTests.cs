@@ -5,7 +5,7 @@ using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
-    // Skipped on machines without a Metal GPU, and slow (see SlowAttribute) since it runs on the GPU.
+    // Skipped on machines without a Metal GPU, and slow since it runs on the GPU.
     [TraitDiscoverer(SpeedDiscoverer.TypeName, SpeedDiscoverer.AssemblyName)]
     public sealed class MetalFactAttribute : FactAttribute, ITraitAttribute
     {

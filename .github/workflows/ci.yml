@@ -1,5 +1,4 @@
-# Build with warnings as errors, check formatting, then run the fast tests (golden runs included) and the slow ones.
-# Linux has no Metal GPU and the runner has no Uppaal or norse, so those tests skip; iverilog is installed.
+# The runner has no Metal GPU, Uppaal or norse, so those tests skip; iverilog is installed.
 name: CI
 
 on:

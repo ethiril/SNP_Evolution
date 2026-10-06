@@ -7,9 +7,7 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Golden
 {
-    // Runs commands in-process in an empty working folder outside the repository, and writes down everything a run did:
-    // its exit code, what it printed and every file it left in the folder. The console, working directory and culture
-    // are process-wide, so tests using this belong to GoldenCollection, which runs alone.
+    // Swaps the process-wide console, working directory and culture, so tests using it belong to GoldenCollection.
     internal sealed partial class CommandRun : IDisposable
     {
         // Pictures of a network, which only lay out what the .json and .txt files already hold.
@@ -17,14 +15,12 @@ namespace SnpEvolution.Tests.Golden
 
         public string Folder { get; } = Path.Combine(Path.GetTempPath(), "snp-golden-" + Guid.NewGuid().ToString("N"));
 
-        // The .git marker makes the folder the root the commands find runs/ and parts/ from, wherever the temporary
-        // folder lies.
+        // The .git marker makes the folder the root the commands find runs/ and parts/ from, wherever the temp folder lies.
         public CommandRun()
         {
             Directory.CreateDirectory(Path.Combine(Folder, ".git"));
         }
 
-        // Copies a folder of the repository, such as parts/, into the working folder under the same name.
         public void CopyFolder(string repositoryFolder)
         {
             foreach (string file in Directory.GetFiles(Path.Combine(RepositoryFiles.Root, repositoryFolder)))
@@ -33,7 +29,6 @@ namespace SnpEvolution.Tests.Golden
             }
         }
 
-        // Copies a file of the repository, such as parts/delay-2.json, to the same path in the working folder.
         public void CopyFile(string repositoryFile)
         {
             string target = Path.Combine(Folder, repositoryFile);
@@ -45,21 +40,33 @@ namespace SnpEvolution.Tests.Golden
         public void Save(Part part, string file) =>
             File.WriteAllText(Path.Combine(Folder, file), PartLibraryFiles.ToJson(LibraryPart.Of(part, PartEvolution.Measure(part), new PartOrigin(0, HandBuiltParts.Origin, 0))));
 
+        // The command line, exit code, output and every file the run left in the folder.
         public string Run(params string[] args)
+        {
+            (int exit, string printed, string errors) = RunInFolder(args);
+            var text = new StringBuilder();
+            text.Append("$ snp-evolution ").AppendJoin(' ', args.Select(arg => arg.Contains(' ') || arg.Contains(',') ? $"\"{arg}\"" : arg)).Append('\n');
+            text.Append("exit ").Append(exit).Append('\n');
+            text.Append("--- stdout\n").Append(printed);
+            text.Append("--- stderr\n").Append(errors);
+            AppendFiles(text);
+            return Normalise(text.ToString());
+        }
+
+        private (int Exit, string Printed, string Errors) RunInFolder(string[] args)
         {
             TextWriter output = Console.Out, error = Console.Error;
             string directory = Directory.GetCurrentDirectory();
             CultureInfo culture = CultureInfo.CurrentCulture;
             var printed = new StringWriter { NewLine = "\n" };
             var errors = new StringWriter { NewLine = "\n" };
-            int exit;
             try
             {
                 Console.SetOut(printed);
                 Console.SetError(errors);
                 Directory.SetCurrentDirectory(Folder);
                 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-                exit = CommandLine.Run(args);
+                return (CommandLine.Run(args), printed.ToString(), errors.ToString());
             }
             finally
             {
@@ -68,11 +75,10 @@ namespace SnpEvolution.Tests.Golden
                 Directory.SetCurrentDirectory(directory);
                 CultureInfo.CurrentCulture = culture;
             }
-            var text = new StringBuilder();
-            text.Append("$ snp-evolution ").AppendJoin(' ', args.Select(arg => arg.Contains(' ') || arg.Contains(',') ? $"\"{arg}\"" : arg)).Append('\n');
-            text.Append("exit ").Append(exit).Append('\n');
-            text.Append("--- stdout\n").Append(printed);
-            text.Append("--- stderr\n").Append(errors);
+        }
+
+        private void AppendFiles(StringBuilder text)
+        {
             foreach (string file in Directory.GetFiles(Folder, "*", SearchOption.AllDirectories).Where(file => !Drawings.Contains(Path.GetExtension(file))).Order(StringComparer.Ordinal))
             {
                 string content = File.ReadAllText(file);
@@ -82,11 +88,9 @@ namespace SnpEvolution.Tests.Golden
                     text.Append("\n--- (no newline at end of file)\n");
                 }
             }
-            return Normalise(text.ToString());
         }
 
-        // The working folder, the timestamp naming a run's folder, how long a proof took and which NIR tools the machine
-        // lacks change from run to run.
+        // These parts of the text change from run to run or machine to machine.
         private string Normalise(string text)
         {
             // On macOS the temporary folder is reached through /private as well.

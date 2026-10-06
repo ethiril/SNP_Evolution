@@ -2,9 +2,7 @@ using SnpEvolution.Evolution.Contracts;
 
 namespace SnpEvolution.Tests.Golden
 {
-    // Fixed-seed runs of the commands whose outputs RESEARCH.md and the saved runs depend on, compared exactly with the
-    // stored files, evaluation counts included. Budgets are small enough for the fast set, and populations small enough
-    // that every batch stays under the GPU's threshold, so a Mac with Metal runs them on the CPU as Linux does.
+    // Populations stay under the GPU's batch threshold, so a Mac with Metal runs these on the CPU exactly as Linux does.
     [Collection(GoldenCollection.Name)]
     public class CommandGoldenTests
     {
@@ -46,8 +44,7 @@ namespace SnpEvolution.Tests.Golden
             GoldenFile.Check("verify-add", run.Run("verify", "--part", "add.json", "--bound", "6"));
         }
 
-        // The evolved delay, from parts-profile/ for NIR since it takes only hardware-profile networks, and the hand-built
-        // register. Tools are not run, so the files are the same with or without them installed.
+        // NIR takes only hardware-profile networks, so its delay comes from parts-profile/.
         public static TheoryData<string, string> Exports => new TheoryData<string, string>
         {
             { "export-verilog", "parts/delay-2.json" }, { "export-verilog", Register },

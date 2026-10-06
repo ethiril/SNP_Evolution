@@ -8,9 +8,7 @@ using SnpEvolution.Tests.Simulation;
 
 namespace SnpEvolution.Tests.Golden
 {
-    // What each engine makes of the reference networks and of every part in parts/, parts-profile/ and the hand-built
-    // library: every neuron's firings, step by step, in every run or computation, so a change to the step semantics in
-    // any engine shows here. The exporters' own step (SpikeTrace) is pinned the same way.
+    // Every neuron's firings, step by step, so a change to any engine's step semantics shows in a golden file.
     public class EngineTraceGoldenTests
     {
         private const int Repetitions = 3;
@@ -48,23 +46,28 @@ namespace SnpEvolution.Tests.Golden
                 foreach ((string label, InputSpikes input, int steps) in SpikeTrace.Cases(part.Contract))
                 {
                     text.Append(label).Append('\n');
-                    // held/sent/after for each neuron, sent shown as - when it applied no rule; a run of identical steps is one line.
-                    List<string> rows = SpikeTrace.Run(part.Network, input, steps).Steps
-                        .Select(row => string.Join(' ', row.Select(neuron => $"{neuron.Held}/{(neuron.Applied ? neuron.Sent.ToString() : "-")}/{neuron.After}"))).ToList();
-                    int first = 0;
-                    while (first < rows.Count)
-                    {
-                        int last = first;
-                        while (last + 1 < rows.Count && rows[last + 1] == rows[first])
-                        {
-                            last++;
-                        }
-                        text.Append(first == last ? $"{first}" : $"{first}-{last}").Append(": ").Append(rows[first]).Append('\n');
-                        first = last + 1;
-                    }
+                    // held/sent/after for each neuron, sent shown as - when it applied no rule.
+                    AppendFolded(text, SpikeTrace.Run(part.Network, input, steps).Steps
+                        .Select(row => string.Join(' ', row.Select(neuron => $"{neuron.Held}/{(neuron.Applied ? neuron.Sent.ToString() : "-")}/{neuron.After}"))).ToList());
                 }
             }
             GoldenFile.Check("exporter-steps", text.ToString());
+        }
+
+        // A run of identical steps is one first-last line, which keeps the file a size a reviewer can read.
+        private static void AppendFolded(StringBuilder text, List<string> rows)
+        {
+            int first = 0;
+            while (first < rows.Count)
+            {
+                int last = first;
+                while (last + 1 < rows.Count && rows[last + 1] == rows[first])
+                {
+                    last++;
+                }
+                text.Append(first == last ? $"{first}" : $"{first}-{last}").Append(": ").Append(rows[first]).Append('\n');
+                first = last + 1;
+            }
         }
 
         private static ISimulationEngine Create(string engine) => engine switch
@@ -83,6 +86,13 @@ namespace SnpEvolution.Tests.Golden
         private static string Traces(ISimulationEngine engine)
         {
             var text = new StringBuilder();
+            AppendReferenceTraces(text, engine);
+            AppendPartTraces(text, engine);
+            return text.ToString();
+        }
+
+        private static void AppendReferenceTraces(StringBuilder text, ISimulationEngine engine)
+        {
             foreach ((string name, Network network) in new[] { ("natural numbers", ReferenceNetworks.NaturalNumbers()), ("even numbers", ReferenceNetworks.EvenNumbers()) })
             {
                 var watch = new PortWatch(EveryNeuron(network), Array.Empty<int>(), 0);
@@ -95,6 +105,10 @@ namespace SnpEvolution.Tests.Golden
                     Append(text, results[index]);
                 }
             }
+        }
+
+        private static void AppendPartTraces(StringBuilder text, ISimulationEngine engine)
+        {
             foreach ((string name, Part part) in Parts())
             {
                 ContractTask task = part.Task();
@@ -107,7 +121,6 @@ namespace SnpEvolution.Tests.Golden
                     Append(text, result);
                 }
             }
-            return text.ToString();
         }
 
         private static List<int> EveryNeuron(Network network) => Enumerable.Range(1, network.Neurons.Count).ToList();

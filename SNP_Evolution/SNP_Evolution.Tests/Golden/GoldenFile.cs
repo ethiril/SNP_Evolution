@@ -1,7 +1,6 @@
 namespace SnpEvolution.Tests.Golden
 {
-    // Compares a run's output with the file stored for it under Golden/Expected. SNP_UPDATE_GOLDEN=1 rewrites the files
-    // from this run instead; a pull request that changes one says why, since a silent rewrite defeats the guard.
+    // SNP_UPDATE_GOLDEN=1 rewrites the expected files instead of comparing, for a change the pull request explains.
     internal static class GoldenFile
     {
         private const string UpdateFlag = "SNP_UPDATE_GOLDEN";
@@ -20,14 +19,14 @@ namespace SnpEvolution.Tests.Golden
             Assert.True(File.Exists(path), $"There is no golden file {name}.txt; run the tests with {UpdateFlag}=1 to write it.");
             // Git may check the file out with Windows line endings.
             string expected = File.ReadAllText(path).ReplaceLineEndings("\n");
-            if (expected != actual)
+            if (FirstDifference(expected, actual) is string difference)
             {
-                Assert.Fail($"{name}.txt differs from this run. {FirstDifference(expected, actual)}\n" +
+                Assert.Fail($"{name}.txt differs from this run. {difference}\n" +
                     $"If the change is intended, rerun with {UpdateFlag}=1 and say why in the pull request.");
             }
         }
 
-        private static string FirstDifference(string expected, string actual)
+        public static string? FirstDifference(string expected, string actual)
         {
             string[] expectedLines = expected.Split('\n');
             string[] actualLines = actual.Split('\n');
@@ -40,7 +39,7 @@ namespace SnpEvolution.Tests.Golden
                     return $"First difference at line {line + 1}:\n  expected: {was ?? "(end of file)"}\n  actual:   {now ?? "(end of file)"}";
                 }
             }
-            return "";
+            return null;
         }
     }
 }
