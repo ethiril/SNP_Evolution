@@ -36,6 +36,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ARobustShrinkKeepsAVerifiedPartAtLeastAsRobustAsTheOneFound()
         {
             var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine(), RobustJitter: 1);

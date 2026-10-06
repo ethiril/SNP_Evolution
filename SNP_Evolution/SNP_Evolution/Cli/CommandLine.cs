@@ -11,8 +11,8 @@ using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 using static SnpEvolution.Cli.CommandOptions;
-using static SnpEvolution.Cli.TargetCommands;
 using static SnpEvolution.Cli.PartCommands;
+using static SnpEvolution.Cli.TargetCommands;
 
 namespace SnpEvolution.Cli
 {

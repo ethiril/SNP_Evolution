@@ -6,8 +6,8 @@ using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
-using static SnpEvolution.Tests.TestNetworks;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
+using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Evolution
 {

@@ -4,8 +4,6 @@ namespace SnpEvolution.Tests.Cli
 {
     public class ExportCommandsTests
     {
-        private static string Repository => Path.GetDirectoryName(Settings.DefaultPartLibraryFolder())!;
-
         private static string Folder() => Path.Combine(Path.GetTempPath(), "snp-export-" + Guid.NewGuid().ToString("N"));
 
         [Fact]
@@ -14,7 +12,7 @@ namespace SnpEvolution.Tests.Cli
             string folder = Folder();
             try
             {
-                int exit = CommandLine.Run(new[] { "export-verilog", "--part", Path.Combine(Repository, "parts", "delay-2.json"), "--out", folder, "--check", "off" });
+                int exit = CommandLine.Run(new[] { "export-verilog", "--part", RepositoryFiles.PartFile("parts", "delay-2.json"), "--out", folder, "--check", "off" });
 
                 Assert.Equal(0, exit);
                 Assert.All(new[] { "delay_2.v", "delay_2_tb.v", "delay_2_expected.txt" }, file => Assert.True(File.Exists(Path.Combine(folder, file)), file));
@@ -34,7 +32,7 @@ namespace SnpEvolution.Tests.Cli
             string folder = Folder();
             try
             {
-                int exit = CommandLine.Run(new[] { "export-uppaal", "--part", Path.Combine(Repository, "parts", "delay-2.json"), "--out", folder, "--check", "off" });
+                int exit = CommandLine.Run(new[] { "export-uppaal", "--part", RepositoryFiles.PartFile("parts", "delay-2.json"), "--out", folder, "--check", "off" });
 
                 Assert.Equal(0, exit);
                 Assert.All(new[] { "delay-2.xml", "delay-2.q" }, file => Assert.True(File.Exists(Path.Combine(folder, file)), file));
@@ -53,13 +51,14 @@ namespace SnpEvolution.Tests.Cli
         {
             string folder = Folder();
 
-            int exit = CommandLine.Run(new[] { "export-nir", "--part", Path.Combine(Repository, "parts", "delay-2.json"), "--out", folder });
+            int exit = CommandLine.Run(new[] { "export-nir", "--part", RepositoryFiles.PartFile("parts", "delay-2.json"), "--out", folder });
 
             Assert.Equal(1, exit);
             Assert.False(Directory.Exists(folder));
         }
 
         [Fact]
+        [Slow]
         public void EvolvePartsUnderTheProfileSavesAProfilePart()
         {
             string folder = Folder();

@@ -33,6 +33,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void AContractThatOnlySharesAKnownNameIsNotProven()
         {
             Part register = ReferenceParts.Register();
@@ -45,6 +46,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ProvesTheRegisterReferencePartToAtLeast32WithinAMinute()
         {
             var clock = Stopwatch.StartNew();
@@ -57,6 +59,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void CatchesAPartThatFailsOnlyAtTwentyWithItsTrace()
         {
             Part broken = RegisterFailingAtTwenty();
@@ -75,6 +78,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ANondeterministicCounterexampleShowsTheFailingComputation()
         {
             Part delay = ReferenceParts.Delay(2);
@@ -98,6 +102,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void APartWithNoDataInPortsIsProvenForEveryInput()
         {
             BoundedResult result = BoundedCheck.Prove(ReferenceParts.Delay(2), AMinute);
@@ -107,6 +112,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ACaseTooWideToFollowExactlyIsNotProven()
         {
             BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxConfigurations = 0 });
@@ -117,6 +123,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void EveryHandBuiltPartIsProvenToItsAdmissionBound()
         {
             Assert.All(HandBuiltParts.All(), part =>
@@ -148,6 +155,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ALibraryFileWithACounterexampleIsRefused()
         {
             Part broken = RegisterFailingAtTwenty();

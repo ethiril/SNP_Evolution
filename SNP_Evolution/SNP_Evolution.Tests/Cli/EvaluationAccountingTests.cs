@@ -30,6 +30,7 @@ namespace SnpEvolution.Tests.Cli
 
         // MAP-Elites scores one batch the size of the population every generation, side runs and incubation included.
         [Fact]
+        [Slow]
         public void SideRunsAndIncubationAreCountedApartFromTheMainRun()
         {
             Settings settings = Stalling(80);

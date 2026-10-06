@@ -44,6 +44,7 @@ namespace SnpEvolution.Tests.Cli
 
         // The done-when through the session the compose command runs: solved, promoted, saved, and the add loop reported as reused.
         [Fact]
+        [Slow]
         public void ASolvedContractIsPromotedSavedAndItsReuseReported()
         {
             Settings settings = Composing(SuiteTask("Contract multiply"));
@@ -63,6 +64,7 @@ namespace SnpEvolution.Tests.Cli
 
         // A library of one increment cannot make gaps, so the run stalls and asks for the timer it misses.
         [Fact]
+        [Slow]
         public void TheRunLogListsEachProposalWithItsOutcome()
         {
             var library = new ModuleLibrary();

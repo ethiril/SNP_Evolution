@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules

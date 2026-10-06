@@ -1,0 +1,37 @@
+# The formatting the code already follows; dotnet format --verify-no-changes checks it on CI.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,metal}]
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,slnx,json,yml}]
+indent_style = space
+indent_size = 2
+
+[*.cs]
+# Braces on their own lines, file-free namespaces in blocks, usings outside them.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_style_namespace_declarations = block_scoped
+csharp_using_directive_placement = outside_namespace
+dotnet_sort_system_directives_first = true
+
+# Golden files hold a run's output byte for byte, trailing spaces included.
+[SNP_Evolution.Tests/Golden/Expected/**]
+trim_trailing_whitespace = false
+insert_final_newline = false

@@ -1,0 +1,189 @@
+$ snp-evolution export-nir --part parts-profile/delay-2.json --out export
+exit 0
+--- stdout
+Wrote delay-2.nir.json to export. Not converted to NIR or co-simulated: <reason>
+--- stderr
+--- file export/delay-2.nir.json
+{
+  "format": "snp-nir/1",
+  "name": "delay 2",
+  "neurons": 2,
+  "inputs": [
+    {
+      "name": "start",
+      "neuron": 1
+    }
+  ],
+  "outputs": [
+    {
+      "name": "done",
+      "neuron": 2
+    }
+  ],
+  "thresholds": [
+    1,
+    1
+  ],
+  "fires": [
+    true,
+    true
+  ],
+  "delays": [
+    0,
+    1
+  ],
+  "synapses": [
+    [
+      1,
+      2
+    ]
+  ],
+  "cases": [
+    {
+      "label": "case 1",
+      "input": [
+        [
+          2
+        ]
+      ],
+      "applied": [
+        [],
+        [],
+        [],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [],
+        [],
+        []
+      ],
+      "held_after_rule": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}
+--- file parts-profile/delay-2.json
+{
+  "Contract": {
+    "Name": "delay 2",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 2,
+    "MinLatency": 2,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 2
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 1,
+            "Fire": true,
+            "Produce": 1,
+            "Axonal": true
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 2,
+    "Synapses": 1,
+    "DistinctRules": 2,
+    "Rules": 2,
+    "RegisterWidth": 1,
+    "LassoTable": 4
+  },
+  "Latency": 2,
+  "Origin": {
+    "Seed": 426451231,
+    "Run": "evolve-parts --seed 1 --budget 50000 --profile hardware",
+    "Evaluations": 12667
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

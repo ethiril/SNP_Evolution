@@ -26,6 +26,7 @@ namespace SnpEvolution.Tests.Cli
             Directory.GetFiles(library).ToDictionary(path => Path.GetFileName(path), File.ReadAllText);
 
         [Fact]
+        [Slow]
         public void TheSameSeedWritesTheSameLibrary()
         {
             var log = new List<string>();
@@ -40,6 +41,7 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        [Slow]
         public void TheLibraryReloadsWhatTheRunSaved()
         {
             PartsSession.Run(Options("library"), _ => { });
@@ -51,6 +53,7 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        [Slow]
         public void ContractsAlreadySolvedAreKeptUnlessRedone()
         {
             PartsSession.Run(Options("library"), _ => { });

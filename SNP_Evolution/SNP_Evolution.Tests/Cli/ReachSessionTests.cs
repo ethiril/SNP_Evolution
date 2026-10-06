@@ -35,6 +35,7 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        [Slow]
         public void CompositionSearchSpendsOnlyWhatThePartsLeaveOfTheSharedBudget()
         {
             string folder = Path.Combine(Path.GetTempPath(), "snp-reach-" + Guid.NewGuid());

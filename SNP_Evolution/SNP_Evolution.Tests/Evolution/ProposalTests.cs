@@ -28,6 +28,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(new[] { "double", "register" }, Parts(RecurrenceProposer.Propose(new[] { 1, 2, 4, 8, 16, 32 })));
 
         [Fact]
+        [Slow]
         public void ARandomSequenceAsksForNothing()
         {
             var random = new Random(31);
