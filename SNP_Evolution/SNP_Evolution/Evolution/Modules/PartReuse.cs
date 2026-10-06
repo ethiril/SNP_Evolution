@@ -5,13 +5,7 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
 {
-    // How many copies of each library part a network holds, by contract name. Direct copies are read from ModuleTag, so
-    // this works for any algorithm's networks. A promoted part's own children count as nested copies, read from its
-    // recipe, so a multiplication built on an add loop shows the loop directly and the loop's registers nested.
-    //
-    // Module.Uses and Module.Wins count something else: children scored right after a copy was put into them, and how
-    // many of those beat their parent. They say whether inserting a part helped during search, not whether it is in what
-    // the run ends with, which is what this counts.
+    // Unlike Module.Uses and Wins, which credit insertions during search, this counts what the final networks hold, with a promoted part's children as nested copies.
     public sealed record PartCount(string Contract, int Direct, int Nested)
     {
         public int Total => Direct + Nested;
@@ -56,7 +50,7 @@ namespace SnpEvolution.Evolution.Modules
             foreach (string name in names)
             {
                 PartCount? count = inBest.FirstOrDefault(each => each.Contract == name);
-                string kind = library.Parts.FirstOrDefault(module => module.Part!.Contract.Name == name)?.Part!.IsComposite == true ? " (promoted)" : "";
+                string kind = library.PartFor(name)?.Part!.IsComposite == true ? " (promoted)" : "";
                 lines.Add($"{(name + kind),-20} {count?.Direct ?? 0,7} ({count?.Nested ?? 0})   {mean.GetValueOrDefault(name):0.00}");
             }
             return string.Join(Environment.NewLine, lines) + Environment.NewLine;
@@ -72,7 +66,7 @@ namespace SnpEvolution.Evolution.Modules
             foreach (RecipePart child in recipe.Parts)
             {
                 nested[child.Contract] = nested.GetValueOrDefault(child.Contract) + 1;
-                AddChildren(library.Parts.FirstOrDefault(module => module.Part!.Contract.Name == child.Contract)?.Part!.Recipe, library, nested, depth + 1);
+                AddChildren(library.PartFor(child.Contract)?.Part!.Recipe, library, nested, depth + 1);
             }
         }
     }

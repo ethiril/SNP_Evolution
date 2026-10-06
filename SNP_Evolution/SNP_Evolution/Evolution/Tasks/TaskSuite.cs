@@ -38,7 +38,6 @@ namespace SnpEvolution.Evolution.Tasks
             Standard(AcceptorTask.Of("Accept multiples of 3", n => n % 3 == 0, Enumerable.Range(1, 12))),
         };
 
-        // Arithmetic contracts, which composition search builds from library parts and promotes when solved.
         public static IReadOnlyList<BenchmarkTask> Contracts { get; } = ArithmeticParts.Contracts.Select(contract => Standard(new ContractTask(contract))).ToList();
 
         public static IReadOnlyList<BenchmarkTask> All { get; } = Generators.Concat(Functions).Concat(Acceptors).Concat(Contracts).ToList();

@@ -45,6 +45,17 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void CasesHoldTheRightAnswers()
+        {
+            ContractCase Case(string contract, int a, int b) => ArithmeticParts.Named(contract).Cases.Single(@case => @case.Inputs["a"] == a && @case.Inputs["b"] == b);
+
+            Assert.Equal("not less", Case("compare", 3, 3).Done);
+            Assert.Equal("less", Case("compare", 2, 3).Done);
+            Assert.Equal(new[] { 3, 1 }, new[] { Case("divide", 7, 2).Outputs["quotient"], Case("divide", 7, 2).Outputs["remainder"] });
+            Assert.Equal(12, Case("multiply", 4, 3).Outputs["product"]);
+        }
+
+        [Fact]
         public void BinaryContractsUseFourBitOperandsAndAnEightBitProduct()
         {
             Assert.All(ArithmeticParts.Binary.SelectMany(contract => contract.DataIn), port => Assert.Equal(4, port.Width));

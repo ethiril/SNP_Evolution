@@ -10,6 +10,9 @@ using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
+using static SnpEvolution.Cli.CommandOptions;
+using static SnpEvolution.Cli.TargetCommands;
+using static SnpEvolution.Cli.PartCommands;
 
 namespace SnpEvolution.Cli
 {
@@ -37,8 +40,7 @@ namespace SnpEvolution.Cli
     // --repetitions N sets how many sampled runs score each network in a benchmark.
     internal static class CommandLine
     {
-        private const long PilotBudget = 500;
-        private const string Usage =
+        internal const string Usage =
             "Usage: snp-evolution [benchmark|select|tasks|algorithms] [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME] [--engine exact|sampled] [--configurations N]\n" +
             "                    [--lexicase on] [--repetitions N] [--library DIR] [--hand-built on|leaves]\n" +
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
@@ -72,11 +74,7 @@ namespace SnpEvolution.Cli
             if (args[0].ToLowerInvariant() is "benchmark" or "select" && algorithms.Any(algorithm => AlgorithmCatalog.IsComposition(algorithm.Name)))
             {
                 string folder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
-                ModuleLibrary library = PartLibraryFiles.Load(folder);
-                if (IsOn(options, "hand-built"))
-                {
-                    HandBuiltMachines.AddParts(library, _ => { }, addLoop: !LeavesOnly(options));
-                }
+                ModuleLibrary library = PartLibrary(options, folder);
                 benchmark = benchmark with { Parts = library.Parts.Select(module => module.Part!).ToList() };
                 Console.Error.WriteLine($"Composition search builds from {benchmark.Parts.Count} part(s) in {folder}{(IsOn(options, "hand-built") ? " and the hand-built parts" : "")}.");
             }
@@ -117,255 +115,6 @@ namespace SnpEvolution.Cli
                     Console.Error.WriteLine("select needs a --task that matches exactly one task; run 'tasks' to list them.");
                     return 1;
             }
-        }
-
-        // Evolves a network from scratch for the target, with the menu's default settings otherwise. A
-        // sequence unless --kind says otherwise. With --advise on the advisor's suggestions are applied first, and
-        // with --pilot on a quick pilot picks the algorithm. Exits with 2 when no network solved the target.
-        private static int Evolve(IReadOnlyDictionary<string, string> options)
-        {
-            if (TargetSettings(options) is not Settings settings)
-            {
-                return 1;
-            }
-            if (IsOn(options, "advise"))
-            {
-                Advice advice = RunAdvisor.Advise(settings);
-                RunAdvisor.Format(advice).ToList().ForEach(Console.WriteLine);
-                RunAdvisor.ApplyAll(settings, advice);
-                ApplyOptions(settings, options);
-            }
-            if (IsOn(options, "pilot"))
-            {
-                AlgorithmChoice winner = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
-                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == winner.Name);
-            }
-            var random = options.ContainsKey("seed") ? new Random((int)Number(options, "seed", 0)) : new Random();
-            BenchmarkTask task = settings.SelectedTask;
-            Console.WriteLine("Evolving a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
-            foreach (string note in EvolutionSession.Notes(settings, task))
-            {
-                Console.WriteLine(note);
-            }
-            var evaluations = new EvaluationCounter();
-            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine, evaluations);
-            EvolutionSession.Save(geneticAlgorithm, EvolutionSession.NewOutputFolder(), "TargetNet", Console.WriteLine, evaluations);
-            return EvolutionSession.IsSolved(geneticAlgorithm) ? 0 : 2;
-        }
-
-        // Compiles the target into a network that is correct by construction, then shrinks it for --shrink
-        // generations (300 unless given; 0 skips shrinking). --generations and --lexicase (on unless given) are for
-        // evolving a register program.
-        private static int Compile(IReadOnlyDictionary<string, string> options)
-        {
-            if (TargetSettings(options) is not Settings settings)
-            {
-                return 1;
-            }
-            var random = options.ContainsKey("seed") ? new Random((int)Number(options, "seed", 0)) : new Random();
-            int shrink = options.TryGetValue("shrink", out string? value) && int.TryParse(value, out int generations) && generations >= 0 ? generations : 300;
-            var compile = new CompileSession.Options(shrink, (int)Number(options, "generations", 2000), options.GetValueOrDefault("program"), Switch(options, "lexicase", true));
-            return CompileSession.Run(settings, compile, random, Console.WriteLine);
-        }
-
-        // The seed is 1 and the budget the settings' part budget unless given; --only takes contract names, each matching any
-        // contract whose name contains it, ignoring case. Exits with 2 when a contract is left without a part.
-        private static int EvolveParts(IReadOnlyDictionary<string, string> options, Settings settings)
-        {
-            List<Contract> contracts = FirstParts.Contracts.ToList();
-            if (options.GetValueOrDefault("only") is string only)
-            {
-                string[] names = only.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (names.FirstOrDefault(name => !contracts.Any(contract => contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))) is string unknown)
-                {
-                    Console.Error.WriteLine($"No first-part contract matches '{unknown}'. The contracts are: {string.Join(", ", contracts.Select(contract => contract.Name))}.");
-                    return 1;
-                }
-                contracts = contracts.Where(contract => names.Any(name => contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))).ToList();
-            }
-            string engine = options.GetValueOrDefault("engine") is string named ? $" --engine {named}" : "";
-            var parts = new PartsSession.Options(
-                (int)Number(options, "seed", 1),
-                Number(options, "budget", settings.PartBudget),
-                contracts,
-                options.GetValueOrDefault("library", settings.PartLibraryFolder),
-                Engine(options),
-                IsOn(options, "redo"),
-                engine);
-            return PartsSession.Run(parts, Console.WriteLine);
-        }
-
-        // Composition search for one suite task, with the menu's settings otherwise: tournament composition search with
-        // lexicase parents, 30000 evaluations and 5000 generations unless given. Exits with 2 when the task was not solved.
-        private static int Compose(IReadOnlyDictionary<string, string> options)
-        {
-            string? name = options.GetValueOrDefault("task");
-            List<CatalogEntry<Settings, BenchmarkTask>> matching = Catalog.Tasks.Skip(1)
-                .Where(task => name != null && (task.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || task.Name.Contains(name, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            CatalogEntry<Settings, BenchmarkTask>? exact = matching.FirstOrDefault(task => task.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (exact == null && matching.Count != 1)
-            {
-                Console.Error.WriteLine(Usage);
-                Console.Error.WriteLine("compose needs a --task that names one task; run 'tasks' to list them.");
-                return 1;
-            }
-            BenchmarkTask suiteTask = (exact ?? matching[0]).Create(new Settings());
-            var settings = new Settings
-            {
-                Task = exact ?? matching[0],
-                RuleForm = suiteTask.RuleForm,
-                OutputTiming = suiteTask.Timing,
-                Algorithm = Catalog.Algorithms.First(entry => AlgorithmCatalog.IsComposition(entry.Name) && entry.Name.Contains("tournament")),
-                MaxEvaluations = 30_000,
-                MaxGenerations = 5_000,
-                Lexicase = true,
-            };
-            ApplyOptions(settings, options);
-            if (!AlgorithmCatalog.IsComposition(settings.Algorithm.Name))
-            {
-                Console.Error.WriteLine("compose needs a composition search --algorithm; run 'algorithms' to list them.");
-                return 1;
-            }
-            var random = new Random((int)Number(options, "seed", 1));
-            BenchmarkTask task = settings.SelectedTask;
-            Console.WriteLine("Composing a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
-            EvolutionSession.Notes(settings, task).ToList().ForEach(Console.WriteLine);
-            var evaluations = new EvaluationCounter();
-            IGeneticAlgorithm run;
-            try
-            {
-                run = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine, evaluations);
-            }
-            catch (InvalidDataException exception)
-            {
-                Console.Error.WriteLine(exception.Message);
-                return 1;
-            }
-            EvolutionSession.Save(run, EvolutionSession.NewOutputFolder(), "ComposedNet", Console.WriteLine, evaluations);
-            return EvolutionSession.IsSolved(run, task.Task) ? 0 : 2;
-        }
-
-        private static int Reach(IReadOnlyDictionary<string, string> options, string[] args)
-        {
-            if (TargetSettings(options) is not Settings settings)
-            {
-                return 1;
-            }
-            IReadOnlyList<ReachSession.Setup> setups = ReachSession.Setups;
-            if (options.GetValueOrDefault("setups") is string named)
-            {
-                string[] names = named.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (names.FirstOrDefault(name => ReachSession.Setups.All(setup => setup.Name != name)) is string unknown)
-                {
-                    Console.Error.WriteLine($"No setup is called '{unknown}'. The setups are: {string.Join(", ", ReachSession.Setups.Select(setup => setup.Name))}.");
-                    return 1;
-                }
-                setups = names.Select(name => ReachSession.Setups.Single(setup => setup.Name == name)).ToList();
-            }
-            string command = "dotnet run -- " + string.Join(" ", args.Select(arg => arg.Contains(' ') || arg.Contains(',') ? $"\"{arg}\"" : arg));
-            return ReachSession.Run(settings, setups, (int)Number(options, "seeds", 10), Switch(options, "charge-parts", true), command, Console.WriteLine);
-        }
-
-        private static int Advise(IReadOnlyDictionary<string, string> options)
-        {
-            if (TargetSettings(options) is not Settings settings)
-            {
-                return 1;
-            }
-            RunAdvisor.Format(RunAdvisor.Advise(settings)).ToList().ForEach(Console.WriteLine);
-            return 0;
-        }
-
-        // The menu's default settings with the target and any evolve options given; null after reporting a bad target.
-        private static Settings? TargetSettings(IReadOnlyDictionary<string, string> options)
-        {
-            string kindName = options.GetValueOrDefault("kind", "sequence");
-            TargetKind? kind = kindName.ToLowerInvariant() switch
-            {
-                "set" => TargetKind.Set,
-                "sequence" => TargetKind.Sequence,
-                "binary" => TargetKind.BinaryWord,
-                _ => null,
-            };
-            if (kind == null || !options.TryGetValue("target", out string? values) || !OutputTarget.TryParse(kind.Value, values, out OutputTarget target))
-            {
-                Console.Error.WriteLine(Usage);
-                Console.Error.WriteLine("evolve, advise, compile and reach need a --target of positive numbers, or of 0s and 1s with --kind binary.");
-                return null;
-            }
-            var settings = new Settings { Target = target, Task = Catalog.TargetTask };
-            ApplyOptions(settings, options);
-            return settings;
-        }
-
-        // The evolve options that were given, which also win over the advisor's suggestions.
-        internal static void ApplyOptions(Settings settings, IReadOnlyDictionary<string, string> options)
-        {
-            settings.MaxGenerations = (int)Number(options, "generations", settings.MaxGenerations);
-            settings.PopulationSize = (int)Number(options, "population", settings.PopulationSize);
-            settings.MaxNeurons = (int)Number(options, "neurons", settings.MaxNeurons);
-            settings.StagnationPatience = (int)Number(options, "patience", settings.StagnationPatience);
-            settings.IterativeEvolution = Switch(options, "iterative", settings.IterativeEvolution);
-            settings.Lexicase = Switch(options, "lexicase", settings.Lexicase);
-            settings.Modules = Switch(options, "modules", settings.Modules);
-            settings.FreezeModules = Switch(options, "freeze", settings.FreezeModules);
-            settings.TriggeredModules = Switch(options, "triggered", settings.TriggeredModules);
-            settings.ModuleIncubation = (int)Number(options, "incubate", settings.ModuleIncubation);
-            settings.MaxEvaluations = Number(options, "evaluations", settings.MaxEvaluations);
-            settings.PartLibraryFolder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
-            settings.HandBuiltParts = Switch(options, "hand-built", settings.HandBuiltParts);
-            settings.HandBuiltAddLoop = !LeavesOnly(options) && settings.HandBuiltAddLoop;
-            settings.ProposeParts = Switch(options, "propose", settings.ProposeParts);
-            settings.ProposalBudget = Number(options, "proposal-budget", settings.ProposalBudget);
-            settings.Composition = settings.Composition with
-            {
-                MaxParts = (int)Number(options, "max-parts", settings.Composition.MaxParts),
-                MaxGlue = (int)Number(options, "glue", settings.Composition.MaxGlue),
-                GlueEdits = options.TryGetValue("glue-weight", out string? weight) && InputParsing.TryNonNegativeDouble(weight, out double glue)
-                    ? glue
-                    : settings.Composition.GlueEdits,
-            };
-            if (options.GetValueOrDefault("module-files") is string files)
-            {
-                settings.ModuleFiles = files.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                settings.Modules = true;
-            }
-            if (options.GetValueOrDefault("algorithm") is string algorithm)
-            {
-                settings.Algorithm = Catalog.Algorithms.FirstOrDefault(entry => entry.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
-            }
-        }
-
-        // --hand-built leaves gives the hand-built parts without the add loop promoted from them, as a control.
-        private static bool LeavesOnly(IReadOnlyDictionary<string, string> options) =>
-            string.Equals(options.GetValueOrDefault("hand-built"), "leaves", StringComparison.OrdinalIgnoreCase);
-
-        private static bool Switch(IReadOnlyDictionary<string, string> options, string name, bool fallback) =>
-            options.ContainsKey(name) ? IsOn(options, name) : fallback;
-
-        private static bool IsOn(IReadOnlyDictionary<string, string> options, string name) =>
-            options.GetValueOrDefault(name) is string value && !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase) && value != "0";
-
-        private static Func<ISimulationEngine> Engine(IReadOnlyDictionary<string, string> options)
-        {
-            if (string.Equals(options.GetValueOrDefault("engine"), "sampled", StringComparison.OrdinalIgnoreCase))
-            {
-                return () => new SequentialCpuEngine();
-            }
-            int maxConfigurations = (int)Number(options, "configurations", ExhaustiveCpuEngine.DefaultMaxConfigurations);
-            return () => new ExhaustiveCpuEngine(maxConfigurations);
-        }
-
-        private static long Number(IReadOnlyDictionary<string, string> options, string name, long fallback) =>
-            options.TryGetValue(name, out string? value) && long.TryParse(value, out long number) && number > 0 ? number : fallback;
-
-        // A name that matches exactly wins over the names that only contain it.
-        private static List<T> Matching<T>(IEnumerable<T> items, Func<T, string> name, string? filter)
-        {
-            List<T> containing = items.Where(item => filter == null || name(item).Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
-            List<T> exact = containing.Where(item => string.Equals(name(item), filter, StringComparison.OrdinalIgnoreCase)).ToList();
-            return exact.Count > 0 ? exact : containing;
         }
     }
 }

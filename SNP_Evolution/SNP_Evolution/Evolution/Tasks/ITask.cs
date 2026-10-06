@@ -18,8 +18,7 @@ namespace SnpEvolution.Evolution.Tasks
 
         IReadOnlyList<TaskCase> Cases { get; }
 
-        // The fitness a network must reach on every retest to count as solving the task. Sampled runs vary, so most tasks
-        // allow a little short of 1.
+        // Sampled runs vary, so most tasks count a network as solving them a little short of 1.
         float SolvedFitness => FitnessEvaluator.SolvedThreshold;
 
         // The fewest simulation steps a run needs for the task to be solvable; runs are lengthened to at least this.
@@ -53,8 +52,7 @@ namespace SnpEvolution.Evolution.Tasks
         // such part.
         ITask? Triggered(int check) => null;
 
-        // A contract for a part that would do what the checks no network passes ask for, so a stalled composition run can
-        // evolve that part and add it to its library. Null when the task has no such part.
+        // A part a stalled composition run could evolve to pass the checks no network passes, or null when the task has none.
         Contract? Propose(IReadOnlyList<int> unsolvedChecks) => null;
     }
 

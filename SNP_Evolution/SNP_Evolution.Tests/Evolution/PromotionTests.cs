@@ -54,7 +54,7 @@ namespace SnpEvolution.Tests.Evolution
             Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add)!;
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);
-            LibraryPart addTwo = loaded.Parts.Single(module => module.Part!.Contract.Name == "add 2").Part!;
+            LibraryPart addTwo = loaded.PartFor("add 2")!.Part!;
 
             Assert.Equal(Json(chain.Flatten(library)), Json(addTwo.Part.Network));
             Assert.Equal(promoted.Part!.Part.Binding.Positions, addTwo.Part.Binding.Positions);
@@ -120,8 +120,8 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.Equal(new[] { "add 2", "add 4", "increment" }, loaded.Parts.Select(module => module.Part!.Contract.Name).Order());
             Assert.Equal(
-                Json(library.Parts.Single(module => module.Part!.Contract.Name == "add 4").Part!.Part.Network),
-                Json(loaded.Parts.Single(module => module.Part!.Contract.Name == "add 4").Part!.Part.Network));
+                Json(library.PartFor("add 4")!.Part!.Part.Network),
+                Json(loaded.PartFor("add 4")!.Part!.Part.Network));
         }
 
         [Fact]

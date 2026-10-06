@@ -3,6 +3,7 @@ using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
@@ -36,8 +37,8 @@ namespace SnpEvolution.Tests.Cli
             PartLibraryFolder = Path.Combine(folder, "parts"),
         };
 
-        private IGeneticAlgorithm Run(Settings settings, int seed) =>
-            EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(seed), log.Add, new EvaluationCounter());
+        private IGeneticAlgorithm Run(Settings settings, int seed, EvaluationCounter? evaluations = null) =>
+            EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(seed), log.Add, evaluations ?? new EvaluationCounter());
 
         private static CatalogEntry<Settings, BenchmarkTask> SuiteTask(string name) => Catalog.Tasks.Single(task => task.Name == name);
 
@@ -49,11 +50,11 @@ namespace SnpEvolution.Tests.Cli
             settings.HandBuiltParts = true;
 
             IGeneticAlgorithm run = Run(settings, seed: 7);
-            EvolutionSession.Save(run, Path.Combine(folder, "run"), "ComposedNet", log.Add);
+            RunOutput.Save(run, Path.Combine(folder, "run"), "ComposedNet", log.Add);
 
             Assert.True(EvolutionSession.IsSolved(run, settings.SelectedTask.Task));
             Assert.Contains(log, line => line.StartsWith("Promoted the composition for multiply") && line.Contains("built from add loop"));
-            LibraryPart multiply = PartLibraryFiles.Load(settings.PartLibraryFolder).Parts.Single(module => module.Part!.Contract.Name == "multiply").Part!;
+            LibraryPart multiply = PartLibraryFiles.Load(settings.PartLibraryFolder).PartFor("multiply")!.Part!;
             Assert.True(multiply.IsComposite);
             string parts = File.ReadAllText(Path.Combine(folder, "run", "ComposedNet-parts.txt"));
             Assert.Contains("add loop (promoted)", parts);
@@ -74,13 +75,47 @@ namespace SnpEvolution.Tests.Cli
             settings.MaxGenerations = 40;
             settings.StagnationPatience = 4;
             settings.ProposalBudget = 5_000;
+            var evaluations = new EvaluationCounter();
 
-            IGeneticAlgorithm run = Run(settings, seed: 3);
-            EvolutionSession.Save(run, Path.Combine(folder, "run"), "Net", log.Add);
+            IGeneticAlgorithm run = Run(settings, seed: 3, evaluations);
+            RunOutput.Save(run, Path.Combine(folder, "run"), "Net", log.Add);
 
             string parts = File.ReadAllText(Path.Combine(folder, "run", "Net-parts.txt"));
             Assert.Contains("part(s) proposed", parts);
+            Assert.Contains("proposed parts", evaluations.Describe());
             Assert.Matches(@"generation \d+: delay \d+ \(failing checks, nothing passes gap \d+ \(\d+\)\): (solved in \d+ evaluations, kept as module \d+|not solved)", parts);
+        }
+
+        [Fact]
+        public void ComposeRefusesATaskNameThatMatchesNoTask() =>
+            Assert.Equal(1, CommandLine.Run(new[] { "compose", "--task", "no such task" }));
+
+        [Fact]
+        public void AContractRunJustShortOfAPerfectScoreIsNotSolved()
+        {
+            var individual = new Individual(TestNetworks.AlwaysOutputsOne());
+            individual.Record(new FitnessResult(0.99f, Array.Empty<int>(), "", Exact: true));
+            var run = new FixedPopulation(individual);
+
+            Assert.True(EvolutionSession.IsSolved(run));
+            Assert.False(EvolutionSession.IsSolved(run, new ContractTask(ReferenceParts.RegisterContract())));
+        }
+
+        private sealed class FixedPopulation(Individual best) : IGeneticAlgorithm
+        {
+            public IReadOnlyList<Individual> Population => new[] { best };
+
+            public int Generation => 1;
+
+            public Individual? Best => best;
+
+            public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => Array.Empty<IReadOnlyList<float>>();
+
+            public void NextGeneration() { }
+
+            public void Immigrate(IReadOnlyList<Network> newcomers) { }
+
+            public void Rescore() { }
         }
 
         [Fact]

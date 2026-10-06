@@ -36,8 +36,9 @@ namespace SnpEvolution.Tests.Evolution
 
             ModuleLibrary library = HandBuiltMachines.Library(log.Add);
 
-            LibraryPart loop = library.Parts.Single(module => module.Part!.Contract.Name == "add loop").Part!;
+            LibraryPart loop = library.PartFor("add loop")!.Part!;
             Assert.True(loop.IsComposite);
+            Assert.False(library.PartFor("register")!.Part!.IsComposite);
             Assert.Equal(7, loop.Recipe!.Parts.Count);
             Assert.True(loop.Cost.Neurons > ModuleLibrary.MaxModuleNeurons);
             output.WriteLine(string.Join(Environment.NewLine, log));

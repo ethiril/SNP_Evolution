@@ -8,15 +8,11 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
 {
-    // A child of a promoted part: which copy, and the contract of the library part it is a copy of.
     public sealed record RecipePart(int Instance, string Contract);
 
     public sealed record RecipeLink(string From, string To);
 
-    // A promoted part written as references to its children rather than as the network they flatten to, so parts can be
-    // built from parts. Endpoints are "g3" for the third glue neuron or "2.sum" for port sum of copy 2: ports by name, so
-    // a cheaper part that later takes a child's place is still wired the same way. Binding names the endpoint of each
-    // out-port and done port of the contract.
+    // Endpoints name ports ("2.sum") rather than positions ("g3" is glue), so a cheaper part that later replaces a child is still wired the same way.
     public sealed record PartRecipe(
         IReadOnlyList<RecipePart> Parts,
         IReadOnlyList<GlueNeuron> Glue,
@@ -26,14 +22,13 @@ namespace SnpEvolution.Evolution.Modules
         IReadOnlyList<string> Outputs,
         IReadOnlyDictionary<string, string> Binding)
     {
-        // The composition, with each child the newest version of the library part whose contract it names, and the
-        // binding as positions in the network it flattens to. Throws ArgumentException when a child is missing.
+        // Throws ArgumentException when the library has no part for a child's contract.
         public (Composition Composition, PortBinding Binding) Build(ModuleLibrary library)
         {
             var instances = new List<PartInstance>();
             foreach (RecipePart part in Parts)
             {
-                Module module = library.Parts.FirstOrDefault(each => each.Part!.Contract.Name == part.Contract)
+                Module module = library.PartFor(part.Contract)
                     ?? throw new ArgumentException($"The library has no part for contract '{part.Contract}'.");
                 instances.Add(new PartInstance(part.Instance, module.Id, module.Versions.Count - 1));
             }
@@ -91,14 +86,11 @@ namespace SnpEvolution.Evolution.Modules
                 bound.ToDictionary(pair => pair.Key, pair => pair.Value!));
         }
 
-        // Every contract the recipe names, children first, so a library can be loaded in an order that has them.
         [JsonIgnore]
         public IEnumerable<string> Children => Parts.Select(part => part.Contract).Distinct();
     }
 
-    // A solved composition becomes a part whose contract is the target's. The composition was scored on the target task,
-    // which may test less than the contract, so the part is verified on the contract on the exhaustive engine before it
-    // is kept. Its size is its children's, each verified already, so the leaf cap on module size does not apply.
+    // The target task may test less than the contract, so a solved composition is verified on the contract before it is kept.
     public static class Promotion
     {
         // Null, and logged, when the network is not a composition of the library's parts or the part fails its contract.

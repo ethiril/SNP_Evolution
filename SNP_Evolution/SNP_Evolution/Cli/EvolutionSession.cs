@@ -103,7 +103,7 @@ namespace SnpEvolution.Cli
         {
             evaluations ??= new EvaluationCounter();
             bool composition = AlgorithmCatalog.IsComposition(settings.Algorithm.Name);
-            ModuleLibrary? parts = composition ? LoadParts(settings, log) : null;
+            ModuleLibrary? parts = composition ? CompositionParts.Load(settings, log) : null;
             int partsAtStart = parts?.Parts.Count ?? 0;
             evaluations.AddUpFront(parts?.PartEvaluations ?? 0);
             GenomeSpace space = settings.GenomeSpace(task.Task.InputCount) with { RuleForm = task.RuleForm };
@@ -165,12 +165,9 @@ namespace SnpEvolution.Cli
                     composer?.Mutation(1) ?? WeightedMutation.Structural(1, mutationFactory, modules: library != null ? new ModuleSupport(library, settings.FreezeModules) : null),
                     random, log);
             }
-            // A proposed part is evolved and verified as evolve-parts would, from a seed the run's random gives.
             PartOutcome ProposedPart(Contract contract)
             {
-                var search = new PartSearchSettings(settings.ProposalBudget, settings.ProposalBudget / 4, PartsSession.Population, Catalog.ChoiceFor(Catalog.StructuralDefault),
-                    () => new ExhaustiveCpuEngine());
-                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), search, log);
+                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), PartsSession.SearchSettings(settings.ProposalBudget, () => new ExhaustiveCpuEngine()), log);
                 evaluations.Add(EvaluationSource.Proposals, outcome.Evaluations);
                 return outcome;
             }
@@ -178,7 +175,7 @@ namespace SnpEvolution.Cli
             {
                 var iterative = new IterativeEvolution(prefixTask, settings.CurriculumFor(prefixTask).Lengths(prefixTask.Length), stageTask => CreateEvaluator(stageTask), CreateAlgorithm, log);
                 RunGenerations(settings, evaluations, iterative, _ => iterative.IsComplete, log);
-                SaveIfGrown(settings, parts, partsAtStart, log);
+                CompositionParts.SaveIfGrown(settings, parts, partsAtStart, log);
                 return iterative;
             }
             FitnessEvaluator evaluator = CreateEvaluator(task.Task);
@@ -196,36 +193,8 @@ namespace SnpEvolution.Cli
             {
                 Promotion.PromoteSolved(solved.Genes, contractTask, parts, new PartOrigin(0, $"composition search for {contractTask.Contract.Name}", evaluations.Total), log);
             }
-            SaveIfGrown(settings, parts, partsAtStart, log);
+            CompositionParts.SaveIfGrown(settings, parts, partsAtStart, log);
             return run;
-        }
-
-        // The saved part library, with the hand-built parts too when asked for.
-        private static ModuleLibrary LoadParts(Settings settings, Action<string> log)
-        {
-            ModuleLibrary parts = PartLibraryFiles.Load(settings.PartLibraryFolder, log);
-            if (settings.HandBuiltParts)
-            {
-                HandBuiltMachines.AddParts(parts, log, settings.HandBuiltAddLoop);
-            }
-            return parts;
-        }
-
-        // Saves the library when the run promoted a part or solved a proposal, unless hand-built parts would go into the
-        // default folder, which holds only parts runs found.
-        private static void SaveIfGrown(Settings settings, ModuleLibrary? parts, int partsAtStart, Action<string> log)
-        {
-            if (parts == null || parts.Parts.Count == partsAtStart)
-            {
-                return;
-            }
-            if (settings.HandBuiltParts && Path.GetFullPath(settings.PartLibraryFolder) == Path.GetFullPath(Settings.DefaultPartLibraryFolder()))
-            {
-                log("The library holds hand-built parts, so it is not saved to the default part library folder; give another folder to keep it.");
-                return;
-            }
-            IReadOnlyList<string> written = PartLibraryFiles.Save(parts, settings.PartLibraryFolder);
-            log($"Saved {written.Count} part(s) to {settings.PartLibraryFolder}.");
         }
 
         // True when the whole target was matched, rather than only an early stage of it.
@@ -244,7 +213,6 @@ namespace SnpEvolution.Cli
             _ => geneticAlgorithm,
         };
 
-        // The proposal handler of a composition run, if it has one.
         public static PartProposals? Proposals(IGeneticAlgorithm geneticAlgorithm) => geneticAlgorithm switch
         {
             PartProposals proposals => proposals,
@@ -276,67 +244,6 @@ namespace SnpEvolution.Cli
             return library;
         }
 
-        // Saves the fitness history and the best network, and reports the best network and what the run spent.
-        public static void Save(IGeneticAlgorithm geneticAlgorithm, string folder, string fileStem, Action<string> log, EvaluationCounter? evaluations = null)
-        {
-            Directory.CreateDirectory(folder);
-            if (evaluations != null)
-            {
-                log(evaluations.Describe());
-                NetworkFiles.SaveText(evaluations.Describe() + Environment.NewLine, Path.Combine(folder, fileStem + "-evaluations.txt"));
-            }
-            NetworkFiles.SaveText(FitnessCsv.Format(geneticAlgorithm.FitnessHistory), Path.Combine(folder, fileStem + ".csv"));
-            if (geneticAlgorithm is IterativeEvolution iterative)
-            {
-                string stages = FormatStages(iterative);
-                log($"\nStages:\n{stages}");
-                NetworkFiles.SaveText(stages, Path.Combine(folder, fileStem + "-stages.txt"));
-                if (!iterative.IsComplete)
-                {
-                    log($"Stopped at stage {iterative.Stage + 1}/{iterative.StageCount}, so the best network below is scored on the first {iterative.StageLength} values only.");
-                }
-            }
-            if (Unwrap(geneticAlgorithm) is MapElites)
-            {
-                string front = SizeFront(geneticAlgorithm.Population);
-                log($"\nThe fittest network of each size:\n{front}");
-                NetworkFiles.SaveText(front, Path.Combine(folder, fileStem + "-sizes.txt"));
-            }
-            if (Modular(geneticAlgorithm) is ModularEvolution modular)
-            {
-                string modules = $"{modular.SideRuns} side run(s), {modular.SideGenerationsRun} generation(s) on the side in all.{Environment.NewLine}{modular.Library.Describe()}";
-                log($"\nModules:\n{modules}");
-                NetworkFiles.SaveText(modules, Path.Combine(folder, fileStem + "-modules.txt"));
-            }
-            if (Proposals(geneticAlgorithm) is PartProposals proposals)
-            {
-                string parts = $"{proposals.Describe()}{Environment.NewLine}{Environment.NewLine}{PartReuse.Describe(geneticAlgorithm.Best?.Genes, geneticAlgorithm.Population.Select(individual => individual.Genes), proposals.Library)}"
-                    + (geneticAlgorithm.Best is Individual composed ? Environment.NewLine + UsesPromoted(composed.Genes, proposals.Library) : "");
-                log($"\nParts:\n{parts}");
-                NetworkFiles.SaveText(parts, Path.Combine(folder, fileStem + "-parts.txt"));
-            }
-            if (geneticAlgorithm.Best is Individual best)
-            {
-                string graph = NetworkNotation.Format(best.Genes);
-                log($"\nBest network found (fitness {best.Fitness}, {best.Description}):\n{graph}");
-                NetworkFiles.Save(best.Genes, Path.Combine(folder, fileStem + ".json"));
-                NetworkFiles.SaveText(graph, Path.Combine(folder, fileStem + ".txt"));
-                NetworkFiles.SaveText(NetworkGraph.Svg(best.Genes), Path.Combine(folder, fileStem + ".svg"));
-                NetworkFiles.SaveText(NetworkPage.Html(best.Genes, fileStem), Path.Combine(folder, fileStem + ".html"));
-            }
-            log($"Saved to {folder}");
-        }
-
-        // Whether the best network is built on a promoted part, the sign that the library compounds.
-        public static string UsesPromoted(Network network, ModuleLibrary library)
-        {
-            List<string> promoted = PartReuse.Count(network, library)
-                .Where(count => count.Direct > 0 && library.Parts.Any(module => module.Part!.Contract.Name == count.Contract && module.Part.IsComposite))
-                .Select(count => $"{count.Contract} x{count.Direct}")
-                .ToList();
-            return promoted.Count > 0 ? $"The best network reuses promoted part(s): {string.Join(", ", promoted)}." : "The best network uses no promoted part.";
-        }
-
         private static void RunGenerations(Settings settings, EvaluationCounter evaluations, IGeneticAlgorithm geneticAlgorithm, Func<Individual, bool> isSolved, Action<string> log)
         {
             for (int generation = 0; generation < settings.MaxGenerations; generation++)
@@ -362,30 +269,6 @@ namespace SnpEvolution.Cli
                     return;
                 }
             }
-        }
-
-        private static string FormatStages(IterativeEvolution iterative)
-        {
-            var lines = new List<string> { "Stage  Values  Generations  Best fitness" };
-            lines.AddRange(iterative.Stages.Select((stage, index) =>
-                $"{index + 1,5}  {stage.Length,6}  {stage.Generations,11}  {stage.BestFitness:0.000}{(stage.Solved ? "   solved" : "")}"));
-            return string.Join(Environment.NewLine, lines) + Environment.NewLine;
-        }
-
-        // Each size's best network, smallest first, skipping any that a smaller network already matches.
-        private static string SizeFront(IReadOnlyList<Individual> elites)
-        {
-            var lines = new List<string> { "Neurons  Rules  Fitness" };
-            float bestSoFar = float.MinValue;
-            foreach (Individual elite in elites.OrderBy(elite => elite.Genes.Size))
-            {
-                if (elite.Fitness > bestSoFar)
-                {
-                    bestSoFar = elite.Fitness;
-                    lines.Add($"{elite.Genes.Neurons.Count,7}  {elite.Genes.RuleCount,5}  {elite.Fitness:0.000}   {elite.Description}");
-                }
-            }
-            return string.Join(Environment.NewLine, lines) + Environment.NewLine;
         }
     }
 }

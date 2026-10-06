@@ -9,9 +9,10 @@ namespace SnpEvolution.Tests.Cli
         [InlineData("0", false)]
         [InlineData("-3", false)]
         [InlineData("abc", false)]
-        public void PositiveIntRejectsZeroNegativesAndText(string input, bool accepted)
+        public void PositiveNumbersRejectZeroNegativesAndText(string input, bool accepted)
         {
             Assert.Equal(accepted, InputParsing.TryPositiveInt(input, out _));
+            Assert.Equal(accepted, InputParsing.TryPositiveLong(input, out _));
         }
 
         [Theory]

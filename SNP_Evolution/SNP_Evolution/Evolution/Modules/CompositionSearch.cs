@@ -30,7 +30,6 @@ namespace SnpEvolution.Evolution.Modules
         private readonly Random random;
         private readonly IReadOnlyList<PartPort>? boundary;
 
-        // boundary is the task's own ports, where it has a contract, which parts are wired to by type like any part's.
         public CompositionSpace(ModuleLibrary library, NetworkFactory glueFactory, CompositionMix mix, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             this.library = library;
@@ -39,7 +38,7 @@ namespace SnpEvolution.Evolution.Modules
             this.mix = mix;
             this.random = random;
             // Edits that check the network's size see room for every part on top of the glue, and the guard holds glue to the cap.
-            // Parts proposed during the run are leaves, so the leaf cap leaves room for them too.
+            // Parts proposed during the run are leaves, so room for the largest leaf is kept even before one exists.
             int partRoom = mix.MaxParts * Math.Max(ModuleLibrary.MaxModuleNeurons, library.Parts.Select(module => module.Body.Neurons.Count).DefaultIfEmpty(0).Max());
             editFactory = glueFactory.WithSpace(glueFactory.Space with { MaxNeurons = glueFactory.Space.MaxNeurons + partRoom });
         }

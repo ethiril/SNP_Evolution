@@ -36,11 +36,11 @@ namespace SnpEvolution.Cli
                 return 1;
             }
             string run = $"evolve-parts --seed {options.Seed} --budget {options.Budget}{options.EngineOption}";
-            var settings = new PartSearchSettings(options.Budget, options.Budget / 4, Population, Catalog.ChoiceFor(Catalog.StructuralDefault), options.CreateEngine);
+            PartSearchSettings settings = SearchSettings(options.Budget, options.CreateEngine);
             var rows = new List<Row>();
             foreach (Contract contract in options.Contracts)
             {
-                Module? kept = library.Parts.FirstOrDefault(module => module.Part!.Contract.Name == contract.Name);
+                Module? kept = library.PartFor(contract.Name);
                 if (kept != null && !options.Redo)
                 {
                     rows.Add(new Row(contract.Name, "kept", null, kept.Part));
@@ -65,6 +65,10 @@ namespace SnpEvolution.Cli
         }
 
         public const int Population = 60;
+
+        // How evolve-parts searches for a part, which a run's proposed parts share.
+        public static PartSearchSettings SearchSettings(long budget, Func<ISimulationEngine> createEngine) =>
+            new PartSearchSettings(budget, budget / 4, Population, Catalog.ChoiceFor(Catalog.StructuralDefault), createEngine);
 
         // A part kept from an earlier run shows the evaluations that run spent on it.
         public static string FormatTable(IReadOnlyList<Row> rows)

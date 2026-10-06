@@ -42,12 +42,11 @@ namespace SnpEvolution.Evolution.Benchmarking
             CreateEngine: () => new ExhaustiveCpuEngine());
     }
 
-    // Reuse counts the library parts in the best network, for runs that build from a part library; Promoted says a solved
-    // composition became a part of that run's library.
+    // Reuse is null for a run that built from no part library.
     public sealed record RunOutcome(string Algorithm, string Task, int Seed, bool Solved, long Evaluations, float BestFitness, Individual? Best,
         IReadOnlyList<PartCount>? Reuse = null, bool Promoted = false);
 
-    // One algorithm on one task, summarised over every seed. Reuse is, per part, the runs whose best network holds a copy.
+    // One algorithm on one task, summarised over every seed.
     public sealed record BenchmarkRow(string Algorithm, string Task, int Runs, int Solved, double? MedianEvaluationsToSolve, double MeanBestFitness, double? MeanSolvedSize,
         IReadOnlyList<PartUse>? Reuse = null)
     {
@@ -56,7 +55,6 @@ namespace SnpEvolution.Evolution.Benchmarking
         public string ReuseText => Reuse is { Count: > 0 } uses ? string.Join(", ", uses.Select(use => $"{use.Contract} {use.Runs}/{Runs}")) : "-";
     }
 
-    // How many runs' best networks hold a part directly, and the mean copies over those runs.
     public sealed record PartUse(string Contract, int Runs, double MeanCopies);
 
     public static class Benchmark
@@ -69,7 +67,7 @@ namespace SnpEvolution.Evolution.Benchmarking
             var factory = new NetworkFactory(space, new ExpressionGenerator(settings.Templates, settings.MaxSpikeGroupSize, random), random);
             var evaluator = new FitnessEvaluator(
                 settings.CreateEngine(), task.Task, new SimulationOptions(settings.MaxSteps, settings.Repetitions, task.Timing), solvedRetestCount: 5, random);
-            // Each run gets a library of its own, since copies and credit are counted in it, and a solved composition is promoted into it.
+            // Each run gets a library of its own, since copies and credit are counted in it and a solved composition is promoted into it.
             ModuleLibrary? library = settings.Parts is { Count: > 0 } parts ? ModuleLibrary.Of(parts) : null;
             IGeneticAlgorithm run = algorithm.Create(new EvolutionContext(
                 settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: settings.Lexicase, Parts: library));
@@ -124,15 +122,15 @@ namespace SnpEvolution.Evolution.Benchmarking
                 })
                 .ToList();
 
-        // Null when no run built from a part library.
         private static IReadOnlyList<PartUse>? Uses(List<RunOutcome> outcomes)
         {
-            List<PartCount> counts = outcomes.Where(outcome => outcome.Reuse != null).SelectMany(outcome => outcome.Reuse!.Where(count => count.Direct > 0)).ToList();
             if (outcomes.All(outcome => outcome.Reuse == null))
             {
                 return null;
             }
-            return counts.GroupBy(count => count.Contract)
+            return outcomes.SelectMany(outcome => outcome.Reuse ?? Array.Empty<PartCount>())
+                .Where(count => count.Direct > 0)
+                .GroupBy(count => count.Contract)
                 .Select(group => new PartUse(group.Key, group.Count(), group.Average(count => count.Direct)))
                 .OrderByDescending(use => use.Runs).ThenBy(use => use.Contract, StringComparer.Ordinal)
                 .ToList();

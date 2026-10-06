@@ -71,7 +71,7 @@ namespace SnpEvolution.Cli
                 switch (choice)
                 {
                     case 0:
-                        if (SettingsMenu.EditTarget(settings) && SettingsMenu.EditTargetGenerations(settings) && ReviewAdvice())
+                        if (TargetMenu.EditTarget(settings) && TargetMenu.EditTargetGenerations(settings) && ReviewAdvice())
                         {
                             EvolveFromScratch("TargetNet");
                         }
@@ -108,7 +108,7 @@ namespace SnpEvolution.Cli
         {
             const int DefaultShrinkGenerations = 300;
             const int ProgramGenerations = 2000;
-            if (!SettingsMenu.EditTarget(settings))
+            if (!TargetMenu.EditTarget(settings))
             {
                 return;
             }
@@ -356,7 +356,7 @@ namespace SnpEvolution.Cli
             Settings used = settings.Copy();
             var evaluations = new EvaluationCounter();
             IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, createStartingNetwork, random, Console.WriteLine, evaluations);
-            EvolutionSession.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine, evaluations);
+            RunOutput.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine, evaluations);
             ConsoleUi.WaitForEnter("Press enter to continue.");
             OfferToSave(used, start, fileStem, savedName ?? $"{task.Name} ({DateTime.Now:yyyy-MM-dd HH:mm})", Outcome(geneticAlgorithm));
         }

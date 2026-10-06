@@ -51,28 +51,26 @@ namespace SnpEvolution.Evolution.Modules
                 .ToList();
         }
 
-        // Out-ports only feed free in-ports, so inserting a copy never splices into a wire that already works. The boundary
-        // is the task's own ports, where it has a contract: its in-ports send like out-ports of a part, and its out-ports
-        // receive like in-ports, so a part can be wired straight to what the task feeds and reads.
+        // Out-ports only feed free in-ports, so inserting a copy never splices into a wire that already works; the task's own in-ports send and its out-ports receive.
         internal static void WirePorts(List<Neuron> neurons, IReadOnlyList<PartCopy> copies, PartCopy added, int offset, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             List<CopyPort> existing = copies.SelectMany(copy => copy.Ports).ToList();
             HashSet<int> typed = copies.SelectMany(copy => copy.Positions).ToHashSet();
             List<int> untyped = Enumerable.Range(1, offset).Where(position => !typed.Contains(position)).ToList();
-            List<PartPort> edge = (boundary ?? Array.Empty<PartPort>()).Where(port => port.Position <= offset && !typed.Contains(port.Position)).ToList();
+            List<PartPort> taskPorts = (boundary ?? Array.Empty<PartPort>()).Where(port => port.Position <= offset && !typed.Contains(port.Position)).ToList();
             foreach (CopyPort port in added.Ports)
             {
                 if (port.Port.Direction == PortDirection.In)
                 {
                     List<int> senders = existing.Where(other => Fits(other.Port, port.Port)).Select(other => other.Position)
-                        .Concat(edge.Where(task => task.Port.Direction == PortDirection.In && SameType(task.Port, port.Port)).Select(task => task.Position))
+                        .Concat(taskPorts.Where(task => task.Port.Direction == PortDirection.In && SameType(task.Port, port.Port)).Select(task => task.Position))
                         .ToList();
                     Connect(neurons, Pick(senders.Count > 0 ? senders : untyped, random), port.Position);
                 }
                 else if (!neurons[port.Position - 1].IsOutput)
                 {
                     List<int> receivers = existing.Where(other => Fits(port.Port, other.Port) && IsFree(neurons, other)).Select(other => other.Position)
-                        .Concat(edge.Where(task => task.Port.Direction == PortDirection.Out && SameType(task.Port, port.Port) && !FedByAPart(neurons, typed, task.Position))
+                        .Concat(taskPorts.Where(task => task.Port.Direction == PortDirection.Out && SameType(task.Port, port.Port) && !FedByAPart(neurons, typed, task.Position))
                             .Select(task => task.Position))
                         .ToList();
                     Connect(neurons, port.Position, Pick(receivers.Count > 0 ? receivers : untyped.Where(position => !neurons[position - 1].IsInput).ToList(), random));
@@ -106,8 +104,7 @@ namespace SnpEvolution.Evolution.Modules
         }
     }
 
-    // Moves one end of a port to a fitting port of another copy, or to a neuron outside every copy, which has no type and
-    // so fits any port, as it does when a part is put in; input neurons stay as they are, since only the environment feeds them.
+    // Moves one end of a port to a fitting port of another copy or to untyped glue; input neurons stay as they are, since only the environment feeds them.
     public sealed class RewirePort : IMutation
     {
         private readonly ModuleLibrary library;

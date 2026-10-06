@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Compilation;
@@ -6,22 +5,16 @@ using SnpEvolution.Evolution.Contracts;
 
 namespace SnpEvolution.Evolution.Proposals
 {
-    // What the shape of a target asks for: the form fitted, in words, and the parts that form is made of, with repeats.
     public sealed record ShapeProposal(string Form, IReadOnlyList<Contract> Contracts)
     {
         public string Parts => string.Join(", ", Contracts.GroupBy(contract => contract.Name).Select(group => group.Count() == 1 ? group.Key : $"{group.Count()} x {group.Key}"));
     }
 
-    // Reads which operations would make a sequence from its shape, for any sequence: Fibonacci is only the test. A small
-    // linear recurrence (gap_k = c1 gap_(k-1) + ... + c3 gap_(k-3)) asks for one register per term, an add per sum and a
-    // double or fan-out per coefficient above one. Failing that, gaps whose k-th differences are constant ask for k
-    // registers and k adds, each level summing the one below. Nothing fits exactly means no proposal, since a wrong
-    // part costs a whole part evolution.
+    // Only an exact fit proposes anything, since a wrong part costs a whole part evolution.
     public static class RecurrenceProposer
     {
-        public const int MaxDifferenceOrder = 2;
+        private const int MaxDifferenceOrder = 2;
 
-        // Null when neither form fits every gap exactly.
         public static ShapeProposal? Propose(IReadOnlyList<int> gaps)
         {
             if (Recurrence.Fit(gaps) is Recurrence recurrence)
@@ -60,16 +53,9 @@ namespace SnpEvolution.Evolution.Proposals
                 {
                     contracts.Add(FirstParts.Named("increment"));
                 }
-                string differences = order == 1 ? "difference" : $"{Ordinal(order)} difference";
-                return new ShapeProposal($"every {differences} of the gaps is {step}", contracts);
+                return new ShapeProposal($"every {(order == 1 ? "" : "second ")}difference of the gaps is {step}", contracts);
             }
             return null;
         }
-
-        private static string Ordinal(int order) => order switch
-        {
-            2 => "second",
-            _ => throw new ArgumentOutOfRangeException(nameof(order)),
-        };
     }
 }

@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace SnpEvolution.Evolution.Contracts
 {
-    // The arithmetic the library should compound towards: n1 - n2, n1 x n2, n1 div n2 with remainder and n1 < n2, each
-    // in count encoding and in binary, plus the building blocks hand-built machines are made from. Cases include zero
-    // operands and one larger case, where hand-built SN P arithmetic usually breaks.
+    // Cases include zero operands and one larger case, where hand-built SN P arithmetic usually breaks.
     public static class ArithmeticParts
     {
         // Binary operands are 4 bits and a product 8, the scales the published Loihi 2 and FPGA adders report at.
@@ -36,7 +34,6 @@ namespace SnpEvolution.Evolution.Contracts
 
         public static IReadOnlyList<Contract> Contracts { get; } = Count.Concat(Binary).ToList();
 
-        // Parts machines are built from that are not arithmetic goals themselves.
         public static IReadOnlyList<Contract> BuildingBlocks { get; } = new[] { AddTwo(), Decrement(), Gate(), AddLoop() };
 
         // Every contract a part file may name, so a saved part cannot quietly change one.
@@ -45,10 +42,8 @@ namespace SnpEvolution.Evolution.Contracts
         public static Contract Named(string name) =>
             Known.FirstOrDefault(contract => contract.Name == name) ?? throw new ArgumentException($"No known contract is named '{name}'.", nameof(name));
 
-        // n -> n + 2, which two chained increments make.
         public static Contract AddTwo() => AddConstant(2);
 
-        // n -> n + k; k chained increments make it, each draining the whole count again.
         public static Contract AddConstant(int k) => new Contract(
             $"add {k}",
             Start(),
@@ -57,7 +52,6 @@ namespace SnpEvolution.Evolution.Contracts
             FirstParts.Values.Select(n => Case(new() { ["n"] = n }, new() { ["out"] = n + k })).ToList(),
             FirstParts.LatencyFor(k * (FirstParts.Larger + k)));
 
-        // n -> n - 1 for n of at least 1.
         public static Contract Decrement() => new Contract(
             "decrement",
             Start(),
@@ -75,7 +69,7 @@ namespace SnpEvolution.Evolution.Contracts
             FirstParts.Values.SelectMany(n => new[] { 0, 1 }.Select(open => Case(new() { ["n"] = n, ["open"] = open }, new() { ["out"] = n * open }))).ToList(),
             FirstParts.LatencyFor(FirstParts.Larger));
 
-        // a + n x b: b added to a, n times. Multiplication is this loop with nothing in a.
+        // Multiplication is this loop with nothing in a.
         public static Contract AddLoop() => new Contract(
             "add loop",
             Start(),
@@ -85,7 +79,6 @@ namespace SnpEvolution.Evolution.Contracts
                 .ToList(),
             LoopLatency);
 
-        // Every pair up to 4 x 4, then one larger pair.
         private static List<(int A, int B)> FactorPairs() =>
             Enumerable.Range(0, LargestFactor + 1)
                 .SelectMany(a => Enumerable.Range(0, LargestFactor + 1).Select(b => (a, b)))

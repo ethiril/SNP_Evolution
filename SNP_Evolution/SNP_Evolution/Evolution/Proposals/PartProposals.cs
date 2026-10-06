@@ -8,8 +8,7 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Proposals
 {
-    // Patience is the generations without improvement before proposing; MaxProposals caps the parts evolved in one run,
-    // since each costs a whole part evolution.
+    // MaxProposals is low because each proposal costs a whole part evolution.
     public sealed record ProposalPolicy(int Patience = 25, int MaxProposals = 6);
 
     public enum ProposalSource
@@ -30,7 +29,6 @@ namespace SnpEvolution.Evolution.Proposals
         AlreadyKept,
     }
 
-    // What the run asked for, why, and what came of it, for the run log and the paper.
     public sealed record Proposal(int Generation, Contract Contract, ProposalSource Source, string Reason, ProposalOutcome Outcome, long Evaluations, int? Module)
     {
         public override string ToString() =>
@@ -43,12 +41,7 @@ namespace SnpEvolution.Evolution.Proposals
             };
     }
 
-    // When a composition run stalls, asks for the parts it lacks: first, once, those the shape of a sequence target
-    // suggests, then the one the checks nobody passes point at. Each is evolved from scratch with the evolve-parts
-    // machinery, so it is verified on the exhaustive engine like every first part, since a part admitted on a weaker
-    // standard would poison every composition that uses it. A solved part joins the library and copies of it go into
-    // the best networks before the run resumes. This generalises ModularEvolution's side runs, which build unverified
-    // modules, to verified parts with contracts.
+    // A proposed part is verified on the exhaustive engine like every first part, since one admitted on a weaker standard would poison every composition using it.
     public sealed class PartProposals : IGeneticAlgorithm
     {
         private const float ImprovementTolerance = 1e-6f;
@@ -66,7 +59,6 @@ namespace SnpEvolution.Evolution.Proposals
         private float? bestFitness;
         private int stale;
 
-        // solve evolves a part for a contract; its outcome's evaluations are what the proposal cost.
         public PartProposals(IGeneticAlgorithm inner, CompositionSpace space, Func<ITask> currentTask, Func<Contract, PartOutcome> solve, ProposalPolicy policy,
             int populationSize, Action<string> log)
         {
@@ -125,7 +117,6 @@ namespace SnpEvolution.Evolution.Proposals
             stale = 0;
         }
 
-        // The run log's account of every proposal, in the order made.
         public string Describe() => proposals.Count == 0
             ? "No parts were proposed."
             : $"{proposals.Count} part(s) proposed, {proposals.Count(proposal => proposal.Outcome == ProposalOutcome.Solved)} solved, {Evaluations} evaluations spent:{Environment.NewLine}"
@@ -133,7 +124,19 @@ namespace SnpEvolution.Evolution.Proposals
 
         private void React()
         {
-            ITask task = currentTask();
+            foreach ((Contract contract, ProposalSource source, string reason) in Candidates(currentTask()))
+            {
+                if (proposals.Count >= policy.MaxProposals || !asked.Add(contract.Name))
+                {
+                    continue;
+                }
+                Propose(contract, source, reason);
+            }
+        }
+
+        // The target's shape is read only once, since it does not change while the run stalls.
+        private List<(Contract Contract, ProposalSource Source, string Reason)> Candidates(ITask task)
+        {
             var candidates = new List<(Contract Contract, ProposalSource Source, string Reason)>();
             if (!shapeRead && task is SequenceTask sequence)
             {
@@ -153,20 +156,13 @@ namespace SnpEvolution.Evolution.Proposals
             {
                 candidates.Add((failing, ProposalSource.FailingChecks, diagnosis.Frontier is int frontier ? $"nothing passes {task.CheckName(frontier)}" : "unpassed checks"));
             }
-            foreach ((Contract contract, ProposalSource source, string reason) in candidates)
-            {
-                if (proposals.Count >= policy.MaxProposals || !asked.Add(contract.Name))
-                {
-                    continue;
-                }
-                Propose(contract, source, reason);
-            }
+            return candidates;
         }
 
         private void Propose(Contract contract, ProposalSource source, string reason)
         {
             ModuleLibrary library = space.Library;
-            if (library.Parts.FirstOrDefault(module => module.Part!.Contract.Name == contract.Name) is Module kept)
+            if (library.PartFor(contract.Name) is Module kept)
             {
                 Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.AlreadyKept, 0, kept.Id));
                 return;
@@ -186,6 +182,11 @@ namespace SnpEvolution.Evolution.Proposals
             string origin = $"a proposal from {(source == ProposalSource.TargetShape ? "the target's shape" : "failing checks")}";
             Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, origin, outcome.Evaluations)), origin);
             Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.Solved, outcome.Evaluations, module.Id));
+            GiveToBestNetworks(module);
+        }
+
+        private void GiveToBestNetworks(Module module)
+        {
             List<Network> composites = Ranking.Rank(inner.Population.Where(individual => individual.IsEvaluated))
                 .Take(Math.Max(1, populationSize / 4))
                 .Select(individual => space.WithPart(individual.Genes, module))

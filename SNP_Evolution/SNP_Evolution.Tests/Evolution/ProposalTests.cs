@@ -48,6 +48,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(new[] { "add", "register" }, Parts(proposal));
             Assert.Equal("every difference of the gaps is 2", proposal.Form);
             Assert.Equal(new[] { "increment", "register" }, Parts(RecurrenceProposer.Propose(new[] { 3, 4, 5, 6, 7 })));
+            Assert.Null(RecurrenceProposer.Propose(new[] { 10, 8, 6, 4, 2 }));
         }
 
         [Fact]

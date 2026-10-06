@@ -12,8 +12,8 @@ namespace SnpEvolution.Storage
 {
     // A part library folder holds one JSON file per part, named after its contract (delay-1.json, zero-test.json), so a
     // save rewrites the same files and the folder reads well as a diff. Each file has the network in the format
-    // NetworkFiles writes, the contract, the port binding, the hardware cost and where the part came from. A promoted part's
-    // file holds its recipe instead of a network: its children by contract, its glue and its wiring.
+    // NetworkFiles writes, the contract, the port binding, the hardware cost and where the part came from; a promoted
+    // part's file holds its recipe instead.
     public static class PartLibraryFiles
     {
         public const string Extension = ".json";
@@ -62,7 +62,17 @@ namespace SnpEvolution.Storage
                     problems.Add(exception.Message);
                 }
             }
-            // A pass adds every file whose children are in; one that adds nothing leaves only files that cannot be built.
+            AddInDependencyOrder(waiting, library, problems);
+            if (problems.Count > 0)
+            {
+                throw new InvalidDataException($"The part library in '{folder}' has parts that cannot be used: " + string.Join(" ", problems));
+            }
+            return library;
+        }
+
+        // A pass adds every file whose children are in; one that adds nothing leaves only files that cannot be built.
+        private static void AddInDependencyOrder(List<(string Name, PartFile File)> waiting, ModuleLibrary library, List<string> problems)
+        {
             while (waiting.Count > 0)
             {
                 HashSet<string> kept = library.Parts.Select(module => module.Part!.Contract.Name).ToHashSet();
@@ -71,7 +81,7 @@ namespace SnpEvolution.Storage
                 {
                     problems.AddRange(waiting.Select(each => $"Part file '{each.Name}' is built from parts the folder does not have: " +
                         string.Join(", ", each.File.Recipe!.Children.Where(child => !kept.Contains(child))) + "."));
-                    break;
+                    return;
                 }
                 foreach ((string name, PartFile file) in ready)
                 {
@@ -87,15 +97,9 @@ namespace SnpEvolution.Storage
                     }
                 }
             }
-            if (problems.Count > 0)
-            {
-                throw new InvalidDataException($"The part library in '{folder}' has parts that cannot be used: " + string.Join(" ", problems));
-            }
-            return library;
         }
 
-        // The part a file holds, with its cost and behaviour measured again rather than taken from the file. A promoted
-        // part is built from the library's parts, which must include its children.
+        // The part a file holds, with its cost and behaviour measured again rather than taken from the file.
         public static LibraryPart Read(string json, string name, ModuleLibrary? library = null) => Build(Parse(json, name), name, library ?? new ModuleLibrary());
 
         private static PartFile Parse(string json, string name)
@@ -160,8 +164,7 @@ namespace SnpEvolution.Storage
             return LibraryPart.Of(part, measurement, file.Origin) with { Recipe = file.Recipe };
         }
 
-        // Cost and Latency are written for readers of the folder; loading measures them again. A promoted part has a recipe
-        // in place of its network and binding.
+        // Cost and Latency are written for readers of the folder; loading measures them again.
         private sealed record PartFile(
             Contract Contract,
             [property: JsonProperty(NullValueHandling = NullValueHandling.Ignore)] PortBinding? Binding,

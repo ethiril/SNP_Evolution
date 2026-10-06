@@ -95,12 +95,12 @@ namespace SnpEvolution.Evolution.Tasks
 
         public string CheckName(int check) => $"gap {check + 1} ({Expected[check]})";
 
-        // The gap before the check and the two after it, so a part evolved for them starts from a gap the main
-        // networks already make.
         // The first gap nobody makes, as a timer: done fires that many steps after start.
         public Contract? Propose(IReadOnlyList<int> unsolvedChecks) =>
             unsolvedChecks.Count > 0 ? ReferenceParts.DelayContract(Expected[unsolvedChecks[0]]) : null;
 
+        // The gap before the check and the two after it, so a part evolved for them starts from a gap the main
+        // networks already make.
         public ITask? Focus(int check)
         {
             int start = Math.Clamp(check - 1, 0, Expected.Count - 1);

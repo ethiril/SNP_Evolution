@@ -62,15 +62,13 @@ namespace SnpEvolution.Cli
         // How composition search mixes its edits, and how many part copies a network may hold.
         public CompositionMix Composition { get; set; } = new CompositionMix();
 
-        // Whether a stalled composition run proposes parts and evolves them, and the evaluations each may spend.
         public bool ProposeParts { get; set; } = true;
         public long ProposalBudget { get; set; } = 20_000;
 
-        // Starts composition search with the hand-built parts and the add loop promoted from them. Off by default, since
-        // the library should be one the runs found; a run with them never saves to the default part library folder.
+        // Off by default, since the library should be one the runs found.
         public bool HandBuiltParts { get; set; }
 
-        // With the hand-built parts, whether the add loop promoted from them comes too; leaving it out is the control.
+        // Leaving the add loop out is the control for whether reusing it helps.
         public bool HandBuiltAddLoop { get; set; } = true;
 
         public int BenchmarkSeeds { get; set; } = 5;

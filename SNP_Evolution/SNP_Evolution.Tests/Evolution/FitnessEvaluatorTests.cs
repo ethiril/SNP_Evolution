@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 
@@ -11,6 +12,41 @@ namespace SnpEvolution.Tests.Evolution
 
         private static FitnessEvaluator Create(int[] expectedSet, int repetitions, int solvedRetestCount, Random random) =>
             new FitnessEvaluator(new SequentialCpuEngine(), new SetCoverageFitness(expectedSet), new SimulationOptions(MaxSteps: 10, repetitions), solvedRetestCount, random);
+
+        // Scores every network the same, on the cases of a one-gap sequence.
+        private class FixedScoreTask : ITask
+        {
+            private readonly ITask shape = new SequenceTask("fixed", new[] { 1 });
+            private readonly float score;
+
+            public FixedScoreTask(float score) => this.score = score;
+
+            public string Name => "fixed";
+
+            public int InputCount => shape.InputCount;
+
+            public IReadOnlyList<TaskCase> Cases => shape.Cases;
+
+            public float Score(IReadOnlyList<TrialResult> results) => score;
+
+            public string Describe(IReadOnlyList<TrialResult> results) => "";
+        }
+
+        private sealed class FixedScoreContract : FixedScoreTask, ITask
+        {
+            public FixedScoreContract(float score) : base(score) { }
+
+            public float SolvedFitness => 1f;
+        }
+
+        [Fact]
+        public void ATaskThatCountsOnlyAPerfectScoreRejectsOneJustShortOfIt()
+        {
+            FitnessEvaluator Evaluator(ITask task) => new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(MaxSteps: 10, 2), solvedRetestCount: 3, new Random(0));
+
+            Assert.True(Evaluator(new FixedScoreTask(0.99f)).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
+            Assert.False(Evaluator(new FixedScoreContract(0.99f)).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
+        }
 
         [Fact]
         public void EvaluateReportsFitnessAndOutputs()

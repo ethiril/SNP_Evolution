@@ -6,11 +6,9 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
 {
-    // Machines built by hand from the hand-built parts, which a run only uses when asked for (--hand-built on), since the
-    // default is a library the run discovers itself.
+    // Opt-in only, since the default library is one the runs discover themselves.
     public static class HandBuiltMachines
     {
-        // The hand-built parts, and the add loop promoted from them, as a library a composition run can start from.
         public static ModuleLibrary Library(Action<string>? log = null)
         {
             var library = new ModuleLibrary(log: log);
@@ -18,7 +16,6 @@ namespace SnpEvolution.Evolution.Modules
             return library;
         }
 
-        // Adds the hand-built parts, then, unless only the leaves are wanted, promotes the add loop built from them.
         public static void AddParts(ModuleLibrary library, Action<string> log, bool addLoop = true)
         {
             foreach (Part part in HandBuiltParts.All())
@@ -33,14 +30,10 @@ namespace SnpEvolution.Evolution.Modules
             Promotion.Promote(loop, ArithmeticParts.AddLoop(), binding, library, new PartOrigin(0, HandBuiltParts.Origin, 0), log);
         }
 
-        // a + n x b as a loop over registers. Each round a register drains the counter i into a fan-out, which feeds a zero
-        // test and a decrement. While i is not 0 the decrement puts i - 1 back, the gate is opened and lets b through to a
-        // fan-out, which sends one copy to the sum and one back into the gate for the next round. When i is 0 the gate is
-        // started shut, which swallows b, so every neuron ends where it began. A glue pair after the second fan-out either
-        // starts the next round or, when the zero test has left them two spikes, fires done.
+        // Each round adds b to the sum and counts n down; on the last round the gate starts shut and swallows b, so every neuron ends where it began.
         public static (Composition Composition, PortBinding Binding) AddLoop(ModuleLibrary library)
         {
-            Module Find(string contract) => library.Parts.First(module => module.Part!.Contract.Name == contract);
+            Module Find(string contract) => library.PartFor(contract) ?? throw new ArgumentException($"The library has no {contract} part.");
             Module register = Find("register"), fanOut = Find("fan-out"), zeroTest = Find("zero test"), decrement = Find("decrement"), gate = Find("gate");
             const int Accumulator = 1, Counter = 2, Split = 3, Test = 4, Less = 5, Gate = 6, Copy = 7;
             Dictionary<int, Module> modules = new[] { (Accumulator, register), (Counter, register), (Split, fanOut), (Test, zeroTest), (Less, decrement), (Gate, gate), (Copy, fanOut) }
@@ -74,18 +67,18 @@ namespace SnpEvolution.Evolution.Modules
                 new PortWire(Gate, "out", Copy, "n"), new PortWire(Gate, "done", Copy, "start"),
                 new PortWire(Copy, "b", Gate, "n"),
             };
-            Endpoint G(int neuron) => Endpoint.GlueAt(neuron);
+            Endpoint Glue(int neuron) => Endpoint.GlueAt(neuron);
             var links = new[]
             {
-                new Link(G(Start), Port(Accumulator, "start")), new Link(G(Start), Port(Counter, "start")),
-                new Link(G(A), Port(Accumulator, "n")), new Link(G(B), Port(Gate, "n")), new Link(G(N), Port(Counter, "n")),
-                new Link(Port(Accumulator, "out"), G(Sum)), new Link(Port(Copy, "a"), G(Sum)),
-                new Link(Port(Test, "nonzero"), G(Open)), new Link(G(Open), Port(Gate, "open")),
-                new Link(Port(Test, "zero"), G(Zero)), new Link(G(Zero), G(Again)), new Link(G(Zero), G(Finish)),
-                new Link(Port(Copy, "done"), G(Again)), new Link(Port(Copy, "done"), G(Finish)),
-                new Link(G(Again), Port(Counter, "start")), new Link(G(Finish), G(Done)),
+                new Link(Glue(Start), Port(Accumulator, "start")), new Link(Glue(Start), Port(Counter, "start")),
+                new Link(Glue(A), Port(Accumulator, "n")), new Link(Glue(B), Port(Gate, "n")), new Link(Glue(N), Port(Counter, "n")),
+                new Link(Port(Accumulator, "out"), Glue(Sum)), new Link(Port(Copy, "a"), Glue(Sum)),
+                new Link(Port(Test, "nonzero"), Glue(Open)), new Link(Glue(Open), Port(Gate, "open")),
+                new Link(Port(Test, "zero"), Glue(Zero)), new Link(Glue(Zero), Glue(Again)), new Link(Glue(Zero), Glue(Finish)),
+                new Link(Port(Copy, "done"), Glue(Again)), new Link(Port(Copy, "done"), Glue(Finish)),
+                new Link(Glue(Again), Port(Counter, "start")), new Link(Glue(Finish), Glue(Done)),
             };
-            var composition = new Composition(parts, glue, wires, links, new[] { G(Start), G(A), G(B), G(N) }, Array.Empty<Endpoint>());
+            var composition = new Composition(parts, glue, wires, links, new[] { Glue(Start), Glue(A), Glue(B), Glue(N) }, Array.Empty<Endpoint>());
             return (composition, PortBinding.AfterInputs(ArithmeticParts.AddLoop()));
         }
     }

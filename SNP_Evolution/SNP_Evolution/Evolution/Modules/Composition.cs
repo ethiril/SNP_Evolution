@@ -204,8 +204,7 @@ namespace SnpEvolution.Evolution.Modules
             Outputs = Outputs.Where(output => output.Instance != instance).ToList(),
         };
 
-        // Glue holds a relay per input, an output and up to two more neurons, and parts are wired in by port type, to the
-        // task's own ports too where it has a contract, whose glue starts quiet.
+        // Glue holds a relay per input, an output and up to two more neurons, and parts are wired in by port type.
         public static Composition Random(ModuleLibrary library, NetworkFactory glueFactory, int parts, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             GenomeSpace space = glueFactory.Space;
@@ -221,8 +220,7 @@ namespace SnpEvolution.Evolution.Modules
             return (Recover(network, library) ?? throw new InvalidOperationException("A freshly built composition could not be read back.")).OnlyThroughPorts(library);
         }
 
-        // With a contract the parts and the task's ports give the structure, so glue starts as quiet relays with no synapses
-        // of their own: one for each of the task's ports and one spare. Without one, random glue is what makes anything fire.
+        // With a contract the parts and the task's ports give the structure, so random glue would only add noise.
         private static Network QuietGlue(NetworkFactory glueFactory, IReadOnlyList<PartPort> boundary)
         {
             int count = Math.Max(glueFactory.Space.InputCount, boundary.Select(port => port.Position).DefaultIfEmpty(0).Max()) + 1;
