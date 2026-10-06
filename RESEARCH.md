@@ -164,7 +164,7 @@ Timing: SN P systems are synchronous, so parts wired together go wrong if a part
 Toward arithmetic: n1+n2, then n1−n2, then n1·n2 (a counter loop of additions), then division and comparison. The hand-built systems of Zeng et al. (2012) and the evolved ones of Dong et al. (2023) give neuron counts to compare against. Measure reuse as well as success (Berlot-Attwell et al. 2024): how often promoted modules show up in later solutions.
 
 Related work for this section:
-- **Zeng, Song, Zhang, Pan (2012)**, "Performing four basic arithmetic operations with spiking neural P systems", *IEEE Trans. NanoBioscience* 11(4):366-374. https://www.researchgate.net/publication/230671821_Performing_Four_Basic_Arithmetic_Operations_With_Spiking_Neural_P_Systems — Hand-built adder, subtracter, multiplier and divider. Numbers are intervals between input spikes and the result is the interval between output spikes, the same as `FunctionTask`. *Abstract.*
+- **Zeng, Song, Zhang, Pan (2012)**, "Performing four basic arithmetic operations with spiking neural P systems", *IEEE Trans. NanoBioscience* 11(4):366-374. https://www.researchgate.net/publication/230671821_Performing_Four_Basic_Arithmetic_Operations_With_Spiking_Neural_P_Systems — Hand-built adder, subtracter, multiplier and divider. Numbers are intervals between input spikes and the result is the interval between output spikes, the same as `FunctionTask`. *Abstract; the full text could not be opened (IEEE and ResearchGate refused), so its sizes in the comparison table are taken from Chen and Guo 2023.*
 - **Gutiérrez-Naranjo, Leporati (2009)**, "First steps towards a CPU made of spiking neural P systems", *IJCCC* 4(3):244-252 — Arithmetic circuits built by hand from SN P parts. *Not read.*
 - **Walker, Miller (2008)**, "The automatic acquisition, evolution and reuse of modules in Cartesian genetic programming" (ECGP), *IEEE TEVC* 12(4):397-417 — Modules acquired and reused during the run inside a graph genome. The closest model for step 3.
 - **Krawiec, Wieloch (2009)**, "Functional modularity for genetic programming", GECCO. https://dl.acm.org/doi/10.1145/1569901.1570037 — Modules identified by what they compute, not by their structure. The model for removing duplicates by behaviour. *Title only.*
@@ -193,10 +193,32 @@ Nobody evolves the exact circuits, so that is the niche. The realistic practical
 
 The closest neighbours lie outside membrane computing, in neuromorphic algorithm work:
 - **Fugu** composes spiking-algorithm "bricks". Each brick declares how many input and output neurons it has, how long its input and output last, and its depth. It also has a control neuron that fires on completion, and Fugu pads parallel branches to equal depth or flushes buffers with control neurons. This is our start/done contract, already in use, but its bricks are hand-written scripts. So the claim in the table above narrows from "composition is new" to "evolving parts with contracts and composing them automatically is new". Fugu has to be cited in the composition section.
-- **Adders on Loihi 2** (2025) encode one bit per time step, as a spike or no spike. Serial adders take O(n) steps; parallel adders take O(1) steps but need about n² or n√n synapses. Their neuron and synapse counts are a baseline for evolved adders.
+- **Adders on Loihi 2** (2025) take all n bits of each operand at once, one input neuron per bit; they do not stream one bit per step. Their "sequential" adder takes n + 1 steps, and the parallel ones take 2 or 3 steps but need about n² or n√n synapses. The bit-serial adder they cite from Aimone et al. (4 neurons, 9 synapses, one bit per step, least significant first) is the baseline for our `Binary` port kind. Their neuron and synapse counts are a baseline for evolved adders.
 - **Shortest paths with spikes** (SPAA 2020): the time until the first spike encodes the distance, the same idea as our interval encoding. They prove a polynomial speed-up over conventional algorithms for the k-hop version. This is the one place where spike timing is the answer and also an advantage.
 - **NIR** (Nature Communications 2024) is a shared intermediate representation that runs on 7 simulators and 4 digital hardware platforms. Its primitives are leaky integrate-and-fire style neurons, so our regex rules do not map onto it directly.
 - **Loihi 2 microcode** allows nearly any discrete-time neuron model, and its graded spikes carry an integer payload of up to 32 bits. Matching a `SpikeCondition` is a modulo plus a table lookup (a tail followed by a repeating period), and `Produce` > 1 could ride on a graded spike. That makes running our neurons on Loihi 2 plausible, but it is not demonstrated.
+
+#### Evolved against hand-designed arithmetic
+
+Composition search solved n1 x n2 in count encoding by reusing an add loop promoted from hand-built parts: 14 of 20 runs within 6000 evaluations, against 0 of 20 with the same parts but no add loop (Fisher's exact p = 3e-6). The add loop was in 18 of the 20 best networks, which is the reuse Berlot-Attwell et al. (2024) found missing from learned libraries. See the README, Composing machines from parts. Nothing evolved has solved a binary contract yet, and no published circuit has been rebuilt as a network to run through our contracts, since none of the SN P papers could be opened. Rows from the same paper compare like with like only within an encoding: a unary circuit costs time in the value, a binary one in the width.
+
+| Circuit | Encoding, range | Neurons | Synapses | Rules | Steps | Source |
+|---|---|---|---|---|---|---|
+| Zeng et al. 2012 adder / subtracter / multiplier / divider | interval (unary), several inputs, naturals | 10 / 12 / 21 / 25 | not given | 4 / 4 / 12 / 15 rule types | not given | Second-hand: Chen and Guo 2023, Table 5 (p. 28). Their Section 2.2 (p. 5) gives 22 and 24 for the multiplier and divider instead. Zeng's paper was not opened. |
+| Liu et al. 2015, time-free adder / subtracter / multiplier / divider | time-free, several inputs | 2 / 2 / 11 / 10 | not given | 2 / 6 / 15 / 16 rule types | none (time-free) | Second-hand: Chen and Guo 2023, Table 5 (p. 28). Not opened. |
+| Chen and Guo 2023 adder / subtracter / multiplier / divider | binary spike train, one input, k bits | k+8 / k+13 / 3k+8 / 5k+12 (12 / 17 / 20 / 32 at k = 4) | not given | 6 / 11 / 9 / 29 rule types | 2k+4 / 2k+3 / 3k+5 / 4k+q+4 | Chen and Guo 2023, Table 5 (p. 28); the contributions list (p. 3) gives 2k+q+4 for division. |
+| von Seeler et al. 2025, sequential adder | binary, all n bits at once, n <= 62 | 2n | 7n-2 | LIF threshold gates | n+1 | von Seeler et al. 2025, Table I (p. 5). Theoretical counts. |
+| von Seeler et al. 2025, DCTA2 / DCTA3 parallel adders | binary, all bits at once, n <= 16 / 42 | 2n / 4n | n²+5n-1 / 3n√n+7n-1 | LIF threshold gates | 2 / 3 | Same, Table I and footnote b. |
+| Aimone et al. streaming adder, as cited by von Seeler | binary, one bit per step | 4 | 9 | LIF threshold gates | n+1 | von Seeler et al. 2025, Table I. |
+| Dong, Luo, Zhang 2023, evolved | – | – | – | – | – | Not opened (paywalled), so no numbers. |
+| Ours: hand-built add | count (unary), cases up to 12 + 5 | 6 | 5 | 9 (6 distinct) | n1 + n2 + 2 (19 for 12 + 5) | `ReferenceParts.Add`, `HardwareCost`. |
+| Ours: add loop a + n x b, hand-built from 7 parts and 10 glue neurons | count, cases up to 6 x 5 | 49 | 61 | 79 (15 distinct) | 223 for 2 + 6 x 5 | `HandBuiltMachines.AddLoop`. |
+| Ours: n1 x n2 found by composition search, one add loop and glue | count, cases up to 6 x 5 | 55 | 66 | 85 (16 distinct) | 225 for 6 x 5 | `compose --task "Contract multiply" --hand-built on --seed 1`. |
+
+Notes:
+- "Rule types" in Chen and Guo count a rule such as a -> a once however many neurons use it, which is close to our distinct rules.
+- None of the SN P papers give synapse counts; they would have to be counted from each paper's figures.
+- Our multiplier is about twice Zeng's 21 neurons, because it is built from general parts with start and done triggers rather than designed as one circuit. Shrinking it, by swapping in smaller parts or evolving the glue, is the next comparison to make.
 
 What to build, in order of payoff:
 1. **Binary port encoding**: one bit per step, a spike for 1 and silence for 0. Interval and count are both unary, so a k-bit number costs up to 2^k steps or spikes. The hardware and SN P arithmetic papers all use bits, and any practical arithmetic needs them. Add it as a fourth `PortKind` in build PR 1.
@@ -214,7 +236,9 @@ Items 1 and 3 belong in the existing build PRs; items 4 to 6 would be new PRs af
 
 Sources for this section:
 - **Aimone, Severa, Vineyard (2019)**, "Composing neural algorithms with Fugu", ICONS. https://arxiv.org/abs/1905.12130 — Bricks with declared sizes and timing, a control neuron that fires on completion, and a NetworkX graph as output. *HTML read.*
-- **von Seeler, Offenberg, Michaelis, Luboeinski, Lehr, Tetzlaff (2025)**, "Adding numbers with spiking neural circuits on neuromorphic hardware", *Neuromorph. Comput. Eng.* https://arxiv.org/abs/2503.10387 — Serial and parallel adders in Lava on Loihi 2. *Abstract.*
+- **von Seeler, Offenberg, Michaelis, Luboeinski, Lehr, Tetzlaff (2025)**, "Adding numbers with spiking neural circuits on neuromorphic hardware", *Neuromorph. Comput. Eng.* https://arxiv.org/abs/2503.10387 — Sequential and parallel adders in Lava on Loihi 2, with all input bits at once; Table I gives theoretical neuron and synapse counts, and Figure 5 the resources measured on the chip. *Full text read (arXiv v2).*
+- **Chen, Guo (2023)**, "Spiking Neural P Systems for Basic Arithmetic Operations", *Appl. Sci.* 13(14):8556. https://doi.org/10.3390/app13148556 — Binary adder, subtracter, multiplier and divider with one input neuron, and Table 5 comparing neurons, time and rule types with Zeng 2012, Liu 2015 and others. *Full text read.*
+- **Liu, Li, Liu, Liu, Zeng (2015)**, "Implementation of Arithmetic Operations with Time-Free Spiking Neural P Systems", *IEEE Trans. NanoBioscience* 14:617-624 — *Not opened; sizes taken from Chen and Guo 2023, Table 5.*
 - **Aimone et al. (2020)**, "Provable neuromorphic advantages for computing shortest paths", SPAA. https://www.osti.gov/servlets/purl/1808434 — Distance encoded as the time to first spike. *Title and summary.*
 - **Pedersen et al. (2024)**, "Neuromorphic intermediate representation", *Nat. Commun.* 15:8122. https://arxiv.org/abs/2311.14641 — *Abstract.*
 - **Peng, Wang, Pérez-Jiménez et al. (2013)**, "Fuzzy reasoning spiking neural P system for fault diagnosis", *Information Sciences*. https://www.sciencedirect.com/science/article/abs/pii/S0020025512004793 — *Title only.*
@@ -228,7 +252,7 @@ Sources for this section:
 
 ## Next steps
 
-- Read the full text of Dong 2023.
+- Read the full text of Dong 2023 and Zeng 2012, which were paywalled when the comparison table was made, and check Zeng's multiplier and divider sizes, which Chen and Guo give two ways.
 - Contact co-authors (Zhang, Dong, Paul, Cavaliere) about the follow-up.
 - Run the full benchmark: ~30 seeds per algorithm and task, Mann–Whitney tests with effect sizes, and the legacy GA as baseline.
 - Likely venues: *J. Membrane Computing* or CMC; GECCO or EvoStar if the paper leans on the algorithm comparison.

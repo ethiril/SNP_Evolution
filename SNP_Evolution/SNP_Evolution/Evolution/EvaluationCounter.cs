@@ -12,6 +12,7 @@ namespace SnpEvolution.Evolution
         SideRun,
         Incubation,
         Verification,
+        Proposals,
     }
 
     // Parts evolved before the run are paid for once and shared by every run, so UpFront is kept out of Total.
@@ -42,6 +43,7 @@ namespace SnpEvolution.Evolution
             EvaluationSource.Main => "main run",
             EvaluationSource.SideRun => "side runs",
             EvaluationSource.Incubation => "incubation",
+            EvaluationSource.Proposals => "proposed parts",
             _ => "verification",
         };
 

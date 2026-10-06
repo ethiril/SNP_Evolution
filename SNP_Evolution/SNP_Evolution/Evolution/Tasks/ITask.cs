@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
@@ -16,6 +17,10 @@ namespace SnpEvolution.Evolution.Tasks
         int InputCount { get; }
 
         IReadOnlyList<TaskCase> Cases { get; }
+
+        // The fitness a network must reach on every retest to count as solving the task. Sampled runs vary, so most tasks
+        // allow a little short of 1.
+        float SolvedFitness => FitnessEvaluator.SolvedThreshold;
 
         // The fewest simulation steps a run needs for the task to be solvable; runs are lengthened to at least this.
         int StepsNeeded => 0;
@@ -47,6 +52,10 @@ namespace SnpEvolution.Evolution.Tasks
         // what a network already does instead of running beside it from the first step. Null when the task has no
         // such part.
         ITask? Triggered(int check) => null;
+
+        // A contract for a part that would do what the checks no network passes ask for, so a stalled composition run can
+        // evolve that part and add it to its library. Null when the task has no such part.
+        Contract? Propose(IReadOnlyList<int> unsolvedChecks) => null;
     }
 
     // A task whose target is a list that can be cut short, such as a sequence of intervals or a binary word, so it

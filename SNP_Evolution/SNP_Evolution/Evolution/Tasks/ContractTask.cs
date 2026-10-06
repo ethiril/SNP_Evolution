@@ -58,6 +58,13 @@ namespace SnpEvolution.Evolution.Tasks
 
         public Contract Contract { get; }
 
+        // The contract's ports as a network for it has them: start and the data in-ports on the input neurons in order,
+        // the out-ports where the binding puts them. Composition search wires parts to these as to any part's ports.
+        public IReadOnlyList<PartPort> Boundary =>
+            new[] { Contract.Start }.Concat(Contract.DataIn).Select((port, index) => new PartPort(port, index + 1))
+                .Concat(PortBinding.OutPorts(Contract).Select(port => new PartPort(port, Binding[port.Name])))
+                .ToList();
+
         public PortBinding Binding { get; }
 
         public string Name { get; }
@@ -67,6 +74,9 @@ namespace SnpEvolution.Evolution.Tasks
         public IReadOnlyList<TaskCase> Cases { get; }
 
         public int StepsNeeded { get; }
+
+        // A part either meets its contract or does not: one neuron left holding a spike means it cannot be started again.
+        public float SolvedFitness => 1f;
 
         public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
 
@@ -105,6 +115,22 @@ namespace SnpEvolution.Evolution.Tasks
                 .Select(latency => latency is int value && value <= Contract.MaxLatency ? value : Contract.MaxLatency + 1)
                 .Max();
             return (neurons, slowest);
+        }
+
+        // The cases with a check nobody passes, as a contract of their own. Null when that is every case, since the
+        // proposal would then be the target itself.
+        public Contract? Propose(IReadOnlyList<int> unsolvedChecks)
+        {
+            List<int> failing = unsolvedChecks.Select(check => check / RuleCount).Distinct().Order().ToList();
+            if (failing.Count == 0 || failing.Count == Contract.Cases.Count)
+            {
+                return null;
+            }
+            return Contract with
+            {
+                Name = $"{Contract.Name} on {string.Join(" ", failing.Select(CaseLabel))}",
+                Cases = failing.Select(caseIndex => Contract.Cases[caseIndex]).ToList(),
+            };
         }
 
         private string CaseLabel(int caseIndex)

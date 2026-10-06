@@ -107,7 +107,7 @@ namespace SnpEvolution.Tests.Storage
             var refused = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Load(folder));
 
             Assert.Contains("delay-2.json", refused.Message);
-            Assert.Contains("changes the first-part contract", refused.Message);
+            Assert.Contains("changes the contract", refused.Message);
         }
 
         [Fact]

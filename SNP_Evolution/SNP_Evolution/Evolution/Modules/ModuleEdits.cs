@@ -14,7 +14,7 @@ namespace SnpEvolution.Evolution.Modules
     public static class ModuleEdits
     {
         // A module cut from around an output takes the output half the time, so a part that makes the right output can take over.
-        public static Network Insert(Network network, Module module, int instance, int maxNeurons, ModuleLibrary library, Random random)
+        public static Network Insert(Network network, Module module, int instance, int maxNeurons, ModuleLibrary library, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             int offset = network.Neurons.Count;
             if (offset == 0 || offset + module.Body.Neurons.Count > maxNeurons)
@@ -38,7 +38,7 @@ namespace SnpEvolution.Evolution.Modules
                 .WithModule(tag)));
             if (module.Part is LibraryPart part)
             {
-                PartWiring.WirePorts(neurons, copies, new PartCopy(tag, part, Enumerable.Range(offset + 1, module.Body.Neurons.Count).ToList()), offset, random);
+                PartWiring.WirePorts(neurons, copies, new PartCopy(tag, part, Enumerable.Range(offset + 1, module.Body.Neurons.Count).ToList()), offset, random, boundary);
                 return new Network(neurons);
             }
             List<int> receivers = Enumerable.Range(0, offset).Where(index => !network.Neurons[index].IsInput).ToList();
@@ -103,15 +103,17 @@ namespace SnpEvolution.Evolution.Modules
     {
         private readonly ModuleLibrary library;
         private readonly GenomeSpace space;
+        private readonly IReadOnlyList<PartPort>? boundary;
 
-        public InsertModule(ModuleLibrary library, GenomeSpace space)
+        public InsertModule(ModuleLibrary library, GenomeSpace space, IReadOnlyList<PartPort>? boundary = null)
         {
             this.library = library;
             this.space = space;
+            this.boundary = boundary;
         }
 
         public Network Mutate(Network network, Random random) =>
-            library.Choose(random) is Module module ? ModuleEdits.Insert(network, module, library.NextInstance(), space.MaxNeurons, library, random) : network;
+            library.Choose(random) is Module module ? ModuleEdits.Insert(network, module, library.NextInstance(), space.MaxNeurons, library, random, boundary) : network;
     }
 
     // Frees one module copy, so its neurons can change like any other from now on.

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -12,7 +14,7 @@ using SnpEvolution.Storage;
 namespace SnpEvolution.Cli
 {
     // Non-interactive commands, so benchmarks can run from scripts:
-    //   benchmark [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME]
+    //   benchmark [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME] [--lexicase on] [--library DIR] [--hand-built on|leaves]
     //   select --task NAME [--budget N] [--seeds N] [--population N]
     //   evolve --target VALUES [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]
     //          [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]
@@ -25,15 +27,20 @@ namespace SnpEvolution.Cli
     //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for
     //   reach --target VALUES --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [any evolve option]:
     //          runs each setup on seeds 1..N with the same budget and compares how far into the target they get
+    //   compose --task NAME [--library DIR] [--hand-built on|leaves] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N]
+    //          [--evaluations N] [--generations N] [--population N] [--max-parts N] [--glue N]:
+    //          composition search for one suite task; a solved contract is promoted to a part and the library saved
     //   tasks | algorithms
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
     // Composition search builds from the part library in --library DIR, or the settings' part library folder.
-    // NAME matches any task or algorithm whose name contains it, ignoring case.
+    // NAME matches any task or algorithm whose name contains it, ignoring case, unless one name is exactly NAME.
+    // --repetitions N sets how many sampled runs score each network in a benchmark.
     internal static class CommandLine
     {
         private const long PilotBudget = 500;
         private const string Usage =
             "Usage: snp-evolution [benchmark|select|tasks|algorithms] [--budget N] [--seeds N] [--population N] [--task NAME] [--algorithm NAME] [--engine exact|sampled] [--configurations N]\n" +
+            "                    [--lexicase on] [--repetitions N] [--library DIR] [--hand-built on|leaves]\n" +
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
             "                    [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]\n" +
             "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
@@ -41,7 +48,8 @@ namespace SnpEvolution.Cli
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
             "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]\n" +
             "       snp-evolution reach --target \"1,1,2,3,5,8,13\" --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [evolve options]\n" +
-            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on]";
+            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on]\n" +
+            "       snp-evolution compose --task \"Contract multiply\" [--library DIR] [--hand-built on] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N] [--evaluations N]";
 
         public static int Run(string[] args)
         {
@@ -57,13 +65,20 @@ namespace SnpEvolution.Cli
                 Seeds = (int)Number(options, "seeds", settings.BenchmarkSeeds),
                 PopulationSize = (int)Number(options, "population", settings.BenchmarkPopulationSize),
                 CreateEngine = Engine(options),
+                Lexicase = Switch(options, "lexicase", false),
+                Repetitions = (int)Number(options, "repetitions", settings.Repetitions),
             };
             List<AlgorithmChoice> algorithms = Matching(AlgorithmCatalog.All, algorithm => algorithm.Name, options.GetValueOrDefault("algorithm"));
             if (args[0].ToLowerInvariant() is "benchmark" or "select" && algorithms.Any(algorithm => AlgorithmCatalog.IsComposition(algorithm.Name)))
             {
                 string folder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
-                benchmark = benchmark with { Parts = PartLibraryFiles.Load(folder).Parts.Select(module => module.Part!).ToList() };
-                Console.Error.WriteLine($"Composition search builds from {benchmark.Parts.Count} part(s) in {folder}.");
+                ModuleLibrary library = PartLibraryFiles.Load(folder);
+                if (IsOn(options, "hand-built"))
+                {
+                    HandBuiltMachines.AddParts(library, _ => { }, addLoop: !LeavesOnly(options));
+                }
+                benchmark = benchmark with { Parts = library.Parts.Select(module => module.Part!).ToList() };
+                Console.Error.WriteLine($"Composition search builds from {benchmark.Parts.Count} part(s) in {folder}{(IsOn(options, "hand-built") ? " and the hand-built parts" : "")}.");
             }
             List<BenchmarkTask> tasks = Matching(TaskSuite.All, task => task.Name, options.GetValueOrDefault("task"));
             switch (args[0].ToLowerInvariant())
@@ -78,6 +93,8 @@ namespace SnpEvolution.Cli
                     return EvolveParts(options, settings);
                 case "reach":
                     return Reach(options, args);
+                case "compose":
+                    return Compose(options);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;
@@ -178,6 +195,57 @@ namespace SnpEvolution.Cli
             return PartsSession.Run(parts, Console.WriteLine);
         }
 
+        // Composition search for one suite task, with the menu's settings otherwise: tournament composition search with
+        // lexicase parents, 30000 evaluations and 5000 generations unless given. Exits with 2 when the task was not solved.
+        private static int Compose(IReadOnlyDictionary<string, string> options)
+        {
+            string? name = options.GetValueOrDefault("task");
+            List<CatalogEntry<Settings, BenchmarkTask>> matching = Catalog.Tasks.Skip(1)
+                .Where(task => name != null && (task.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || task.Name.Contains(name, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+            CatalogEntry<Settings, BenchmarkTask>? exact = matching.FirstOrDefault(task => task.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (exact == null && matching.Count != 1)
+            {
+                Console.Error.WriteLine(Usage);
+                Console.Error.WriteLine("compose needs a --task that names one task; run 'tasks' to list them.");
+                return 1;
+            }
+            BenchmarkTask suiteTask = (exact ?? matching[0]).Create(new Settings());
+            var settings = new Settings
+            {
+                Task = exact ?? matching[0],
+                RuleForm = suiteTask.RuleForm,
+                OutputTiming = suiteTask.Timing,
+                Algorithm = Catalog.Algorithms.First(entry => AlgorithmCatalog.IsComposition(entry.Name) && entry.Name.Contains("tournament")),
+                MaxEvaluations = 30_000,
+                MaxGenerations = 5_000,
+                Lexicase = true,
+            };
+            ApplyOptions(settings, options);
+            if (!AlgorithmCatalog.IsComposition(settings.Algorithm.Name))
+            {
+                Console.Error.WriteLine("compose needs a composition search --algorithm; run 'algorithms' to list them.");
+                return 1;
+            }
+            var random = new Random((int)Number(options, "seed", 1));
+            BenchmarkTask task = settings.SelectedTask;
+            Console.WriteLine("Composing a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
+            EvolutionSession.Notes(settings, task).ToList().ForEach(Console.WriteLine);
+            var evaluations = new EvaluationCounter();
+            IGeneticAlgorithm run;
+            try
+            {
+                run = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine, evaluations);
+            }
+            catch (InvalidDataException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return 1;
+            }
+            EvolutionSession.Save(run, EvolutionSession.NewOutputFolder(), "ComposedNet", Console.WriteLine, evaluations);
+            return EvolutionSession.IsSolved(run, task.Task) ? 0 : 2;
+        }
+
         private static int Reach(IReadOnlyDictionary<string, string> options, string[] args)
         {
             if (TargetSettings(options) is not Settings settings)
@@ -246,6 +314,10 @@ namespace SnpEvolution.Cli
             settings.ModuleIncubation = (int)Number(options, "incubate", settings.ModuleIncubation);
             settings.MaxEvaluations = Number(options, "evaluations", settings.MaxEvaluations);
             settings.PartLibraryFolder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
+            settings.HandBuiltParts = Switch(options, "hand-built", settings.HandBuiltParts);
+            settings.HandBuiltAddLoop = !LeavesOnly(options) && settings.HandBuiltAddLoop;
+            settings.ProposeParts = Switch(options, "propose", settings.ProposeParts);
+            settings.ProposalBudget = Number(options, "proposal-budget", settings.ProposalBudget);
             settings.Composition = settings.Composition with
             {
                 MaxParts = (int)Number(options, "max-parts", settings.Composition.MaxParts),
@@ -264,6 +336,10 @@ namespace SnpEvolution.Cli
                 settings.Algorithm = Catalog.Algorithms.FirstOrDefault(entry => entry.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
             }
         }
+
+        // --hand-built leaves gives the hand-built parts without the add loop promoted from them, as a control.
+        private static bool LeavesOnly(IReadOnlyDictionary<string, string> options) =>
+            string.Equals(options.GetValueOrDefault("hand-built"), "leaves", StringComparison.OrdinalIgnoreCase);
 
         private static bool Switch(IReadOnlyDictionary<string, string> options, string name, bool fallback) =>
             options.ContainsKey(name) ? IsOn(options, name) : fallback;
@@ -284,7 +360,12 @@ namespace SnpEvolution.Cli
         private static long Number(IReadOnlyDictionary<string, string> options, string name, long fallback) =>
             options.TryGetValue(name, out string? value) && long.TryParse(value, out long number) && number > 0 ? number : fallback;
 
-        private static List<T> Matching<T>(IEnumerable<T> items, Func<T, string> name, string? filter) =>
-            items.Where(item => filter == null || name(item).Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+        // A name that matches exactly wins over the names that only contain it.
+        private static List<T> Matching<T>(IEnumerable<T> items, Func<T, string> name, string? filter)
+        {
+            List<T> containing = items.Where(item => filter == null || name(item).Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            List<T> exact = containing.Where(item => string.Equals(name(item), filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            return exact.Count > 0 ? exact : containing;
+        }
     }
 }

@@ -50,7 +50,7 @@ Move with the arrow keys and press Enter to select, or press an option's number.
 - **Benchmark**: run every algorithm on the task suite, or find the best algorithm for the selected task.
 - **Settings**: grouped into:
   - **Evolution**: task, target, fitness function, algorithm, population, mutation rate, generations, maximum neurons and experimental rules.
-  - **Search**: iterative evolution and its stages, stagnation recovery, genome limits (delay, spikes produced, initial spikes, duplicate neurons), lexicase parents, and modules (build from modules, freeze, triggered, incubation, and module files that start the library).
+  - **Search**: iterative evolution and its stages, stagnation recovery, genome limits (delay, spikes produced, initial spikes, duplicate neurons), lexicase parents, modules (build from modules, freeze, triggered, incubation, and module files that start the library), and composition search (part library folder, part copies, glue, proposing parts when stalled, and starting from the hand-built parts).
   - **Simulation**: engine, steps, runs per network, rule form and output timing.
   - **Benchmarks**.
 
@@ -98,7 +98,7 @@ The last two read the whole output spike train (`Readout.SpikeTrain`), not just 
 - **Acceptor**: read a number on the input neuron and halt if and only if it belongs to the set. Scored by balanced accuracy.
 - **Contract**: behave as a part with a start trigger, one or more done triggers and typed data ports (interval, count, trigger or binary), as a `Contract` in `Evolution/Contracts/` describes (`ContractTask`). Each case is checked against four rules: nothing is sent before start, done fires exactly once with the right outputs, every neuron ends with the spikes it started with, and done fires within the maximum latency. It reads the named port neurons (`Readout.Ports`), which the exhaustive engine follows over every computation. `ReferenceParts` holds a hand-built delay and register that meet their contracts.
 
-`TaskSuite` holds a benchmark suite of these tasks, and the settings menu can select any of them.
+`TaskSuite` holds a benchmark suite of these tasks, and the settings menu can select any of them. It includes eight arithmetic contracts (`ArithmeticParts`): n1 - n2 (with n1 >= n2), n1 x n2, n1 div n2 with remainder, and n1 < n2 with two done branches. Each comes in count encoding and in binary with 4-bit operands and an 8-bit product. Cases include zero operands and one larger pair.
 
 ## Engines
 
@@ -215,6 +215,32 @@ The run ends with a table of each contract, whether it was solved, the evaluatio
 
 With seed 1 and the default budget (47 minutes on a 15-core machine), the run solved delay 2, 3 and 4 (2 neurons, 1 synapse each) and sequencer 2 (6 neurons, 8 synapses). Delay 1 was solved by other seeds but not this one, and sequencer 3 and the zero test came close (best fitness 0.97). None of the parts with count ports was solved. Their best networks score about 0.8, getting every rule right except putting the right values out and firing done once. A part that holds a count until start needs the parity trick of the hand-built register: each input spike is stored as two, and start makes the total odd so that a rule matching odd counts drains it. Larger networks, lexicase off, and partial credit for right values when done misfires all left the best near 0.8 within 50000 evaluations. The `parts/` folder in the repository holds the parts this run found.
 
+## Composing machines from parts
+
+Composition search (the "Composition search" algorithms) builds each network from copies of library parts, glue neurons and the synapses between them, and never changes a part's inside. Parts are wired port to port by type. For a contract task the task's own ports count as typed ports too: a part's count in-port can be fed straight from the task's count input, and its done port can drive the task's done neuron. The glue then starts as quiet relays with no synapses of their own, since the parts and the ports give the structure. Without a contract, glue starts random, because something has to fire.
+
+```
+snp-evolution compose --task "Contract multiply" --hand-built on --library parts-hand-built
+snp-evolution benchmark --task "Contract multiply" --algorithm Composition --lexicase on --engine sampled --hand-built on
+```
+
+`compose` runs composition search for one suite task, with lexicase parents, 30000 evaluations and tournament selection unless told otherwise (`--algorithm`, `--evaluations`, `--generations`, `--population`, `--seed`, `--max-parts`, `--glue`). It exits with 2 when the task is not solved.
+
+**Promotion.** When a composition solves a contract, it is promoted to a part whose contract is the target's (`Promotion`). The run scored it on the task, which may test less than the contract, so it is first verified on the exhaustive engine. A contract counts as solved only at fitness 1, since a neuron left holding a spike means the part cannot be started again. The promoted part's file holds a recipe rather than a network: its children by contract name, its glue, and its wires, with ports named (`"2.sum"`) so a cheaper child that later replaces one is wired the same way. Loading builds promoted parts after the parts they are built from and verifies them again. A promoted part's size is its children's, so the 24-neuron cap applies only to modules evolved or harvested as one network.
+
+**Proposals.** When a composition run stalls, it asks for the parts it lacks (`Proposals/`). For a sequence target it first fits the shape of the target, once: a small linear recurrence asks for one register per term, an add per sum and a double or fan-out per coefficient above one, and gaps with a constant first or second difference ask for registers and adds. Fibonacci gaps give two registers and an add, and 2^k gives a register and a double. When nothing fits exactly it proposes nothing, since a wrong part costs a whole part evolution. Then it reads the checks nobody passes: a missing gap becomes a delay contract, and a contract's failing cases become a sub-contract. Each proposal is evolved and verified like a first part (`--proposal-budget N`, 20000 evaluations by default), and a solved one joins the library, with copies put into the best networks. `--propose off` turns this off. The run log and `-parts.txt` list every proposal and its outcome, and the evaluations count as "proposed parts".
+
+**Reuse.** Every composition run saves `-parts.txt`: each library part's copies in the best network, with copies nested inside promoted parts in brackets, and its mean copies per network in the final population. It ends by saying whether the best network reuses a promoted part. Counting reads the module tags of the flattened network, so it works for any algorithm. Benchmarks of composition search add a column of the parts the best networks hold, as runs out of all. This is not the module library's uses and wins, which count whether inserting a copy made a child fitter during the search.
+
+**Hand-built parts.** evolve-parts has not yet found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
+
+On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 14 of 20 runs with the add loop in the library: 7 of 10 for each algorithm, with medians of 1365 (tournament) and 2045 (MAP-Elites) evaluations. The add loop was in the best network of 18 of 20 runs, and every solution was promoted. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 3e-6). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier has 55 neurons and 66 synapses and takes 225 steps for 6 x 5.
+
+```
+snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built on
+snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built leaves
+```
+
 ## Benchmarking and choosing an algorithm
 
 *Benchmark > Every algorithm* runs every algorithm on every suite task over several seeds. Each run has a budget of network evaluations, so the results compare fairly across machines and engines. For each algorithm and task it reports how many runs solved the task, the median evaluations to solve, the mean best fitness and the mean size of the solutions. It saves the results as `benchmark.txt` and `benchmark.csv`.
@@ -232,7 +258,7 @@ dotnet run --project SNP_Evolution -c Release -- tasks        # list the suite
 dotnet run --project SNP_Evolution -c Release -- algorithms   # list the algorithms
 ```
 
-`--task` and `--algorithm` match any name containing the text. These runs use the exhaustive engine unless given `--engine sampled`.
+`--task` and `--algorithm` match any name containing the text. These runs use the exhaustive engine unless given `--engine sampled`. `--lexicase on` picks parents by lexicase selection, and `--repetitions N` sets the sampled runs per network. A task or algorithm named exactly wins over those that only contain the name. Composition search builds from `--library DIR`, plus the hand-built parts with `--hand-built on`; a contract it solves is promoted into that run's library.
 
 `evolve` builds a network from scratch for a target. `--kind` is `set`, `sequence` (the default) or `binary`. `evolve` uses the default algorithm, MAP-Elites, unless given `--algorithm`, and `--seed N` makes a run repeatable. It saves the result like the menu does, and exits with status 2 if no network solved the target.
 
@@ -255,7 +281,9 @@ File Structure (under `SNP_Evolution/SNP_Evolution`):
   - `NetworkFactory` and `GenomeSpace` for random networks.
   - `Ranking`, the fitness functions and the evaluator.
   - `Tasks/` holds the tasks and the suite.
-  - `Modules/` holds the module library and the modular loop: cutting modules out of networks, inserting and freezing them, harvesting the changes that pay off, and side runs on what is missing.
+  - `Contracts/` holds contracts, the first parts, the arithmetic contracts and the hand-built parts.
+  - `Modules/` holds the module library and the modular loop: cutting modules out of networks, inserting and freezing them, harvesting the changes that pay off, and side runs on what is missing. It also holds composition search, promotion, reuse counting and the hand-built add loop.
+  - `Proposals/` proposes parts when a composition run stalls, from its failing checks or the shape of its target.
   - `Benchmarking/` holds the benchmark harness and the algorithm selector.
 - `Storage/` saves and loads networks as JSON and fitness history as CSV.
 - `Cli/` holds the console menus, settings and command-line mode. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings menu offers. `EvolutionSession` runs and saves one evolution, for both the menu and the `evolve` command.

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 
@@ -25,9 +26,12 @@ namespace SnpEvolution.Evolution.Contracts
     // scored to find, shrink and verify it.
     public sealed record PartOrigin(int Seed, string Run, long Evaluations);
 
-    // A verified part as the library keeps it, with what measuring it on its contract gave.
-    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin)
+    // A verified part as the library keeps it, with what measuring it on its contract gave. A promoted part also has the
+    // recipe it is built from, which is what its file stores instead of the network.
+    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin, PartRecipe? Recipe = null)
     {
+        public bool IsComposite => Recipe != null;
+
         public Contract Contract => Part.Contract;
 
         public static LibraryPart Of(Part part, PartMeasurement measurement, PartOrigin origin) =>

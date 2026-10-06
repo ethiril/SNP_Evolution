@@ -81,16 +81,18 @@ namespace SnpEvolution.Evolution
 
         public FitnessResult Evaluate(Network network) => EvaluateAll(new[] { network })[0];
 
-        // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is.
+        // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is. Each score
+        // must reach the task's own solved fitness.
         public bool IsReliablySolved(Network network)
         {
             FitnessResult Retest() => EvaluateAll(new[] { network }, EvaluationSource.Verification)[0];
+            bool Solves(FitnessResult result) => IsSolvingFitness(result.Fitness) && result.Fitness >= Task.SolvedFitness;
             FitnessResult first = Retest();
-            if (!IsSolvingFitness(first.Fitness))
+            if (!Solves(first))
             {
                 return false;
             }
-            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => IsSolvingFitness(Retest().Fitness));
+            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => Solves(Retest()));
         }
     }
 }

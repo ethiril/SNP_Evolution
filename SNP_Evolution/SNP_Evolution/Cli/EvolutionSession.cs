@@ -4,8 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Proposals;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -55,8 +57,16 @@ namespace SnpEvolution.Cli
             }
             if (AlgorithmCatalog.IsComposition(settings.Algorithm.Name))
             {
-                notes.Add($"Composing networks from the parts in {settings.PartLibraryFolder}, with up to {(settings.Composition.MaxGlue > 0 ? settings.Composition.MaxGlue : settings.MaxNeurons)} glue neuron(s) and {settings.Composition.MaxParts} part copies"
+                notes.Add($"Composing networks from the parts in {settings.PartLibraryFolder}{(settings.HandBuiltParts ? " and the hand-built parts" : "")}, with up to {(settings.Composition.MaxGlue > 0 ? settings.Composition.MaxGlue : settings.MaxNeurons)} glue neuron(s) and {settings.Composition.MaxParts} part copies"
                     + (settings.Modules ? "; the modular loop is left out, since harvested modules are not parts." : "."));
+                if (settings.ProposeParts)
+                {
+                    notes.Add($"When the run stalls it proposes the parts it lacks and evolves each for up to {settings.ProposalBudget} evaluations.");
+                }
+                if (task.Task is ContractTask)
+                {
+                    notes.Add("A composition that solves the contract is promoted to a part and saved to the library.");
+                }
             }
             if (settings.MaxEvaluations > 0)
             {
@@ -93,7 +103,8 @@ namespace SnpEvolution.Cli
         {
             evaluations ??= new EvaluationCounter();
             bool composition = AlgorithmCatalog.IsComposition(settings.Algorithm.Name);
-            ModuleLibrary? parts = composition ? PartLibraryFiles.Load(settings.PartLibraryFolder, log) : null;
+            ModuleLibrary? parts = composition ? LoadParts(settings, log) : null;
+            int partsAtStart = parts?.Parts.Count ?? 0;
             evaluations.AddUpFront(parts?.PartEvaluations ?? 0);
             GenomeSpace space = settings.GenomeSpace(task.Task.InputCount) with { RuleForm = task.RuleForm };
             NetworkFactory StartingFactory(GenomeSpace bounds) => new NetworkFactory(bounds, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random), random);
@@ -137,6 +148,12 @@ namespace SnpEvolution.Cli
                     geneticAlgorithm = new ModularEvolution(geneticAlgorithm, library, tracker, currentTask, SideRun,
                         settings.ModulePolicy, settings.PopulationSize, space.MaxNeurons, random, log);
                 }
+                if (composition)
+                {
+                    Func<ITask> scoredOn = evaluator is ITaskEvaluator scoring ? () => scoring.Task : () => task.Task;
+                    geneticAlgorithm = new PartProposals(geneticAlgorithm, CompositionSpace.For(context), scoredOn, ProposedPart,
+                        settings.ProposalPolicy, settings.PopulationSize, log);
+                }
                 if (!settings.StagnationRecovery)
                 {
                     return geneticAlgorithm;
@@ -148,10 +165,20 @@ namespace SnpEvolution.Cli
                     composer?.Mutation(1) ?? WeightedMutation.Structural(1, mutationFactory, modules: library != null ? new ModuleSupport(library, settings.FreezeModules) : null),
                     random, log);
             }
+            // A proposed part is evolved and verified as evolve-parts would, from a seed the run's random gives.
+            PartOutcome ProposedPart(Contract contract)
+            {
+                var search = new PartSearchSettings(settings.ProposalBudget, settings.ProposalBudget / 4, PartsSession.Population, Catalog.ChoiceFor(Catalog.StructuralDefault),
+                    () => new ExhaustiveCpuEngine());
+                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), search, log);
+                evaluations.Add(EvaluationSource.Proposals, outcome.Evaluations);
+                return outcome;
+            }
             if (IsIterative(settings, task, out IPrefixTask? prefixTask))
             {
                 var iterative = new IterativeEvolution(prefixTask, settings.CurriculumFor(prefixTask).Lengths(prefixTask.Length), stageTask => CreateEvaluator(stageTask), CreateAlgorithm, log);
                 RunGenerations(settings, evaluations, iterative, _ => iterative.IsComplete, log);
+                SaveIfGrown(settings, parts, partsAtStart, log);
                 return iterative;
             }
             FitnessEvaluator evaluator = CreateEvaluator(task.Task);
@@ -165,14 +192,47 @@ namespace SnpEvolution.Cli
                 log("Testing the best fitness for repeated success.");
                 return evaluator.IsReliablySolved(best.Genes);
             }, log);
+            if (parts != null && task.Task is ContractTask contractTask && IsSolved(run, contractTask) && run.Best is Individual solved)
+            {
+                Promotion.PromoteSolved(solved.Genes, contractTask, parts, new PartOrigin(0, $"composition search for {contractTask.Contract.Name}", evaluations.Total), log);
+            }
+            SaveIfGrown(settings, parts, partsAtStart, log);
             return run;
         }
 
+        // The saved part library, with the hand-built parts too when asked for.
+        private static ModuleLibrary LoadParts(Settings settings, Action<string> log)
+        {
+            ModuleLibrary parts = PartLibraryFiles.Load(settings.PartLibraryFolder, log);
+            if (settings.HandBuiltParts)
+            {
+                HandBuiltMachines.AddParts(parts, log, settings.HandBuiltAddLoop);
+            }
+            return parts;
+        }
+
+        // Saves the library when the run promoted a part or solved a proposal, unless hand-built parts would go into the
+        // default folder, which holds only parts runs found.
+        private static void SaveIfGrown(Settings settings, ModuleLibrary? parts, int partsAtStart, Action<string> log)
+        {
+            if (parts == null || parts.Parts.Count == partsAtStart)
+            {
+                return;
+            }
+            if (settings.HandBuiltParts && Path.GetFullPath(settings.PartLibraryFolder) == Path.GetFullPath(Settings.DefaultPartLibraryFolder()))
+            {
+                log("The library holds hand-built parts, so it is not saved to the default part library folder; give another folder to keep it.");
+                return;
+            }
+            IReadOnlyList<string> written = PartLibraryFiles.Save(parts, settings.PartLibraryFolder);
+            log($"Saved {written.Count} part(s) to {settings.PartLibraryFolder}.");
+        }
+
         // True when the whole target was matched, rather than only an early stage of it.
-        public static bool IsSolved(IGeneticAlgorithm geneticAlgorithm) =>
+        public static bool IsSolved(IGeneticAlgorithm geneticAlgorithm, ITask? task = null) =>
             geneticAlgorithm is IterativeEvolution iterative
                 ? iterative.IsComplete
-                : geneticAlgorithm.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness);
+                : geneticAlgorithm.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && best.Fitness >= (task?.SolvedFitness ?? 0);
 
         // The algorithm doing the work, without the stages, modules and stagnation recovery around it.
         public static IGeneticAlgorithm Unwrap(IGeneticAlgorithm geneticAlgorithm) => geneticAlgorithm switch
@@ -180,7 +240,17 @@ namespace SnpEvolution.Cli
             IterativeEvolution iterative => Unwrap(iterative.Algorithm),
             StagnationRecovery recovery => Unwrap(recovery.Inner),
             ModularEvolution modular => Unwrap(modular.Inner),
+            PartProposals proposals => Unwrap(proposals.Inner),
             _ => geneticAlgorithm,
+        };
+
+        // The proposal handler of a composition run, if it has one.
+        public static PartProposals? Proposals(IGeneticAlgorithm geneticAlgorithm) => geneticAlgorithm switch
+        {
+            PartProposals proposals => proposals,
+            IterativeEvolution iterative => Proposals(iterative.Algorithm),
+            StagnationRecovery recovery => Proposals(recovery.Inner),
+            _ => null,
         };
 
         // The modular loop somewhere in the run, if it has one.
@@ -238,6 +308,13 @@ namespace SnpEvolution.Cli
                 log($"\nModules:\n{modules}");
                 NetworkFiles.SaveText(modules, Path.Combine(folder, fileStem + "-modules.txt"));
             }
+            if (Proposals(geneticAlgorithm) is PartProposals proposals)
+            {
+                string parts = $"{proposals.Describe()}{Environment.NewLine}{Environment.NewLine}{PartReuse.Describe(geneticAlgorithm.Best?.Genes, geneticAlgorithm.Population.Select(individual => individual.Genes), proposals.Library)}"
+                    + (geneticAlgorithm.Best is Individual composed ? Environment.NewLine + UsesPromoted(composed.Genes, proposals.Library) : "");
+                log($"\nParts:\n{parts}");
+                NetworkFiles.SaveText(parts, Path.Combine(folder, fileStem + "-parts.txt"));
+            }
             if (geneticAlgorithm.Best is Individual best)
             {
                 string graph = NetworkNotation.Format(best.Genes);
@@ -248,6 +325,16 @@ namespace SnpEvolution.Cli
                 NetworkFiles.SaveText(NetworkPage.Html(best.Genes, fileStem), Path.Combine(folder, fileStem + ".html"));
             }
             log($"Saved to {folder}");
+        }
+
+        // Whether the best network is built on a promoted part, the sign that the library compounds.
+        public static string UsesPromoted(Network network, ModuleLibrary library)
+        {
+            List<string> promoted = PartReuse.Count(network, library)
+                .Where(count => count.Direct > 0 && library.Parts.Any(module => module.Part!.Contract.Name == count.Contract && module.Part.IsComposite))
+                .Select(count => $"{count.Contract} x{count.Direct}")
+                .ToList();
+            return promoted.Count > 0 ? $"The best network reuses promoted part(s): {string.Join(", ", promoted)}." : "The best network uses no promoted part.";
         }
 
         private static void RunGenerations(Settings settings, EvaluationCounter evaluations, IGeneticAlgorithm geneticAlgorithm, Func<Individual, bool> isSolved, Action<string> log)

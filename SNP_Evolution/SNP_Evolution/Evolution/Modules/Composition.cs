@@ -66,6 +66,12 @@ namespace SnpEvolution.Evolution.Modules
             library.Find(instance.Module)?.Versions.ElementAtOrDefault(instance.Version)
             ?? throw new ArgumentException($"The library has no version {instance.Version} of module {instance.Module}.");
 
+        // The endpoint at each position of the flattened network, position 1 first.
+        public IReadOnlyList<Endpoint> Layout(ModuleLibrary library) =>
+            Enumerable.Range(1, Glue.Count).Select(Endpoint.GlueAt)
+                .Concat(Parts.SelectMany(part => Enumerable.Range(1, ModuleLibrary.CutOf(PartOf(part, library).Part).Body.Neurons.Count).Select(neuron => new Endpoint(part.Instance, neuron))))
+                .ToList();
+
         public Network Flatten(ModuleLibrary library)
         {
             var bodies = Parts.Select(part => (part.Instance, Part: PartOf(part, library)))
@@ -172,7 +178,7 @@ namespace SnpEvolution.Evolution.Modules
             return (wires, links);
         }
 
-        private static Dictionary<int, Port> PortsByPosition(LibraryPart part) => part.Part.Ports().ToDictionary(port => port.Position, port => port.Port);
+        internal static Dictionary<int, Port> PortsByPosition(LibraryPart part) => part.Part.Ports().ToDictionary(port => port.Position, port => port.Port);
 
         // Whether nothing reaches a part's insides except through its ports.
         public bool ThroughPorts(ModuleLibrary library) => Links.All(PassesThroughPorts(library));
@@ -198,18 +204,31 @@ namespace SnpEvolution.Evolution.Modules
             Outputs = Outputs.Where(output => output.Instance != instance).ToList(),
         };
 
-        // Glue holds a relay per input, an output and up to two more neurons, and parts are wired in by port type.
-        public static Composition Random(ModuleLibrary library, NetworkFactory glueFactory, int parts, Random random)
+        // Glue holds a relay per input, an output and up to two more neurons, and parts are wired in by port type, to the
+        // task's own ports too where it has a contract, whose glue starts quiet.
+        public static Composition Random(ModuleLibrary library, NetworkFactory glueFactory, int parts, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             GenomeSpace space = glueFactory.Space;
-            Network network = glueFactory.WithSpace(space with { MaxNeurons = Math.Min(space.MaxNeurons, space.InputCount + 3) }).NewNetwork();
+            Network network = boundary != null
+                ? QuietGlue(glueFactory, boundary)
+                : glueFactory.WithSpace(space with { MaxNeurons = Math.Min(space.MaxNeurons, space.InputCount + 3) }).NewNetwork();
             network = new Network(network.Neurons.Select(neuron => neuron.IsInput ? neuron.WithRules(new[] { glueFactory.RelayRule() }) : neuron).ToList());
             IReadOnlyList<Module> available = library.Parts;
             for (int part = 0; part < parts && available.Count > 0; part++)
             {
-                network = ModuleEdits.Insert(network, available[random.Next(available.Count)], library.NextInstance(), int.MaxValue, library, random);
+                network = ModuleEdits.Insert(network, available[random.Next(available.Count)], library.NextInstance(), int.MaxValue, library, random, boundary);
             }
             return (Recover(network, library) ?? throw new InvalidOperationException("A freshly built composition could not be read back.")).OnlyThroughPorts(library);
+        }
+
+        // With a contract the parts and the task's ports give the structure, so glue starts as quiet relays with no synapses
+        // of their own: one for each of the task's ports and one spare. Without one, random glue is what makes anything fire.
+        private static Network QuietGlue(NetworkFactory glueFactory, IReadOnlyList<PartPort> boundary)
+        {
+            int count = Math.Max(glueFactory.Space.InputCount, boundary.Select(port => port.Position).DefaultIfEmpty(0).Max()) + 1;
+            return new Network(Enumerable.Range(1, count)
+                .Select(position => new Neuron(new[] { glueFactory.RelayRule() }, 0, Array.Empty<int>(), false, isInput: position <= glueFactory.Space.InputCount))
+                .ToList());
         }
 
         private static bool IsCopyOf(Network network, List<int> positions, LibraryPart part)

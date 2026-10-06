@@ -209,6 +209,9 @@ namespace SnpEvolution.Cli
                     ConsoleUi.Row("Composition: most part copies", settings.Composition.MaxParts),
                     ConsoleUi.Row("Composition: glue edit weight", settings.Composition.GlueEdits),
                     ConsoleUi.Row("Composition: most glue neurons", settings.Composition.MaxGlue > 0 ? settings.Composition.MaxGlue.ToString() : "max neurons"),
+                    ConsoleUi.Row("Composition: propose parts when stalled", settings.ProposeParts ? "on" : "off"),
+                    ConsoleUi.Row("Composition: evaluations per proposed part", settings.ProposalBudget),
+                    ConsoleUi.Row("Composition: start from hand-built parts", settings.HandBuiltParts ? "on" : "off"),
                 }, selection) is int choice)
             {
                 selection = choice;
@@ -285,6 +288,16 @@ namespace SnpEvolution.Cli
                     case 19:
                         PromptFor<int>("Most glue neurons a composed network may hold, or 0 for the max neurons setting", NotNonNegativeInteger, InputParsing.TryNonNegativeInt,
                             value => settings.Composition = settings.Composition with { MaxGlue = value });
+                        break;
+                    case 20:
+                        settings.ProposeParts = !settings.ProposeParts;
+                        break;
+                    case 21:
+                        PromptFor<long>("Evaluations to spend evolving each proposed part", "Number was not a whole number of 1 or more.", InputParsing.TryPositiveLong,
+                            value => settings.ProposalBudget = value);
+                        break;
+                    case 22:
+                        settings.HandBuiltParts = !settings.HandBuiltParts;
                         break;
                 }
             }

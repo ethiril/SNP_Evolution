@@ -64,6 +64,9 @@ namespace SnpEvolution.Evolution.Modules
     public sealed class ModuleLibrary
     {
         public const int DefaultCapacity = 24;
+
+        // Caps a module evolved or harvested as one network. A promoted part is added with AddPart and has no cap, since its
+        // size is its children's and each of them was verified.
         public const int MaxModuleNeurons = 24;
 
         private readonly object gate = new object();
