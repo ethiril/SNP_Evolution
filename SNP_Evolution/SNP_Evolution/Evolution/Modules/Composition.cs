@@ -21,7 +21,10 @@ namespace SnpEvolution.Evolution.Modules
     public sealed record PartInstance(int Instance, int Module, int Version);
 
     // A neuron outside every part, which evolution may change like any neuron of a flat network.
-    public sealed record GlueNeuron(IReadOnlyList<Rule> Rules, long InitialSpikes);
+    public sealed record GlueNeuron(IReadOnlyList<Rule> Rules, long InitialSpikes)
+    {
+        public Neuron ToNeuron() => new Neuron(Rules, InitialSpikes, Array.Empty<int>(), false);
+    }
 
     // A synapse from an out-port to an in-port of the same kind and width on another copy.
     public sealed record PortWire(int FromInstance, string FromPort, int ToInstance, string ToPort)
@@ -35,11 +38,7 @@ namespace SnpEvolution.Evolution.Modules
         public override string ToString() => $"{From}>{To}";
     }
 
-    // A network written as part instances, glue neurons and the synapses between them, which is the level a part is one
-    // gene at. Flatten lays it out as glue first, in order, then each part in order, so the input glue a task feeds
-    // stays ahead of everything else; Recover reads it back from any network whose part copies are intact, whatever
-    // order their neurons are in. Inputs and Outputs are the neurons with those roles, which is how a composition's
-    // own ports show at this level. Two compositions are equal when they flatten to the same network.
+    // A network written as part instances, glue and the synapses between them, laid out glue first so the input glue a task feeds stays ahead of every part.
     public sealed record Composition(
         IReadOnlyList<PartInstance> Parts,
         IReadOnlyList<GlueNeuron> Glue,
@@ -52,7 +51,7 @@ namespace SnpEvolution.Evolution.Modules
 
         public string Key => key ??= string.Join(" ",
             "parts " + string.Join(",", Parts.Select(part => $"{part.Instance}:{part.Module}:{part.Version}")),
-            "glue " + string.Join(",", Glue.Select(glue => $"{ModuleCuts.RulesText(new Neuron(glue.Rules, glue.InitialSpikes, Array.Empty<int>(), false))}/{glue.InitialSpikes}")),
+            "glue " + string.Join(",", Glue.Select(glue => $"{ModuleCuts.RulesText(glue.ToNeuron())}/{glue.InitialSpikes}")),
             "wires " + string.Join(",", Wires.Select(wire => wire.ToString()).Order(StringComparer.Ordinal)),
             "links " + string.Join(",", Links.Select(link => link.ToString()).Order(StringComparer.Ordinal)),
             "inputs " + string.Join(",", Inputs.Select(input => input.ToString()).Order(StringComparer.Ordinal)),
@@ -69,7 +68,8 @@ namespace SnpEvolution.Evolution.Modules
 
         public Network Flatten(ModuleLibrary library)
         {
-            var bodies = Parts.ToDictionary(part => part.Instance, part => (Part: PartOf(part, library), Body: ModuleLibrary.CutOf(PartOf(part, library).Part).Body));
+            var bodies = Parts.Select(part => (part.Instance, Part: PartOf(part, library)))
+                .ToDictionary(copy => copy.Instance, copy => (copy.Part, Body: ModuleLibrary.CutOf(copy.Part.Part).Body));
             var offsets = new Dictionary<int, int>();
             int next = Glue.Count;
             foreach (PartInstance part in Parts)
@@ -80,7 +80,7 @@ namespace SnpEvolution.Evolution.Modules
             int Position(Endpoint endpoint) => endpoint.IsGlue ? endpoint.Neuron : offsets[endpoint.Instance] + endpoint.Neuron;
             int PortPosition(int instance, string port) => offsets[instance] + bodies[instance].Part.Part.Ports().Single(each => each.Port.Name == port).Position;
 
-            var neurons = Glue.Select(glue => new Neuron(glue.Rules, glue.InitialSpikes, Array.Empty<int>(), false)).ToList();
+            var neurons = Glue.Select(glue => glue.ToNeuron()).ToList();
             foreach (PartInstance part in Parts)
             {
                 int offset = offsets[part.Instance];
@@ -101,8 +101,7 @@ namespace SnpEvolution.Evolution.Modules
             return new Network(neurons.Select((neuron, index) => neuron.WithRoles(outputs.Contains(index + 1), inputs.Contains(index + 1))).ToList());
         }
 
-        // Null when a tagged copy is not exactly a version of its library part, rules, synapses inside and initial
-        // spikes alike, since such a copy is no longer that part.
+        // Null when a tagged copy differs from every version of its part in rules, inside synapses or initial spikes.
         public static Composition? Recover(Network network, ModuleLibrary library)
         {
             var endpoints = new Endpoint?[network.Neurons.Count + 1];
@@ -136,14 +135,23 @@ namespace SnpEvolution.Evolution.Modules
                     endpoints[position] = Endpoint.GlueAt(glue.Count);
                 }
             }
-            Dictionary<int, Dictionary<int, Port>> ports = copies.ToDictionary(
-                copy => copy.Key, copy => copy.Value.Part.Ports().ToDictionary(port => port.Position, port => port.Port));
+            // Every position now has an endpoint; slot 0 is unused, since positions count from 1.
+            Endpoint[] placed = endpoints.Select(endpoint => endpoint ?? Endpoint.GlueAt(0)).ToArray();
+            (List<PortWire> wires, List<Link> links) = Synapses(network, placed, copies.ToDictionary(copy => copy.Key, copy => PortsByPosition(copy.Value)));
+            List<Endpoint> Having(Func<Neuron, bool> role) =>
+                Enumerable.Range(1, network.Neurons.Count).Where(position => role(network.Neurons[position - 1])).Select(position => placed[position]).ToList();
+            return new Composition(parts, glue, wires, links, Having(neuron => neuron.IsInput), Having(neuron => neuron.IsOutput));
+        }
+
+        // Synapses between parts that join fitting ports are wires, ones inside a part are its body, and the rest are links.
+        private static (List<PortWire> Wires, List<Link> Links) Synapses(Network network, Endpoint[] endpoints, Dictionary<int, Dictionary<int, Port>> ports)
+        {
             var wires = new List<PortWire>();
             var links = new List<Link>();
             for (int position = 1; position <= network.Neurons.Count; position++)
             {
-                Endpoint from = endpoints[position]!;
-                foreach (Endpoint to in network.Neurons[position - 1].Connections.Select(target => endpoints[target]!))
+                Endpoint from = endpoints[position];
+                foreach (Endpoint to in network.Neurons[position - 1].Connections.Select(target => endpoints[target]))
                 {
                     if (!from.IsGlue && from.Instance == to.Instance)
                     {
@@ -161,23 +169,20 @@ namespace SnpEvolution.Evolution.Modules
                     }
                 }
             }
-            List<Endpoint> Having(Func<Neuron, bool> role) =>
-                Enumerable.Range(1, network.Neurons.Count).Where(position => role(network.Neurons[position - 1])).Select(position => endpoints[position]!).ToList();
-            return new Composition(parts, glue, wires, links, Having(neuron => neuron.IsInput), Having(neuron => neuron.IsOutput));
+            return (wires, links);
         }
 
-        // Whether every synapse into a part ends on an in-port and every synapse out of one starts on an out-port, so
-        // nothing reaches a part's insides except through its ports.
+        private static Dictionary<int, Port> PortsByPosition(LibraryPart part) => part.Part.Ports().ToDictionary(port => port.Position, port => port.Port);
+
+        // Whether nothing reaches a part's insides except through its ports.
         public bool ThroughPorts(ModuleLibrary library) => Links.All(PassesThroughPorts(library));
 
-        // Without the links that do not pass through ports, such as the one ModuleEdits.Insert makes from the old
-        // output to a part port that takes the output role.
+        // ModuleEdits.Insert can link the old output to a part port that takes the output role, which this drops.
         public Composition OnlyThroughPorts(ModuleLibrary library) => this with { Links = Links.Where(PassesThroughPorts(library)).ToList() };
 
         private Func<Link, bool> PassesThroughPorts(ModuleLibrary library)
         {
-            Dictionary<int, Dictionary<int, Port>> ports = Parts.ToDictionary(
-                part => part.Instance, part => PartOf(part, library).Part.Ports().ToDictionary(port => port.Position, port => port.Port));
+            Dictionary<int, Dictionary<int, Port>> ports = Parts.ToDictionary(part => part.Instance, part => PortsByPosition(PartOf(part, library)));
             bool Is(Endpoint endpoint, PortDirection direction) =>
                 endpoint.IsGlue || (ports[endpoint.Instance].TryGetValue(endpoint.Neuron, out Port? port) && port.Direction == direction);
             return link => Is(link.From, PortDirection.Out) && Is(link.To, PortDirection.In);
@@ -193,9 +198,7 @@ namespace SnpEvolution.Evolution.Modules
             Outputs = Outputs.Where(output => output.Instance != instance).ToList(),
         };
 
-        // Glue the task can feed and read: a relay per input, an output and up to two more random neurons, joined
-        // at random; then copies of library parts, each wired by port type as ModuleEdits.Insert wires them, less any
-        // link that does not pass through ports.
+        // Glue holds a relay per input, an output and up to two more neurons, and parts are wired in by port type.
         public static Composition Random(ModuleLibrary library, NetworkFactory glueFactory, int parts, Random random)
         {
             GenomeSpace space = glueFactory.Space;

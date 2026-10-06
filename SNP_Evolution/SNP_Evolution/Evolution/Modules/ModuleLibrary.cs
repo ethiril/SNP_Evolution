@@ -159,6 +159,9 @@ namespace SnpEvolution.Evolution.Modules
         // The contract parts kept, in the order they were first added.
         public IReadOnlyList<Module> Parts => Modules.Where(module => module.Part != null).ToList();
 
+        // What evolving the parts kept cost, as each part's origin records it.
+        public long PartEvaluations => Parts.Sum(module => module.Part?.Origin.Evaluations ?? 0);
+
         // The whole part network, with its input neurons as the cut's inputs and its port neurons as the outputs.
         internal static Cut CutOf(Part part)
         {

@@ -32,7 +32,7 @@ namespace SnpEvolution.Tests.Cli
         [Fact]
         public void SideRunsAndIncubationAreCountedApartFromTheMainRun()
         {
-            Settings settings = Stalling(40);
+            Settings settings = Stalling(80);
             var evaluations = new EvaluationCounter();
 
             IGeneticAlgorithm run = EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
@@ -40,6 +40,7 @@ namespace SnpEvolution.Tests.Cli
             ModularEvolution modular = EvolutionSession.Modular(run)!;
             Assert.True(modular.SideRuns > 0);
             Assert.True(evaluations[EvaluationSource.SideRun] > 0);
+            Assert.True(evaluations[EvaluationSource.Incubation] > 0);
             Assert.Equal((long)modular.SideGenerationsRun * Population, evaluations[EvaluationSource.SideRun] + evaluations[EvaluationSource.Incubation]);
             Assert.Equal((long)(run.Generation - 1) * Population, evaluations[EvaluationSource.Main]);
             Assert.Equal(Enum.GetValues<EvaluationSource>().Sum(source => evaluations[source]), evaluations.Total);

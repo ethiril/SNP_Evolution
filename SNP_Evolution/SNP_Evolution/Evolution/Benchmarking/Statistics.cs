@@ -4,15 +4,12 @@ using System.Linq;
 
 namespace SnpEvolution.Evolution.Benchmarking
 {
-    // U is the Mann-Whitney statistic of the first sample, the number of pairs in which it is larger, ties counting a
-    // half. A12 is the Vargha-Delaney effect size, U over all pairs: the chance a run from the first sample beats one
-    // from the second, 0.5 for no difference. P is two-sided, exact when Exact says so.
+    // U counts the pairs the first sample wins, ties as a half, and A12 is U over all pairs; P is two-sided.
     public sealed record MannWhitneyResult(double U, double P, double A12, bool Exact);
 
     public static class Statistics
     {
-        // The most ways of splitting the pooled sample enumerated for an exact p-value; past it the normal
-        // approximation, with a correction for ties, is used.
+        // Past this many splits of the pooled sample, P comes from the tie-corrected normal approximation instead.
         private const long MaxExactSplits = 2_000_000;
 
         public static MannWhitneyResult MannWhitney(IReadOnlyList<double> first, IReadOnlyList<double> second)
@@ -69,8 +66,7 @@ namespace SnpEvolution.Evolution.Benchmarking
             return ranks;
         }
 
-        // The share of every way of choosing n1 of the pooled ranks whose U is at least as far from the middle as the
-        // one observed, which is exact with ties since the ranks are the mid-ranks actually seen.
+        // Enumerating splits of the observed mid-ranks keeps the p-value exact even with ties.
         private static double ExactP(double[] ranks, int n1, double observed)
         {
             int n2 = ranks.Length - n1;

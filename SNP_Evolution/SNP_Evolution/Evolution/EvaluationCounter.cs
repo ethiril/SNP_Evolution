@@ -6,8 +6,6 @@ using System.Threading;
 
 namespace SnpEvolution.Evolution
 {
-    // What a network evaluation was spent on: the run's own generations, a side run for a part, networks given a
-    // part evolving apart, or scoring a network again to check it really solves the task.
     public enum EvaluationSource
     {
         Main,
@@ -16,9 +14,7 @@ namespace SnpEvolution.Evolution
         Verification,
     }
 
-    // Every network a run scores, by what it was for, so runs that spend evaluations in different places compare on
-    // one budget. Library parts evolved before the run are a cost paid once and shared by every run that uses them,
-    // so they are kept apart as UpFront rather than counted in Total.
+    // Parts evolved before the run are paid for once and shared by every run, so UpFront is kept out of Total.
     public sealed class EvaluationCounter
     {
         private readonly long[] counts = new long[Enum.GetValues<EvaluationSource>().Length];

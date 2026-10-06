@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
@@ -42,6 +43,8 @@ namespace SnpEvolution.Tests.Evolution
                 Composition composition = Composition.Random(library, Factory(seed % 3, random), 1 + seed % 4, random);
 
                 Network flat = composition.Flatten(library);
+
+                Assert.InRange(composition.Glue.Count, 1, seed % 3 + 3);
 
                 Assert.Equal(composition, Composition.Recover(flat, library));
                 Assert.Equal(Json(flat), Json(Composition.Recover(flat, library)!.Flatten(library)));
@@ -118,6 +121,60 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void ALinkIntoAPartsOutPortDoesNotPassThroughItsPorts()
+        {
+            ModuleLibrary library = Library();
+            Composition composition = Composition.Random(library, Factory(0, new Random(4)), 1, new Random(4));
+            PartInstance part = composition.Parts[0];
+            PartPort outPort = Composition.PartOf(part, library).Part.Ports().First(port => port.Port.Direction == PortDirection.Out);
+            Composition bypassing = composition with { Links = composition.Links.Append(new Link(Endpoint.GlueAt(1), new Endpoint(part.Instance, outPort.Position))).ToList() };
+
+            Assert.True(composition.ThroughPorts(library));
+            Assert.False(bypassing.ThroughPorts(library));
+            Assert.Equal(composition, bypassing.OnlyThroughPorts(library));
+        }
+
+        [Fact]
+        public void TheSearchAdmitsNoMoreGlueThanItsCap()
+        {
+            ModuleLibrary library = Library();
+            var random = new Random(6);
+            Composition composition = Composition.Random(library, Factory(0, random), 1, random);
+            var space = new CompositionSpace(library, Factory(0, random), new CompositionMix(MaxGlue: composition.Glue.Count), random);
+            Composition overGlued = composition with { Glue = composition.Glue.Append(composition.Glue[0]).ToList() };
+
+            Assert.NotNull(space.Admit(composition.Flatten(library), dropStrayLinks: false));
+            Assert.Null(space.Admit(overGlued.Flatten(library), dropStrayLinks: false));
+        }
+
+        // Glue may stop reading a part's port, but a glue edit that starts reading one would change how the part is used.
+        [Fact]
+        public void AGlueEditMayNotAddASynapseFromAPartToGlue()
+        {
+            ModuleLibrary library = Library();
+            var random = new Random(8);
+            var space = new CompositionSpace(library, Factory(0, random), new CompositionMix(), random);
+            Composition composition = Composition.Random(library, Factory(0, random), 1, random);
+            PartInstance part = composition.Parts[0];
+            PartPort outPort = Composition.PartOf(part, library).Part.Ports().First(port => port.Port.Direction == PortDirection.Out);
+            var sender = new Endpoint(part.Instance, outPort.Position);
+            int unread = Enumerable.Range(1, composition.Glue.Count).First(glue => !composition.Links.Contains(new Link(sender, Endpoint.GlueAt(glue))));
+            Network network = composition.Flatten(library);
+            Network reading = (composition with { Links = composition.Links.Append(new Link(sender, Endpoint.GlueAt(unread))).ToList() }).Flatten(library);
+
+            Assert.Same(network, new CompositionEdit(space, new FixedEdit(reading), glueOnly: true).Mutate(network, random));
+        }
+
+        private sealed class FixedEdit : IMutation
+        {
+            private readonly Network result;
+
+            public FixedEdit(Network result) => this.result = result;
+
+            public Network Mutate(Network network, Random random) => result;
+        }
+
+        [Fact]
         public void RemovingAPartDropsItsWiresAndKeepsTheRest()
         {
             ModuleLibrary library = Library();
@@ -134,6 +191,18 @@ namespace SnpEvolution.Tests.Evolution
                 Assert.All(after.Wires, wire => Assert.Contains(wire, before.Wires));
                 Assert.Equal(before.Glue.Count, after.Glue.Count);
             }
+        }
+
+        [Fact]
+        public void ABenchmarkRunOfCompositionSearchBuildsFromTheGivenParts()
+        {
+            ModuleLibrary library = Library();
+            BenchmarkSettings settings = BenchmarkSettings.Default with { Seeds = 1, Parts = library.Parts.Select(module => module.Part!).ToList() };
+            AlgorithmChoice algorithm = AlgorithmCatalog.All.First(choice => AlgorithmCatalog.IsComposition(choice.Name));
+
+            RunOutcome outcome = Benchmark.RunOnce(algorithm, TaskSuite.Functions.First(task => task.Name == "Compute n + 1"), seed: 1, budget: 400, settings);
+
+            Assert.Contains(outcome.Best!.Genes.Neurons, neuron => neuron.Module != null);
         }
 
         // Every network a composition run keeps is exactly glue and library parts: no part neuron is ever changed.

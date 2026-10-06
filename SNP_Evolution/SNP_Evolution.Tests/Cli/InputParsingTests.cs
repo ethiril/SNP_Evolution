@@ -15,6 +15,17 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Theory]
+        [InlineData("0", true)]
+        [InlineData("2.5", true)]
+        [InlineData("-1", false)]
+        [InlineData("abc", false)]
+        public void NonNegativeNumbersAcceptZero(string input, bool accepted)
+        {
+            Assert.Equal(accepted, InputParsing.TryNonNegativeDouble(input, out _));
+            Assert.Equal(accepted && !input.Contains('.'), InputParsing.TryNonNegativeLong(input, out _));
+        }
+
+        [Theory]
         [InlineData("0.25", true)]
         [InlineData("1", true)]
         [InlineData("1.5", false)]

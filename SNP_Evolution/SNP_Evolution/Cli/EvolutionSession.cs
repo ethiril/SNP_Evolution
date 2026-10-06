@@ -87,22 +87,20 @@ namespace SnpEvolution.Cli
             return prefixTask != null;
         }
 
-        // Starting networks always use the simple rule template; the configured templates only drive mutation. Every
-        // evaluation goes to the counter, and the run stops once it has spent the settings' evaluation budget, if any.
-        // Composition search builds from the part library folder and leaves the modular loop out, since harvested
-        // modules are not parts and would break its networks into ones it cannot read.
+        // Starting networks always use the simple rule template; the configured templates only drive mutation.
         public static IGeneticAlgorithm Evolve(Settings settings, BenchmarkTask task, Func<NetworkFactory, Network> createStartingNetwork, Random random, Action<string> log,
             EvaluationCounter? evaluations = null)
         {
             evaluations ??= new EvaluationCounter();
             bool composition = AlgorithmCatalog.IsComposition(settings.Algorithm.Name);
             ModuleLibrary? parts = composition ? PartLibraryFiles.Load(settings.PartLibraryFolder, log) : null;
-            evaluations.AddUpFront(parts?.Parts.Sum(module => module.Part!.Origin.Evaluations) ?? 0);
+            evaluations.AddUpFront(parts?.PartEvaluations ?? 0);
             GenomeSpace space = settings.GenomeSpace(task.Task.InputCount) with { RuleForm = task.RuleForm };
             NetworkFactory StartingFactory(GenomeSpace bounds) => new NetworkFactory(bounds, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, Settings.MaxSpikeGroupSize, random), random);
             NetworkFactory MutationFactory(GenomeSpace bounds) => new NetworkFactory(bounds, new ExpressionGenerator(settings.MutationTemplates, Settings.MaxSpikeGroupSize, random), random);
             NetworkFactory startingFactory = StartingFactory(space);
             NetworkFactory mutationFactory = MutationFactory(space);
+            // Harvested modules are not verified parts, so composition search leaves the modular loop out.
             ModuleLibrary? library = settings.Modules && !composition ? NewLibrary(settings, log) : null;
             FitnessEvaluator CreateEvaluator(ITask stageTask, EvaluationSource source = EvaluationSource.Main) => new FitnessEvaluator(
                 settings.Engine.Create(settings), stageTask, settings.SimulationOptions with { Timing = task.Timing }, settings.SolvedRetestCount, random, evaluations, source);

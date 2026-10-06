@@ -38,8 +38,7 @@ namespace SnpEvolution.Evolution
         private readonly EvaluationSource source;
         private long evaluations;
 
-        // Evaluations also go to the counter when there is one, as the source given, except retests that check a
-        // network solves the task, which count as verification.
+        // Retests that confirm a solve are counted as verification whatever source the evaluator was given.
         public FitnessEvaluator(ISimulationEngine engine, ITask task, SimulationOptions options, int solvedRetestCount, Random random,
             EvaluationCounter? counter = null, EvaluationSource source = EvaluationSource.Main)
         {

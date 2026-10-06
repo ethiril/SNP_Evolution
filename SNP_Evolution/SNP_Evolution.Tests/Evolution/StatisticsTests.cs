@@ -48,7 +48,8 @@ namespace SnpEvolution.Tests.Evolution
             MannWhitneyResult result = Statistics.MannWhitney(first, second);
 
             Assert.False(result.Exact);
-            Assert.InRange(result.P, 1e-5, 1e-3);
+            // 2.245e-4 with the continuity correction; without it the p-value would be 2.118e-4.
+            Assert.InRange(result.P, 2.22e-4, 2.27e-4);
             Assert.True(result.A12 < 0.5);
         }
     }

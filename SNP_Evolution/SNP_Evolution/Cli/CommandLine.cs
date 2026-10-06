@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Benchmarking;
@@ -179,8 +178,6 @@ namespace SnpEvolution.Cli
             return PartsSession.Run(parts, Console.WriteLine);
         }
 
-        // Ten seeds unless given, every setup unless --setups names some, and the parts' cost charged to composition
-        // search unless --charge-parts off.
         private static int Reach(IReadOnlyDictionary<string, string> options, string[] args)
         {
             if (TargetSettings(options) is not Settings settings)
@@ -226,7 +223,7 @@ namespace SnpEvolution.Cli
             if (kind == null || !options.TryGetValue("target", out string? values) || !OutputTarget.TryParse(kind.Value, values, out OutputTarget target))
             {
                 Console.Error.WriteLine(Usage);
-                Console.Error.WriteLine("evolve, advise and compile need a --target of positive numbers, or of 0s and 1s with --kind binary.");
+                Console.Error.WriteLine("evolve, advise, compile and reach need a --target of positive numbers, or of 0s and 1s with --kind binary.");
                 return null;
             }
             var settings = new Settings { Target = target, Task = Catalog.TargetTask };
@@ -235,7 +232,7 @@ namespace SnpEvolution.Cli
         }
 
         // The evolve options that were given, which also win over the advisor's suggestions.
-        private static void ApplyOptions(Settings settings, IReadOnlyDictionary<string, string> options)
+        internal static void ApplyOptions(Settings settings, IReadOnlyDictionary<string, string> options)
         {
             settings.MaxGenerations = (int)Number(options, "generations", settings.MaxGenerations);
             settings.PopulationSize = (int)Number(options, "population", settings.PopulationSize);
@@ -253,7 +250,7 @@ namespace SnpEvolution.Cli
             {
                 MaxParts = (int)Number(options, "max-parts", settings.Composition.MaxParts),
                 MaxGlue = (int)Number(options, "glue", settings.Composition.MaxGlue),
-                GlueEdits = options.TryGetValue("glue-weight", out string? weight) && double.TryParse(weight, NumberStyles.Float, CultureInfo.InvariantCulture, out double glue) && glue >= 0
+                GlueEdits = options.TryGetValue("glue-weight", out string? weight) && InputParsing.TryNonNegativeDouble(weight, out double glue)
                     ? glue
                     : settings.Composition.GlueEdits,
             };

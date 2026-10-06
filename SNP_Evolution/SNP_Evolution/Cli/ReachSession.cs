@@ -14,11 +14,7 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli
 {
-    // reach: how far each setup gets into a target on the same evaluation budget, over the same seeds. A run's reach
-    // is how many of the target's checks (for a sequence, its gaps in order) its best network gets right on every
-    // sampled run before the first it misses, scored on the whole target whatever stage the run stopped at.
-    // Composition search builds from parts evolved beforehand, so with chargeParts its budget is cut by what the
-    // library's parts cost to evolve, and every run has the same total.
+    // A run's reach is how many of the target's checks its best network gets right, in order, before the first it misses.
     internal static class ReachSession
     {
         public sealed record Setup(string Name, string Description, Action<Settings> Apply);
@@ -53,7 +49,7 @@ namespace SnpEvolution.Cli
                 log("reach needs an evaluation budget (--evaluations N), since the setups are compared on it.");
                 return 1;
             }
-            long partCost = PartLibraryFiles.Load(settings.PartLibraryFolder).Parts.Sum(module => module.Part!.Origin.Evaluations);
+            long partCost = PartLibraryFiles.Load(settings.PartLibraryFolder).PartEvaluations;
             var jobs = (from setup in setups from seed in Enumerable.Range(1, seeds) select (setup, seed)).ToList();
             var outcomes = new Outcome[jobs.Count];
             int finished = 0;
@@ -75,7 +71,8 @@ namespace SnpEvolution.Cli
             return 0;
         }
 
-        public static Outcome RunOnce(Settings settings, Setup setup, int seed, long partCost)
+        // With the parts charged, composition search's budget is cut by what they cost so every setup spends the same in all.
+        internal static Outcome RunOnce(Settings settings, Setup setup, int seed, long partCost)
         {
             Settings own = settings.Copy();
             setup.Apply(own);
@@ -93,13 +90,14 @@ namespace SnpEvolution.Cli
                 return new Outcome(setup.Name, seed, 0, 0, evaluations.Total, evaluations.UpFront, clock.Elapsed.TotalSeconds);
             }
             var scorer = new FitnessEvaluator(own.Engine.Create(own), task.Task, own.SimulationOptions with { Timing = task.Timing }, 1, new Random(seed));
-            IReadOnlyList<float> checks = scorer.Evaluate(best.Genes).Checks ?? Array.Empty<float>();
-            // A check adds up a share per sampled run, so one every run gets right can fall short of 1 by rounding.
-            int reach = checks.TakeWhile(check => check >= 1 - 1e-4f).Count();
+            int reach = Reach(scorer.Evaluate(best.Genes).Checks ?? Array.Empty<float>());
             return new Outcome(setup.Name, seed, reach, best.Genes.Neurons.Count, evaluations.Total, evaluations.UpFront, clock.Elapsed.TotalSeconds);
         }
 
-        public static string Report(Settings settings, IReadOnlyList<Setup> setups, IReadOnlyList<Outcome> outcomes, long partCost, bool chargeParts, string command)
+        // A check adds up a share per sampled run, so one every run gets right can fall short of 1 by rounding.
+        internal static int Reach(IEnumerable<float> checks) => checks.TakeWhile(check => check >= 1 - 1e-4f).Count();
+
+        private static string Report(Settings settings, IReadOnlyList<Setup> setups, IReadOnlyList<Outcome> outcomes, long partCost, bool chargeParts, string command)
         {
             var text = new StringBuilder();
             text.AppendLine($"Target {settings.Target}, {outcomes.Count(outcome => outcome.Setup == setups[0].Name)} seeds per setup, " +
@@ -122,11 +120,11 @@ namespace SnpEvolution.Cli
                 text.AppendLine();
                 text.AppendLine("| Comparison of reach | U | p (two-sided) | A12 |");
                 text.AppendLine("|---|---|---|---|");
+                double[] Reaches(Setup setup) => outcomes.Where(outcome => outcome.Setup == setup.Name).Select(outcome => (double)outcome.Reach).ToArray();
                 for (int first = 0; first < setups.Count; first++)
                 {
                     for (int second = first + 1; second < setups.Count; second++)
                     {
-                        double[] Reaches(Setup setup) => outcomes.Where(outcome => outcome.Setup == setup.Name).Select(outcome => (double)outcome.Reach).ToArray();
                         MannWhitneyResult test = Statistics.MannWhitney(Reaches(setups[second]), Reaches(setups[first]));
                         text.AppendLine($"| {setups[second].Name} vs {setups[first].Name} | {test.U:0.#} | {test.P:0.####}{(test.Exact ? "" : " (normal approx.)")} | {test.A12:0.00} |");
                     }

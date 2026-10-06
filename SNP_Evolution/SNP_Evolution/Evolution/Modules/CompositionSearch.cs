@@ -6,9 +6,7 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
 {
-    // The edits composition search makes and how often, relative to each other. GlueEdits weighs the ordinary neuron
-    // edits as a group, which act on glue only. MaxParts caps the part copies in a network, StartParts is the most a
-    // starting network gets, and MaxGlue caps the glue neurons, which is the genome space's neuron cap when 0.
+    // Edit weights are relative to each other, and MaxGlue 0 means the genome space's neuron cap.
     public sealed record CompositionMix(
         double GlueEdits = 1,
         double InsertPart = 0.75,
@@ -20,11 +18,7 @@ namespace SnpEvolution.Evolution.Modules
         int StartParts = 2,
         int MaxGlue = 0);
 
-    // Search over compositions of library parts. Every network it makes is the flattened form of a composition whose
-    // part copies are exact library parts, wired through their ports, with no more glue than the genome space allows
-    // neurons; part bodies do not count against that, since the cap bounds the search and they are verified already.
-    // Ordinary neuron edits change glue only, and part edits put copies in, take them out, rewire their ports and swap
-    // them for cheaper versions. Any algorithm can search this way, since it only sees networks.
+    // Part bodies are left out of the glue cap, since they are verified already and the cap is there to bound the search.
     public sealed class CompositionSpace
     {
         private readonly ModuleLibrary library;
@@ -68,9 +62,7 @@ namespace SnpEvolution.Evolution.Modules
             return new WeightedMutation(rate, glue.Concat(parts).Where(edit => edit.Weight > 0).ToList(), pressure: pressure);
         }
 
-        // The composition the network is, laid out as Flatten lays it out, when it is one this search may make.
-        // A part edit's links that miss the ports are dropped, since inserting a copy can make one; any other edit
-        // that makes one is refused.
+        // Null when the network is not a composition this search may make, after dropping links that miss the ports if asked.
         internal Composition? Admit(Network network, bool dropStrayLinks)
         {
             if (Composition.Recover(network, library) is not Composition composition)
@@ -82,17 +74,13 @@ namespace SnpEvolution.Evolution.Modules
         }
     }
 
-    // Parents are kept whole, since a cut through a part would void its verification and the genome has no other
-    // natural place to cut.
+    // Parents are kept whole, since a cut through a part would void its verification.
     public sealed class KeepFirstParent : ICrossover
     {
         public Network Cross(Network firstParent, Network secondParent, Random random) => firstParent;
     }
 
-    // Makes an edit and keeps the result only when it is a composition the search may make, laid out canonically. A
-    // glue-only edit must also leave every part copy, its wires and the synapses between parts as they were, and may
-    // only drop a port's synapses to glue, never add one. An edit that fails is tried again a few times, and otherwise
-    // the network is left as it was.
+    // A glue-only edit may drop a port's synapses to glue but never add one, so glue cannot grow new reads of a part.
     internal sealed class CompositionEdit : IMutation
     {
         private const int Attempts = 4;
@@ -137,8 +125,7 @@ namespace SnpEvolution.Evolution.Modules
         }
     }
 
-    // Takes one part copy out with every synapse to or from it. A copy holding the network's input or output role
-    // stays, since taking it out would change what the task can feed or read.
+    // A copy holding the input or output role stays, since taking it out would change what the task can feed or read.
     public sealed class RemovePart : IMutation
     {
         private readonly ModuleLibrary library;
