@@ -26,7 +26,8 @@ namespace SnpEvolution.Evolution.Benchmarking
         IReadOnlyList<string> Templates,
         int MaxSpikeGroupSize,
         Func<ISimulationEngine> CreateEngine,
-        IReadOnlyList<LibraryPart>? Parts = null)
+        IReadOnlyList<LibraryPart>? Parts = null,
+        bool Lexicase = false)
     {
         public static BenchmarkSettings Default { get; } = new BenchmarkSettings(
             Seeds: 5,
@@ -41,13 +42,20 @@ namespace SnpEvolution.Evolution.Benchmarking
             CreateEngine: () => new ExhaustiveCpuEngine());
     }
 
-    public sealed record RunOutcome(string Algorithm, string Task, int Seed, bool Solved, long Evaluations, float BestFitness, Individual? Best);
+    // Reuse is null for a run that built from no part library.
+    public sealed record RunOutcome(string Algorithm, string Task, int Seed, bool Solved, long Evaluations, float BestFitness, Individual? Best,
+        IReadOnlyList<PartCount>? Reuse = null, bool Promoted = false);
 
     // One algorithm on one task, summarised over every seed.
-    public sealed record BenchmarkRow(string Algorithm, string Task, int Runs, int Solved, double? MedianEvaluationsToSolve, double MeanBestFitness, double? MeanSolvedSize)
+    public sealed record BenchmarkRow(string Algorithm, string Task, int Runs, int Solved, double? MedianEvaluationsToSolve, double MeanBestFitness, double? MeanSolvedSize,
+        IReadOnlyList<PartUse>? Reuse = null)
     {
         public double SuccessRate => Runs == 0 ? 0 : (double)Solved / Runs;
+
+        public string ReuseText => Reuse is { Count: > 0 } uses ? string.Join(", ", uses.Select(use => $"{use.Contract} {use.Runs}/{Runs}")) : "-";
     }
+
+    public sealed record PartUse(string Contract, int Runs, double MeanCopies);
 
     public static class Benchmark
     {
@@ -59,19 +67,23 @@ namespace SnpEvolution.Evolution.Benchmarking
             var factory = new NetworkFactory(space, new ExpressionGenerator(settings.Templates, settings.MaxSpikeGroupSize, random), random);
             var evaluator = new FitnessEvaluator(
                 settings.CreateEngine(), task.Task, new SimulationOptions(settings.MaxSteps, settings.Repetitions, task.Timing), solvedRetestCount: 5, random);
-            // Each run gets a library of its own, since copies and credit are counted in it.
+            // Each run gets a library of its own, since copies and credit are counted in it and a solved composition is promoted into it.
+            ModuleLibrary? library = settings.Parts is { Count: > 0 } parts ? ModuleLibrary.Of(parts) : null;
             IGeneticAlgorithm run = algorithm.Create(new EvolutionContext(
-                settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { },
-                Parts: settings.Parts is { Count: > 0 } parts ? ModuleLibrary.Of(parts) : null));
+                settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: settings.Lexicase, Parts: library));
+            IReadOnlyList<PartCount>? Reuse(Individual? best) => library != null && best != null ? PartReuse.Count(best.Genes, library) : null;
             while (evaluator.Evaluations < budget)
             {
                 run.NextGeneration();
                 if (run.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && evaluator.IsReliablySolved(best.Genes))
                 {
-                    return new RunOutcome(algorithm.Name, task.Name, seed, true, evaluator.Evaluations, best.Fitness, best);
+                    IReadOnlyList<PartCount>? reuse = Reuse(best);
+                    bool promoted = library != null && AlgorithmCatalog.IsComposition(algorithm.Name) && task.Task is ContractTask contractTask
+                        && Promotion.PromoteSolved(best.Genes, contractTask, library, new PartOrigin(seed, $"benchmark, {algorithm.Name}", evaluator.Evaluations), _ => { }) != null;
+                    return new RunOutcome(algorithm.Name, task.Name, seed, true, evaluator.Evaluations, best.Fitness, best, reuse, promoted);
                 }
             }
-            return new RunOutcome(algorithm.Name, task.Name, seed, false, evaluator.Evaluations, run.Best?.Fitness ?? 0, run.Best);
+            return new RunOutcome(algorithm.Name, task.Name, seed, false, evaluator.Evaluations, run.Best?.Fitness ?? 0, run.Best, Reuse(run.Best));
         }
 
         // Every algorithm on every task over every seed, run in parallel. Seeds are shared between algorithms, so
@@ -105,13 +117,29 @@ namespace SnpEvolution.Evolution.Benchmarking
                         solved.Count,
                         solved.Count == 0 ? null : Median(solved.Select(outcome => (double)outcome.Evaluations)),
                         group.Average(outcome => outcome.BestFitness),
-                        solved.Count == 0 ? null : solved.Average(outcome => outcome.Best!.Genes.Size));
+                        solved.Count == 0 ? null : solved.Average(outcome => outcome.Best!.Genes.Size),
+                        Uses(group.ToList()));
                 })
                 .ToList();
 
+        private static IReadOnlyList<PartUse>? Uses(List<RunOutcome> outcomes)
+        {
+            if (outcomes.All(outcome => outcome.Reuse == null))
+            {
+                return null;
+            }
+            return outcomes.SelectMany(outcome => outcome.Reuse ?? Array.Empty<PartCount>())
+                .Where(count => count.Direct > 0)
+                .GroupBy(count => count.Contract)
+                .Select(group => new PartUse(group.Key, group.Count(), group.Average(count => count.Direct)))
+                .OrderByDescending(use => use.Runs).ThenBy(use => use.Contract, StringComparer.Ordinal)
+                .ToList();
+        }
+
         public static string FormatTable(IReadOnlyList<BenchmarkRow> rows)
         {
-            var table = new List<string[]> { new[] { "Task", "Algorithm", "Solved", "Median evals", "Mean best", "Mean size" } };
+            bool reuse = rows.Any(row => row.Reuse != null);
+            var table = new List<string[]> { new[] { "Task", "Algorithm", "Solved", "Median evals", "Mean best", "Mean size" }.Concat(reuse ? new[] { "Parts in best (runs)" } : []).ToArray() };
             table.AddRange(rows.OrderBy(row => row.Task).ThenByDescending(row => row.SuccessRate).ThenBy(row => row.MedianEvaluationsToSolve ?? double.MaxValue)
                 .Select(row => new[]
                 {
@@ -121,7 +149,7 @@ namespace SnpEvolution.Evolution.Benchmarking
                     row.MedianEvaluationsToSolve?.ToString("0", CultureInfo.InvariantCulture) ?? "-",
                     row.MeanBestFitness.ToString("0.000", CultureInfo.InvariantCulture),
                     row.MeanSolvedSize?.ToString("0", CultureInfo.InvariantCulture) ?? "-",
-                }));
+                }.Concat(reuse ? new[] { row.ReuseText } : []).ToArray()));
             int[] widths = Enumerable.Range(0, table[0].Length).Select(column => table.Max(row => row[column].Length)).ToArray();
             var text = new StringBuilder();
             foreach (string[] row in table)
@@ -133,14 +161,15 @@ namespace SnpEvolution.Evolution.Benchmarking
 
         public static string FormatCsv(IReadOnlyList<BenchmarkRow> rows)
         {
-            var text = new StringBuilder("task,algorithm,runs,solved,median_evaluations_to_solve,mean_best_fitness,mean_solved_size\n");
+            var text = new StringBuilder("task,algorithm,runs,solved,median_evaluations_to_solve,mean_best_fitness,mean_solved_size,parts_in_best\n");
             foreach (BenchmarkRow row in rows)
             {
                 text.AppendLine(string.Join(",",
                     Quote(row.Task), Quote(row.Algorithm), row.Runs, row.Solved,
                     row.MedianEvaluationsToSolve?.ToString(CultureInfo.InvariantCulture) ?? "",
                     row.MeanBestFitness.ToString(CultureInfo.InvariantCulture),
-                    row.MeanSolvedSize?.ToString(CultureInfo.InvariantCulture) ?? ""));
+                    row.MeanSolvedSize?.ToString(CultureInfo.InvariantCulture) ?? "",
+                    Quote(row.Reuse == null ? "" : row.ReuseText)));
             }
             return text.ToString();
         }

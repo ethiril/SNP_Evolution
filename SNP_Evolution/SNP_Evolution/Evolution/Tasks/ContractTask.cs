@@ -58,6 +58,12 @@ namespace SnpEvolution.Evolution.Tasks
 
         public Contract Contract { get; }
 
+        // The contract's ports where a network for it has them, so composition search can wire parts to them by type.
+        public IReadOnlyList<PartPort> Boundary =>
+            new[] { Contract.Start }.Concat(Contract.DataIn).Select((port, index) => new PartPort(port, index + 1))
+                .Concat(PortBinding.OutPorts(Contract).Select(port => new PartPort(port, Binding[port.Name])))
+                .ToList();
+
         public PortBinding Binding { get; }
 
         public string Name { get; }
@@ -67,6 +73,9 @@ namespace SnpEvolution.Evolution.Tasks
         public IReadOnlyList<TaskCase> Cases { get; }
 
         public int StepsNeeded { get; }
+
+        // A part either meets its contract or does not: one neuron left holding a spike means it cannot be started again.
+        public float SolvedFitness => 1f;
 
         public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
 
@@ -105,6 +114,21 @@ namespace SnpEvolution.Evolution.Tasks
                 .Select(latency => latency is int value && value <= Contract.MaxLatency ? value : Contract.MaxLatency + 1)
                 .Max();
             return (neurons, slowest);
+        }
+
+        // Null when every case fails, since the proposal would then be the target itself.
+        public Contract? Propose(IReadOnlyList<int> unsolvedChecks)
+        {
+            List<int> failing = unsolvedChecks.Select(check => check / RuleCount).Distinct().Order().ToList();
+            if (failing.Count == 0 || failing.Count == Contract.Cases.Count)
+            {
+                return null;
+            }
+            return Contract with
+            {
+                Name = $"{Contract.Name} on {string.Join(" ", failing.Select(CaseLabel))}",
+                Cases = failing.Select(caseIndex => Contract.Cases[caseIndex]).ToList(),
+            };
         }
 
         private string CaseLabel(int caseIndex)

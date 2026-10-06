@@ -50,6 +50,26 @@ namespace SnpEvolution.Tests.Evolution
 
         private static string WireText(Wire wire) => $"{wire.From.Copy.Tag.Instance}.{wire.From.Port.Name}>{wire.To.Copy.Tag.Instance}.{wire.To.Port.Name}";
 
+        // The task's input feeds the part's in-port and its out-port feeds the task's, rather than any glue neuron at random.
+        [Fact]
+        public void AnInsertedPartIsWiredToTheTasksOwnPorts()
+        {
+            var library = new ModuleLibrary();
+            library.AddPart(Verified(ReferenceParts.Register(FirstParts.Larger) with { Contract = FirstParts.Named("register") }), "a test");
+            var task = new ContractTask(FirstParts.Named("register"));
+            var glue = new Network(Enumerable.Range(1, 4).Select(position => new Neuron(new[] { Rule.Standard("a", 1) }, 0, Array.Empty<int>(), false, isInput: position <= 2)).ToList());
+            var insert = new InsertModule(library, new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Standard, MaxNeurons: MaxNeurons), task.Boundary);
+
+            for (int seed = 0; seed < 10; seed++)
+            {
+                Network network = insert.Mutate(glue, new Random(seed));
+                PartCopy copy = PartWiring.Copies(network, library).Single();
+
+                Assert.Contains(copy["n"], network.Neurons[1].Connections);
+                Assert.Contains(task.Binding["out"], network.Neurons[copy["out"] - 1].Connections);
+            }
+        }
+
         [Fact]
         public void PartsShowTheirPortsAsNeuronPositions()
         {

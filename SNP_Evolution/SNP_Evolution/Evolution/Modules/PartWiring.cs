@@ -51,26 +51,37 @@ namespace SnpEvolution.Evolution.Modules
                 .ToList();
         }
 
-        // Out-ports only feed free in-ports, so inserting a copy never splices into a wire that already works.
-        internal static void WirePorts(List<Neuron> neurons, IReadOnlyList<PartCopy> copies, PartCopy added, int offset, Random random)
+        // Out-ports only feed free in-ports, so inserting a copy never splices into a wire that already works; the task's own in-ports send and its out-ports receive.
+        internal static void WirePorts(List<Neuron> neurons, IReadOnlyList<PartCopy> copies, PartCopy added, int offset, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             List<CopyPort> existing = copies.SelectMany(copy => copy.Ports).ToList();
             HashSet<int> typed = copies.SelectMany(copy => copy.Positions).ToHashSet();
             List<int> untyped = Enumerable.Range(1, offset).Where(position => !typed.Contains(position)).ToList();
+            List<PartPort> taskPorts = (boundary ?? Array.Empty<PartPort>()).Where(port => port.Position <= offset && !typed.Contains(port.Position)).ToList();
             foreach (CopyPort port in added.Ports)
             {
                 if (port.Port.Direction == PortDirection.In)
                 {
-                    List<int> senders = existing.Where(other => Fits(other.Port, port.Port)).Select(other => other.Position).ToList();
+                    List<int> senders = existing.Where(other => Fits(other.Port, port.Port)).Select(other => other.Position)
+                        .Concat(taskPorts.Where(task => task.Port.Direction == PortDirection.In && SameType(task.Port, port.Port)).Select(task => task.Position))
+                        .ToList();
                     Connect(neurons, Pick(senders.Count > 0 ? senders : untyped, random), port.Position);
                 }
                 else if (!neurons[port.Position - 1].IsOutput)
                 {
-                    List<int> receivers = existing.Where(other => Fits(port.Port, other.Port) && IsFree(neurons, other)).Select(other => other.Position).ToList();
+                    List<int> receivers = existing.Where(other => Fits(port.Port, other.Port) && IsFree(neurons, other)).Select(other => other.Position)
+                        .Concat(taskPorts.Where(task => task.Port.Direction == PortDirection.Out && SameType(task.Port, port.Port) && !FedByAPart(neurons, typed, task.Position))
+                            .Select(task => task.Position))
+                        .ToList();
                     Connect(neurons, port.Position, Pick(receivers.Count > 0 ? receivers : untyped.Where(position => !neurons[position - 1].IsInput).ToList(), random));
                 }
             }
         }
+
+        private static bool SameType(Port first, Port second) => first.Kind == second.Kind && first.Width == second.Width;
+
+        private static bool FedByAPart(List<Neuron> neurons, HashSet<int> typed, int position) =>
+            typed.Any(sender => neurons[sender - 1].Connections.Contains(position));
 
         internal static string BodyInside(LibraryPart part)
         {
@@ -93,7 +104,7 @@ namespace SnpEvolution.Evolution.Modules
         }
     }
 
-    // Moves one end of a port to a fitting port of another copy; input neurons stay as they are, since only the environment feeds them.
+    // Moves one end of a port to a fitting port of another copy or to untyped glue; input neurons stay as they are, since only the environment feeds them.
     public sealed class RewirePort : IMutation
     {
         private readonly ModuleLibrary library;
@@ -102,26 +113,31 @@ namespace SnpEvolution.Evolution.Modules
 
         public Network Mutate(Network network, Random random)
         {
-            List<CopyPort> ports = PartWiring.Copies(network, library).SelectMany(copy => copy.Ports).ToList();
+            IReadOnlyList<PartCopy> copies = PartWiring.Copies(network, library);
+            List<CopyPort> ports = copies.SelectMany(copy => copy.Ports).ToList();
+            HashSet<int> typed = copies.SelectMany(copy => copy.Positions).ToHashSet();
+            List<int> untyped = Enumerable.Range(1, network.Neurons.Count).Where(position => !typed.Contains(position)).ToList();
             var choices = ports
                 .Where(port => !network.Neurons[port.Position - 1].IsInput)
-                .Select(port => (Port: port, Partners: Partners(network, ports, port)))
+                .Select(port => (Port: port, Partners: Partners(network, ports, untyped, port)))
                 .Where(choice => choice.Partners.Count > 0)
                 .ToList();
             if (choices.Count == 0)
             {
                 return network;
             }
-            (CopyPort chosen, List<CopyPort> partners) = choices[random.Next(choices.Count)];
-            int partner = partners[random.Next(partners.Count)].Position;
+            (CopyPort chosen, List<int> partners) = choices[random.Next(choices.Count)];
+            int partner = partners[random.Next(partners.Count)];
             return chosen.Port.Direction == PortDirection.Out ? SendTo(network, chosen, partner) : FeedFrom(network, chosen, partner);
         }
 
-        private static List<CopyPort> Partners(Network network, List<CopyPort> ports, CopyPort port) => ports
+        private static List<int> Partners(Network network, List<CopyPort> ports, List<int> untyped, CopyPort port) => ports
             .Where(other => other.Copy != port.Copy)
             .Where(other => port.Port.Direction == PortDirection.In
                 ? PartWiring.Fits(other.Port, port.Port)
                 : PartWiring.Fits(port.Port, other.Port) && !network.Neurons[other.Position - 1].IsInput)
+            .Select(other => other.Position)
+            .Concat(untyped.Where(position => port.Port.Direction == PortDirection.In || !network.Neurons[position - 1].IsInput))
             .ToList();
 
         private static Network SendTo(Network network, CopyPort outPort, int receiver)

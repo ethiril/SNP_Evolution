@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 
@@ -26,8 +27,10 @@ namespace SnpEvolution.Evolution.Contracts
     public sealed record PartOrigin(int Seed, string Run, long Evaluations);
 
     // A verified part as the library keeps it, with what measuring it on its contract gave.
-    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin)
+    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin, PartRecipe? Recipe = null)
     {
+        public bool IsComposite => Recipe != null;
+
         public Contract Contract => Part.Contract;
 
         public static LibraryPart Of(Part part, PartMeasurement measurement, PartOrigin origin) =>
@@ -118,15 +121,20 @@ namespace SnpEvolution.Evolution.Contracts
         }
 
         // The positions callers bind ports to: start, then the count in-ports, out, done and the store.
-        private static List<Neuron> DrainingStore(int countInputs, int[] startTargets)
+        internal static List<Neuron> DrainingStore(int countInputs, int[] startTargets)
         {
             int outPosition = countInputs + 2, donePosition = countInputs + 3, storePosition = countInputs + 4;
             var neurons = new List<Neuron> { new Neuron(new[] { Rule.Standard("a", 1) }, 0, startTargets, false, isInput: true) };
             neurons.AddRange(Enumerable.Range(0, countInputs).Select(_ => new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { storePosition }, false, isInput: true)));
-            neurons.Add(new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false));
-            neurons.Add(new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false));
+            neurons.Add(CountOut());
+            neurons.Add(DoneOnAPair());
             neurons.Add(new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { outPosition, donePosition }, false));
             return neurons;
         }
+
+        // Fires on a single spike and drops a pair, the store's sign that it is empty.
+        internal static Neuron CountOut() => new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false);
+
+        internal static Neuron DoneOnAPair() => new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false);
     }
 }

@@ -64,6 +64,8 @@ namespace SnpEvolution.Evolution.Modules
     public sealed class ModuleLibrary
     {
         public const int DefaultCapacity = 24;
+
+        // A promoted part is exempt, since its size is that of children each verified already.
         public const int MaxModuleNeurons = 24;
 
         private readonly object gate = new object();
@@ -158,6 +160,9 @@ namespace SnpEvolution.Evolution.Modules
 
         // The contract parts kept, in the order they were first added.
         public IReadOnlyList<Module> Parts => Modules.Where(module => module.Part != null).ToList();
+
+        // The first part kept for the contract of that name, or null when there is none.
+        public Module? PartFor(string contract) => Parts.FirstOrDefault(module => module.Part!.Contract.Name == contract);
 
         // What evolving the parts kept cost, as each part's origin records it.
         public long PartEvaluations => Parts.Sum(module => module.Part?.Origin.Evaluations ?? 0);

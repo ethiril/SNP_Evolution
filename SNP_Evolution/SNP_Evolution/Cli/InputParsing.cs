@@ -15,6 +15,9 @@ namespace SnpEvolution.Cli
         public static bool TryNonNegativeLong(string input, out long value) =>
             long.TryParse(input, out value) && value >= 0;
 
+        public static bool TryPositiveLong(string input, out long value) =>
+            long.TryParse(input, out value) && value > 0;
+
         public static bool TryNonNegativeDouble(string input, out double value) =>
             double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && value >= 0;
 

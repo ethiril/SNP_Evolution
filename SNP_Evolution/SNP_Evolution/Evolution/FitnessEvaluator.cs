@@ -85,12 +85,13 @@ namespace SnpEvolution.Evolution
         public bool IsReliablySolved(Network network)
         {
             FitnessResult Retest() => EvaluateAll(new[] { network }, EvaluationSource.Verification)[0];
+            bool Solves(FitnessResult result) => IsSolvingFitness(result.Fitness) && result.Fitness >= Task.SolvedFitness;
             FitnessResult first = Retest();
-            if (!IsSolvingFitness(first.Fitness))
+            if (!Solves(first))
             {
                 return false;
             }
-            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => IsSolvingFitness(Retest().Fitness));
+            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => Solves(Retest()));
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Proposals;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
 
@@ -61,6 +62,15 @@ namespace SnpEvolution.Cli
         // How composition search mixes its edits, and how many part copies a network may hold.
         public CompositionMix Composition { get; set; } = new CompositionMix();
 
+        public bool ProposeParts { get; set; } = true;
+        public long ProposalBudget { get; set; } = 20_000;
+
+        // Off by default, since the library should be one the runs found.
+        public bool HandBuiltParts { get; set; }
+
+        // Leaving the add loop out is the control for whether reusing it helps.
+        public bool HandBuiltAddLoop { get; set; } = true;
+
         public int BenchmarkSeeds { get; set; } = 5;
         public long EvaluationBudget { get; set; } = 5_000;
         public int BenchmarkPopulationSize { get; set; } = 40;
@@ -95,6 +105,9 @@ namespace SnpEvolution.Cli
         // The modular loop reacts to a stall before stagnation recovery does.
         public ModulePolicy ModulePolicy => new ModulePolicy(
             Patience: System.Math.Max(5, StagnationPatience / 2), Triggered: TriggeredModules, IncubationGenerations: ModuleIncubation);
+
+        // Proposals react to a stall at the same point, so a part is asked for before the population is shaken up.
+        public ProposalPolicy ProposalPolicy => new ProposalPolicy(Patience: ModulePolicy.Patience, MaxProposals: ProposeParts ? new ProposalPolicy().MaxProposals : 0);
 
         public BenchmarkSettings BenchmarkSettings => new BenchmarkSettings(
             BenchmarkSeeds, EvaluationBudget, BenchmarkPopulationSize, MutationRate, MaxSteps, Repetitions,

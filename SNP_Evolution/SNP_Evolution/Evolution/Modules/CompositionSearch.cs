@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 
@@ -26,26 +28,30 @@ namespace SnpEvolution.Evolution.Modules
         private readonly NetworkFactory editFactory;
         private readonly CompositionMix mix;
         private readonly Random random;
+        private readonly IReadOnlyList<PartPort>? boundary;
 
-        public CompositionSpace(ModuleLibrary library, NetworkFactory glueFactory, CompositionMix mix, Random random)
+        public CompositionSpace(ModuleLibrary library, NetworkFactory glueFactory, CompositionMix mix, Random random, IReadOnlyList<PartPort>? boundary = null)
         {
             this.library = library;
+            this.boundary = boundary;
             this.glueFactory = glueFactory = mix.MaxGlue > 0 ? glueFactory.WithSpace(glueFactory.Space with { MaxNeurons = mix.MaxGlue }) : glueFactory;
             this.mix = mix;
             this.random = random;
             // Edits that check the network's size see room for every part on top of the glue, and the guard holds glue to the cap.
-            int partRoom = mix.MaxParts * Math.Max(1, library.Parts.Select(module => module.Body.Neurons.Count).DefaultIfEmpty(0).Max());
+            // Parts proposed during the run are leaves, so room for the largest leaf is kept even before one exists.
+            int partRoom = mix.MaxParts * Math.Max(ModuleLibrary.MaxModuleNeurons, library.Parts.Select(module => module.Body.Neurons.Count).DefaultIfEmpty(0).Max());
             editFactory = glueFactory.WithSpace(glueFactory.Space with { MaxNeurons = glueFactory.Space.MaxNeurons + partRoom });
         }
 
         public static CompositionSpace For(EvolutionContext context) =>
-            new CompositionSpace(context.Parts ?? new ModuleLibrary(), context.Factory, context.Composition ?? new CompositionMix(), context.Random);
+            new CompositionSpace(context.Parts ?? new ModuleLibrary(), context.Factory, context.Composition ?? new CompositionMix(), context.Random,
+                ((context.Evaluator as ITaskEvaluator)?.Task as ContractTask)?.Boundary);
 
         public ModuleLibrary Library => library;
 
         public int MaxGlue => glueFactory.Space.MaxNeurons;
 
-        public Network NewNetwork() => Composition.Random(library, glueFactory, random.Next(1, mix.StartParts + 1), random).Flatten(library);
+        public Network NewNetwork() => Composition.Random(library, glueFactory, random.Next(1, mix.StartParts + 1), random, boundary).Flatten(library);
 
         public WeightedMutation Mutation(float rate, MutationPressure? pressure = null)
         {
@@ -53,7 +59,7 @@ namespace SnpEvolution.Evolution.Modules
                 .Select(edit => edit with { Edit = new CompositionEdit(this, edit.Edit, glueOnly: true), Weight = edit.Weight * mix.GlueEdits });
             var parts = new[]
             {
-                new WeightedEdit("Insert part", new CompositionEdit(this, new InsertModule(library, editFactory.Space)), mix.InsertPart),
+                new WeightedEdit("Insert part", new CompositionEdit(this, new InsertModule(library, editFactory.Space, boundary)), mix.InsertPart),
                 new WeightedEdit("Remove part", new CompositionEdit(this, new RemovePart(library)), mix.RemovePart),
                 new WeightedEdit("Rewire port", new CompositionEdit(this, new RewirePort(library)), mix.RewirePort),
                 new WeightedEdit("Add glue neuron", new CompositionEdit(this, new AddGlueNeuron(library, editFactory)), mix.AddGlue),
@@ -61,6 +67,10 @@ namespace SnpEvolution.Evolution.Modules
             };
             return new WeightedMutation(rate, glue.Concat(parts).Where(edit => edit.Weight > 0).ToList(), pressure: pressure);
         }
+
+        // The network with a copy of the module wired in by port type, or null when the result is not a composition this search may make.
+        public Network? WithPart(Network network, Module module) =>
+            Admit(ModuleEdits.Insert(network, module, library.NextInstance(), editFactory.Space.MaxNeurons, library, random, boundary), dropStrayLinks: true)?.Flatten(library);
 
         // Null when the network is not a composition this search may make, after dropping links that miss the ports if asked.
         internal Composition? Admit(Network network, bool dropStrayLinks)
