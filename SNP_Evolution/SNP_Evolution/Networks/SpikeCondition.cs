@@ -8,6 +8,8 @@ namespace SnpEvolution.Networks
     // The spike counts a rule expression accepts. Expressions are regular expressions over the single letter 'a',
     // and such sets are always eventually periodic, so the set is stored as a lasso: a lookup table of TailLength
     // entries followed by a cycle of Period entries that repeats forever. Matching any count is then one lookup.
+    // An empty neuron never matches, even when the expression accepts the empty word (a*, a?), since in an SN P
+    // system a rule needs at least one spike to apply; otherwise an empty neuron fires every step, a free clock.
     public sealed class SpikeCondition
     {
         private const int MaxPositions = 10_000;
@@ -57,7 +59,8 @@ namespace SnpEvolution.Networks
         {
             var automaton = new PositionAutomaton();
             Fragment root = automaton.Build(new ExpressionParser(expression).ParseWhole());
-            var accepts = new List<bool> { root.Nullable };
+            // Count 0 always sits in the tail, as the cycle is looked for from count 1 on, so refusing it leaves the rest as is.
+            var accepts = new List<bool> { false };
             var firstSeenAt = new Dictionary<string, int>();
             int[] active = root.First.OrderBy(position => position).ToArray();
             for (int count = 1; ; count++)

@@ -6,5 +6,9 @@
   "M2": {
     "title": "M2: Toward hardware",
     "description": "A hardware rule profile, exporters checked by co-simulation, bounded contract verification, streaming tasks and timing robustness. Spec: 'Use cases and a practical path' in RESEARCH.md."
+  },
+  "M3": {
+    "title": "M3: Toward general synthesis",
+    "description": "Parts without hand-building, programs of parts lowered to compositions, proofs that scale with the hierarchy, binary and parameterised parts. Spec: 'Toward general synthesis' in RESEARCH.md."
   }
 }

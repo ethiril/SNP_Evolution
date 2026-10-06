@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SnpEvolution.Export
@@ -57,5 +58,52 @@ namespace SnpEvolution.Export
             // vvp reports where $finish was called; the rest is the testbench's own output.
             return string.Concat(output.Split('\n').Where(line => line.Length > 0 && !line.Contains("$finish")).Select(line => line + "\n"));
         }
+    }
+
+    // Uppaal's command-line model checker, found on PATH, at UPPAAL_VERIFYTA, or inside an Uppaal folder in /Applications.
+    public static class Verifyta
+    {
+        public const string Missing = "Uppaal's verifyta is not installed; get UPPAAL from uppaal.org (free academic licence), then put verifyta on PATH or set UPPAAL_VERIFYTA.";
+
+        public static string? Program
+        {
+            get
+            {
+                if (Environment.GetEnvironmentVariable("UPPAAL_VERIFYTA") is string set && File.Exists(set))
+                {
+                    return set;
+                }
+                if (ExternalTool.Find("verifyta") is string onPath)
+                {
+                    return onPath;
+                }
+                return Directory.Exists("/Applications")
+                    ? Directory.EnumerateDirectories("/Applications").Where(folder => Path.GetFileName(folder).Contains("uppaal", StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(folder => Directory.EnumerateFiles(folder, "verifyta", SearchOption.AllDirectories)).FirstOrDefault()
+                    : null;
+            }
+        }
+
+        public static bool IsInstalled => Program != null;
+
+        // Whether each query holds, in the order of the .q file; throws when verifyta fails or reports fewer verdicts.
+        public static IReadOnlyList<bool> Check(UppaalModel model, string folder)
+        {
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, model.Name + ".xml"), model.Model);
+            File.WriteAllText(Path.Combine(folder, model.Name + ".q"), model.Queries);
+            string program = Program ?? throw new InvalidOperationException(Missing);
+            string output = ExternalTool.Run(program, $"-q \"{model.Name}.xml\" \"{model.Name}.q\"", folder);
+            IReadOnlyList<bool> verdicts = Verdicts(output);
+            if (verdicts.Count != model.QueryNames.Count)
+            {
+                throw new InvalidOperationException($"verifyta gave {verdicts.Count} verdicts for {model.QueryNames.Count} queries:\n{output}");
+            }
+            return verdicts;
+        }
+
+        // Whether each query holds, from verifyta's "Formula is satisfied" and "Formula is NOT satisfied" lines.
+        public static IReadOnlyList<bool> Verdicts(string output) =>
+            output.Split('\n').Where(line => line.Contains("Formula is")).Select(line => !line.Contains("NOT")).ToList();
     }
 }

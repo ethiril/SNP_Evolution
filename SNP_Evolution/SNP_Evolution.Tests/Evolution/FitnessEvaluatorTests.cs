@@ -84,6 +84,33 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void AFailedRetestReplacesALuckyScore()
+        {
+            // The same scripted network as above: its first retest misses, so the held score of 1 should not survive.
+            var network = new Network(new[]
+            {
+                TestNetworks.Neuron(1, new[] { 2 }, new Rule("a", 1, true), new Rule("a", 0, false)),
+                TestNetworks.OutputNeuron(1, new Rule("a", 0, true)),
+            });
+            var evaluator = Create(new[] { 1 }, repetitions: 2, solvedRetestCount: 2, new ScriptedRandom(1, 1));
+            var lucky = new Individual(network);
+            lucky.Record(new FitnessResult(1f, new[] { 1, 1 }));
+
+            Assert.False(evaluator.ConfirmSolved(lucky));
+            Assert.False(FitnessEvaluator.IsSolvingFitness(lucky.Fitness));
+        }
+
+        [Fact]
+        public void AConfirmedSolveKeepsItsScore()
+        {
+            var solved = new Individual(TestNetworks.AlwaysOutputsOne());
+            solved.Record(new FitnessResult(1f, new[] { 1 }, "held"));
+
+            Assert.True(EvaluatorExpecting(1).ConfirmSolved(solved));
+            Assert.Equal("held", solved.Description);
+        }
+
+        [Fact]
         public void EvaluateAllScoresEachNetworkInOrder()
         {
             IReadOnlyList<FitnessResult> results = EvaluatorExpecting(1).EvaluateAll(new[] { TestNetworks.NeverOutputs(), TestNetworks.AlwaysOutputsOne() });

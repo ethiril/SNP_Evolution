@@ -12,8 +12,8 @@ namespace SnpEvolution.Storage
 {
     // A part library folder holds one JSON file per part, named after its contract (delay-1.json, zero-test.json), so a
     // save rewrites the same files and the folder reads well as a diff. Each file has the network in the format
-    // NetworkFiles writes, the contract, the port binding, the hardware cost and where the part came from; a promoted
-    // part's file holds its recipe instead.
+    // NetworkFiles writes, the contract, the port binding, the hardware cost, where the part came from and the bound it is
+    // proven to; a promoted part's file holds its recipe instead.
     public static class PartLibraryFiles
     {
         public const string Extension = ".json";
@@ -42,7 +42,7 @@ namespace SnpEvolution.Storage
         // Every part in the folder, re-verified on the exhaustive engine, in file name order, with promoted parts after the
         // parts they are built from; an empty library when the folder does not exist. Throws InvalidDataException naming
         // every file that cannot be read, whose contract differs from the known contract of the same name, whose part
-        // fails its contract, or whose recipe names a part the folder does not have.
+        // fails its contract or has a counterexample recorded, or whose recipe names a part the folder does not have.
         public static ModuleLibrary Load(string folder, Action<string>? log = null)
         {
             var library = new ModuleLibrary(log: log);
@@ -163,10 +163,15 @@ namespace SnpEvolution.Storage
             {
                 throw new InvalidDataException($"Part file '{name}' fails its contract '{file.Contract.Name}': {measurement.Description.Replace(Environment.NewLine, "; ")}.");
             }
-            return LibraryPart.Of(part, measurement, file.Origin) with { Recipe = file.Recipe };
+            if (file.Proven?.FailsAt is string input)
+            {
+                throw new InvalidDataException($"Part file '{name}' fails its contract '{file.Contract.Name}' at {input}, as its bounded check found.");
+            }
+            return LibraryPart.Of(part, measurement, file.Origin) with { Recipe = file.Recipe, Proven = file.Proven };
         }
 
-        // Cost and Latency are written for readers of the folder; loading measures them again.
+        // Cost and Latency are written for readers of the folder; loading measures them again. Proven is kept as written,
+        // since checking a bound again takes as long as the verify command spent on it.
         private sealed record PartFile(
             Contract Contract,
             [property: JsonProperty(NullValueHandling = NullValueHandling.Ignore)] PortBinding? Binding,
@@ -174,11 +179,12 @@ namespace SnpEvolution.Storage
             [property: JsonProperty(NullValueHandling = NullValueHandling.Ignore)] PartRecipe? Recipe,
             HardwareCost? Cost,
             int? Latency,
-            PartOrigin Origin)
+            PartOrigin Origin,
+            [property: JsonProperty(NullValueHandling = NullValueHandling.Ignore)] ProvenBound? Proven = null)
         {
             public static PartFile Of(LibraryPart part) => part.Recipe != null
-                ? new PartFile(part.Contract, null, null, part.Recipe, part.Cost, part.Latency, part.Origin)
-                : new PartFile(part.Contract, part.Part.Binding, part.Part.Network, null, part.Cost, part.Latency, part.Origin);
+                ? new PartFile(part.Contract, null, null, part.Recipe, part.Cost, part.Latency, part.Origin, part.Proven)
+                : new PartFile(part.Contract, part.Part.Binding, part.Part.Network, null, part.Cost, part.Latency, part.Origin, part.Proven);
         }
     }
 }

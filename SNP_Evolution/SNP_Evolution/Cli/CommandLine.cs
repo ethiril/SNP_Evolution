@@ -37,6 +37,10 @@ namespace SnpEvolution.Cli
     //          writes a deterministic network as Verilog with a testbench, and co-simulates it under iverilog when installed
     //   export-nir --part FILE | --network FILE [--steps N] [--out DIR]:
     //          writes a hardware-profile network for tools/snp_nir.py, which makes the NIR file and co-simulates it in norse
+    //   export-uppaal --part FILE [--out DIR] [--check on|off]:
+    //          writes a part as Uppaal timed automata with queries for its contract, and model-checks them with verifyta when installed
+    //   verify --part FILE | --library DIR [--only NAME,NAME] [--seconds N] [--bound N]:
+    //          proves each part's contract for every input up to a bound, raised until --seconds per part run out, and records it in the part's file
     //   tasks | algorithms
     // evolve, compose and evolve-parts take --profile hardware, which keeps every rule to threshold-and-reset forms.
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
@@ -58,7 +62,9 @@ namespace SnpEvolution.Cli
             "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware]\n" +
             "       snp-evolution compose --task \"Contract multiply\" [--library DIR] [--hand-built on] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N] [--evaluations N]\n" +
             "       snp-evolution export-verilog --part parts/delay-2.json | --network FILE [--steps N] [--out DIR] [--check on|off]\n" +
-            "       snp-evolution export-nir --part FILE | --network FILE [--steps N] [--out DIR]";
+            "       snp-evolution export-nir --part FILE | --network FILE [--steps N] [--out DIR]\n" +
+            "       snp-evolution export-uppaal --part parts/delay-2.json [--out DIR] [--check on|off]\n" +
+            "       snp-evolution verify --part parts/delay-2.json | --library DIR [--only \"add loop\"] [--seconds N] [--bound N]";
 
         public static int Run(string[] args)
         {
@@ -109,6 +115,10 @@ namespace SnpEvolution.Cli
                     return ExportCommands.Verilog(options);
                 case "export-nir":
                     return ExportCommands.Nir(options);
+                case "export-uppaal":
+                    return ExportCommands.Uppaal(options);
+                case "verify":
+                    return VerifyCommand.Run(options, settings);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;

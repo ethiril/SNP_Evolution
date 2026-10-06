@@ -14,7 +14,7 @@ namespace SnpEvolution.Tests.Evolution
     public class ModularEvolutionTests
     {
         // A fixed population that records what it is given, so the modular loop can be watched without evolving.
-        private sealed class StubAlgorithm : IGeneticAlgorithm
+        internal sealed class StubAlgorithm : IGeneticAlgorithm
         {
             public List<Individual> Individuals { get; } = new List<Individual>();
 

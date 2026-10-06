@@ -39,6 +39,22 @@ namespace SnpEvolution.Tests.Simulation
             Assert.Equal(2, simulation.Output);
         }
 
+        // a* accepts the empty word, but a rule needs a spike to apply, so an empty neuron is no free clock.
+        [Fact]
+        public void AnEmptyNeuronNeverFiresEvenWhenItsExpressionAcceptsNoSpikes()
+        {
+            var network = new Network(new[] { OutputNeuron(0, new Rule("a*", 0, true)) });
+            var simulation = new NetworkSimulation(CompiledNetwork.Of(network), new Random(0), InputSpikes.None, OutputTiming.Interval, recordSpikeTrain: true);
+
+            for (int step = 0; step < 5; step++)
+            {
+                simulation.Step();
+            }
+
+            Assert.Empty(simulation.OutputSpikeSteps);
+            Assert.True(simulation.IsHalted);
+        }
+
         [Fact]
         public void SpikesFromSeveralNeuronsInTheSameStepAllArrive()
         {

@@ -26,8 +26,9 @@ namespace SnpEvolution.Evolution.Contracts
     // scored to find, shrink and verify it.
     public sealed record PartOrigin(int Seed, string Run, long Evaluations);
 
-    // A verified part as the library keeps it, with what measuring it on its contract gave.
-    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin, PartRecipe? Recipe = null)
+    // A verified part as the library keeps it, with what measuring it on its contract gave. Proven is the bound a bounded
+    // check reached, null when it has not been checked.
+    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin, PartRecipe? Recipe = null, ProvenBound? Proven = null)
     {
         public bool IsComposite => Recipe != null;
 

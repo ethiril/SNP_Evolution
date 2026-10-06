@@ -233,14 +233,30 @@ snp-evolution benchmark --task "Contract multiply" --algorithm Composition --lex
 
 **Reuse.** Every composition run saves `-parts.txt`: each library part's copies in the best network, with copies nested inside promoted parts in brackets, and its mean copies per network in the final population. It ends by saying whether the best network reuses a promoted part. Counting reads the module tags of the flattened network, so it works for any algorithm. Benchmarks of composition search add a column of the parts the best networks hold, as runs out of all. This is not the module library's uses and wins, which count whether inserting a copy made a child fitter during the search.
 
-**Hand-built parts.** evolve-parts has not yet found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
+**Hand-built parts.** evolve-parts has not yet found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Its done waits for both the loop's last round and the accumulator's own done, since a large a is still draining into the sum when the loop ends. Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
 
-On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 14 of 20 runs with the add loop in the library: 7 of 10 for each algorithm, with medians of 1365 (tournament) and 2045 (MAP-Elites) evaluations. The add loop was in the best network of 18 of 20 runs, and every solution was promoted. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 3e-6). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier has 55 neurons and 66 synapses and takes 225 steps for 6 x 5.
+On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 10 of 20 runs with the add loop in the library: 7 of 10 with MAP-Elites (median 3205 evaluations) and 3 of 10 with tournament selection (median 4325). The add loop was in the best network of 18 of 20 runs. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 4e-4). Before the add loop's done was joined to its accumulator's (see Proving parts past their cases), the same runs solved 14 of 20, 7 of 10 for each algorithm. The fix cost tournament selection 4 runs (7 against 3 of 10, p = 0.18). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier (`compose --seed 1`) has 56 neurons and 68 synapses and takes 261 steps for 6 x 5.
 
 ```
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built on
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built leaves
 ```
+
+## Proving parts past their cases
+
+A contract's cases test n up to 8 and one larger value, and composition trusts every part completely. `verify` proves a part meets its contract for every input up to a bound N, raising N until a time limit, and records the bound in the part's file:
+
+```
+snp-evolution verify --library parts
+snp-evolution verify --part parts/delay-2.json [--seconds 60] [--bound N]
+snp-evolution verify --library DIR --only "add loop"
+```
+
+Each contract the code knows has a specification (`Specifications`): the inputs it covers (an interval is at least 1, a divisor at least 1, a subtraction needs a >= b), the outputs and done branch any input should give, and the latency allowed when every input is at most N. Latencies grow with N the way the contracts' own were set, 3N + 4 for most count parts and a round of 4N + 40 steps per unit for loops, and never fall below the contract's. A specification is checked against the contract's cases before it is used, so a contract that only borrows a known name is not proven against the wrong function. Proposed contracts have none and are recorded as not proven.
+
+Bound N runs every input whose largest value is N on the exhaustive engine, as a contract task with the four usual rules, so every computation is followed. A case too wide to follow exactly ends the check, since sampling is not proof. A failing check stops it with a counterexample: the input, the rule broken, what was expected and read, and, for a deterministic part, a step-by-step table of the spikes each neuron held (by port name) and when it fired. The file gets `"Proven": { "UpTo": N, "AllInputs": ..., "Stopped": ..., "FailsAt": ... }`. `AllInputs` is true when the bound covers every input there is, as for a part with no data in-ports or only binary ones. The command exits with 2 when any part has a counterexample, and a library holding a part with a recorded counterexample no longer loads.
+
+The check also runs before a part enters the library: from `evolve-parts`, from promotion and from proposals, up to twice the largest value its cases test, or for at most 10 seconds (`BoundedCheck.Admit`). A part with a counterexample there is refused and logged. Every part in `parts/` and `parts-profile/` is proven for every input, as none has data in-ports. In 20 seconds each, the hand-built register reaches N = 1662, add 193, gate 801 and zero test 2181. The check found that the hand-built add loop failed at a = 14, b = 0, n = 0, since done fired a step before the accumulator had finished draining a into the sum, and its cases only go up to a = 2. With done joined to the accumulator's done, it is proven up to 30 in two minutes.
 
 ## Exporting to hardware
 
@@ -271,6 +287,8 @@ python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements
 A network outside the profile is refused, naming the rule that breaks it, because only there is the mapping exact. Each neuron becomes an `IF` neuron with threshold k - 0.5 and reset 0, synapses have weight 1 (0 from a forgetting neuron), and an axonal delay is a `Delay` node. One SN P step is one time step; the full mapping is at the top of `tools/snp_nir.py` and in RESEARCH.md. snnTorch is not used, because its NIR import reads `IF` as a leaky neuron.
 
 The co-simulation tests skip with the reason when iverilog or the Python packages are missing.
+
+**Uppaal.** `export-uppaal --part FILE` writes a part as Uppaal timed automata (`NAME.xml`) with queries for its contract (`NAME.q`), and runs them with `verifyta` when it is on PATH, at `UPPAAL_VERIFYTA`, or in an Uppaal folder in `/Applications`. It exits with 3 when a query fails. This is our own translation of our engine's step, as the published one could not be read (see RESEARCH.md). It has not yet been run under Uppaal, so treat it as untested.
 
 ## Benchmarking and choosing an algorithm
 

@@ -82,16 +82,42 @@ namespace SnpEvolution.Evolution
         public FitnessResult Evaluate(Network network) => EvaluateAll(new[] { network })[0];
 
         // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is.
-        public bool IsReliablySolved(Network network)
+        public bool IsReliablySolved(Network network) => FailedRetest(network) == null;
+
+        // A failed retest becomes the individual's score, since an elite kept with a lucky score is never rescored and fails every retest.
+        public bool ConfirmSolved(Individual individual)
+        {
+            if (FailedRetest(individual.Genes) is not FitnessResult failed)
+            {
+                return true;
+            }
+            individual.Record(failed);
+            return false;
+        }
+
+        // The first retest that does not solve the task, or null when they all do.
+        private FitnessResult? FailedRetest(Network network)
         {
             FitnessResult Retest() => EvaluateAll(new[] { network }, EvaluationSource.Verification)[0];
             bool Solves(FitnessResult result) => IsSolvingFitness(result.Fitness) && result.Fitness >= Task.SolvedFitness;
             FitnessResult first = Retest();
             if (!Solves(first))
             {
-                return false;
+                return first;
             }
-            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => Solves(Retest()));
+            if (first.Exact)
+            {
+                return null;
+            }
+            for (int retest = 1; retest < solvedRetestCount; retest++)
+            {
+                FitnessResult result = Retest();
+                if (!Solves(result))
+                {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 }

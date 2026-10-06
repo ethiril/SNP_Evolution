@@ -13,7 +13,7 @@ namespace SnpEvolution.Tests.Evolution
         public HandBuiltMachinesTests(ITestOutputHelper output) => this.output = output;
 
         [Fact]
-        public void TheAddLoopMeetsItsContractOnTheExhaustiveEngine()
+        public void TheAddLoopMeetsItsContractAndDrainsALargeAccumulatorBeforeDone()
         {
             var library = new ModuleLibrary();
             foreach (Part part in HandBuiltParts.All())
@@ -21,8 +21,11 @@ namespace SnpEvolution.Tests.Evolution
                 library.AddPart(ModuleFixtures.Verified(part), "a test");
             }
             (Composition loop, PortBinding binding) = HandBuiltMachines.AddLoop(library);
+            Contract contract = ArithmeticParts.AddLoop();
+            Specification specification = Assert.IsType<Specification>(Specifications.For(contract));
+            ContractCase largeA = specification.Expected(new Dictionary<string, int> { ["a"] = 14, ["b"] = 0, ["n"] = 0 });
 
-            PartMeasurement measurement = PartEvolution.Measure(new Part(ArithmeticParts.AddLoop(), loop.Flatten(library), binding));
+            PartMeasurement measurement = PartEvolution.Measure(new Part(contract with { Cases = contract.Cases.Append(largeA).ToList() }, loop.Flatten(library), binding));
 
             output.WriteLine($"{measurement.Cost}, latency {measurement.Latency}");
             output.WriteLine(measurement.Description);
@@ -41,6 +44,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.False(library.PartFor("register")!.Part!.IsComposite);
             Assert.Equal(7, loop.Recipe!.Parts.Count);
             Assert.True(loop.Cost.Neurons > ModuleLibrary.MaxModuleNeurons);
+            Assert.Equal(BoundedCheck.Admission(loop.Contract).MaxBound, loop.Proven?.UpTo);
             output.WriteLine(string.Join(Environment.NewLine, log));
         }
     }

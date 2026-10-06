@@ -25,4 +25,16 @@ namespace SnpEvolution.Tests.Export
             }
         }
     }
+
+    // A test that runs Uppaal's verifyta, skipped with the reason when it is not installed.
+    public sealed class VerifytaFactAttribute : FactAttribute
+    {
+        public VerifytaFactAttribute()
+        {
+            if (!Verifyta.IsInstalled)
+            {
+                Skip = Verifyta.Missing;
+            }
+        }
+    }
 }

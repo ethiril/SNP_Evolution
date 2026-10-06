@@ -15,14 +15,15 @@ namespace SnpEvolution.Tests.Networks
 
         [Theory]
         [MemberData(nameof(Expressions))]
-        public void MatchesTheSameCountsAsTheAnchoredRegex(string expression)
+        public void MatchesTheSameCountsAsTheAnchoredRegexButNeverAnEmptyNeuron(string expression)
         {
             var regex = new Regex("^(?:" + expression + ")$", RegexOptions.NonBacktracking);
             SpikeCondition condition = SpikeCondition.Parse(expression);
 
             for (int spikes = 0; spikes <= 200; spikes++)
             {
-                Assert.True(regex.IsMatch(new string('a', spikes)) == condition.Matches(spikes), $"'{expression}' disagrees at {spikes} spikes");
+                bool expected = spikes > 0 && regex.IsMatch(new string('a', spikes));
+                Assert.True(expected == condition.Matches(spikes), $"'{expression}' disagrees at {spikes} spikes");
             }
         }
 

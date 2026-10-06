@@ -80,6 +80,24 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void ALuckyScoreDoesNotSolveAStageAndIsReplacedByItsFailedRetest()
+        {
+            var lucky = new Individual(AlwaysOutputsOne());
+            lucky.Record(new FitnessResult(1f, new[] { 1 }));
+            var algorithm = new ModularEvolutionTests.StubAlgorithm();
+            algorithm.Individuals.Add(lucky);
+            var iterative = new IterativeEvolution(new SequenceTask("twos", Enumerable.Repeat(2, 4).ToList()), new[] { 2, 4 },
+                stageTask => new FitnessEvaluator(new SequentialCpuEngine(), stageTask, new SimulationOptions(5, 3, OutputTiming.Interval), 2, new Random(0)),
+                _ => algorithm,
+                _ => { });
+
+            iterative.NextGeneration();
+
+            Assert.False(iterative.Stages.Single().Solved);
+            Assert.True(lucky.Fitness < 1f);
+        }
+
+        [Fact]
         public void StagnationEscalatesThenRestartsAndCalmsDownOnANewTask()
         {
             var random = new Random(2);
