@@ -1,5 +1,5 @@
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Tests.Evolution
@@ -8,7 +8,7 @@ namespace SnpEvolution.Tests.Evolution
     {
         private static readonly PartOrigin ByHand = new PartOrigin(0, "by hand", 0);
 
-        private static LibraryPart Measured(Part part) => LibraryPart.Of(part, PartEvolution.Measure(part), ByHand);
+        private static LibraryPart Measured(Part part) => Verifier.Measure(part).ToLibraryPart(part, ByHand);
 
         // The reference delay with a neuron that holds nothing and does nothing: the same behaviour at a higher cost.
         private static Part PaddedDelay(int k)
@@ -21,7 +21,7 @@ namespace SnpEvolution.Tests.Evolution
         public void PartsThatReadTheSameOnEveryCaseHaveTheSameBehaviour()
         {
             Assert.Equal(Measured(ReferenceParts.Delay(2)).Behaviour, Measured(PaddedDelay(2)).Behaviour);
-            Assert.NotEqual(Measured(ReferenceParts.Delay(2)).Behaviour, Measured(ReferenceParts.DelayFiringDoneTwice(2)).Behaviour);
+            Assert.NotEqual(Measured(ReferenceParts.Delay(2)).Behaviour, Measured(PartFixtures.DelayFiringDoneTwice(2)).Behaviour);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace SnpEvolution.Tests.Evolution
             var library = new ModuleLibrary();
 
             Module right = library.AddPart(Measured(ReferenceParts.Delay(2)), "first");
-            Module firingTwice = library.AddPart(Measured(ReferenceParts.DelayFiringDoneTwice(2)), "second");
+            Module firingTwice = library.AddPart(Measured(PartFixtures.DelayFiringDoneTwice(2)), "second");
 
             Assert.NotEqual(right.Id, firingTwice.Id);
             Assert.Equal(2, library.Parts.Count);

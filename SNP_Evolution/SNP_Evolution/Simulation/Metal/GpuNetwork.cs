@@ -35,9 +35,10 @@ namespace SnpEvolution.Simulation.Metal
     // that send to it, because the kernel gathers spikes instead of scattering them.
     internal sealed class GpuNetwork
     {
-        // The kernel's limits: it keeps output releases in a fixed table, and delays and emissions in 16 bits.
-        private const int MaxOutputs = 64;
-        private const int MaxSmallValue = ushort.MaxValue;
+        // The kernel's limits, which MetalEngine.Support declares: it keeps output releases in a fixed table, and delays
+        // and emissions in 16 bits.
+        public const int MaxOutputs = 64;
+        public const int MaxSmallValue = ushort.MaxValue;
 
         private static readonly ConditionalWeakTable<CompiledNetwork, GpuNetwork> Cache = new ConditionalWeakTable<CompiledNetwork, GpuNetwork>();
 
@@ -103,11 +104,6 @@ namespace SnpEvolution.Simulation.Metal
                     Fires = network.ruleFires[rule] ? 1u : 0u,
                 };
             }
-            // The kernel has no axon to hold spikes in flight, so networks with axonal delays run on the CPU.
-            IsSupported = outputCount <= MaxOutputs
-                && network.MaxAxonalDelay == 0
-                && network.ruleDelay.All(delay => delay <= MaxSmallValue)
-                && network.ruleProduce.All(produce => produce <= short.MaxValue);
             Accepts = new byte[network.accepts.Length];
             for (int index = 0; index < Accepts.Length; index++)
             {
@@ -125,9 +121,6 @@ namespace SnpEvolution.Simulation.Metal
         public uint[] Incoming { get; }
 
         public int OutputCount { get; }
-
-        // Whether the network is within the kernel's limits; one that is not runs on the CPU.
-        public bool IsSupported { get; }
 
         public static GpuNetwork Of(CompiledNetwork network) => Cache.GetValue(network, created => new GpuNetwork(created));
     }

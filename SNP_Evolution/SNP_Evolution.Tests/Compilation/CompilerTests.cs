@@ -1,5 +1,7 @@
 using SnpEvolution.Compilation;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -136,7 +138,7 @@ namespace SnpEvolution.Tests.Compilation
 
             ScoredProgram best = search.Run(_ => { });
 
-            Assert.True(FitnessEvaluator.IsSolvingFitness(best.Fitness), best.Program.ToString());
+            Assert.True(Solved.Solves(best.Fitness), best.Program.ToString());
             Assert.Equal(new[] { 2, 3 }, Generated(RegisterMachineCompiler.Compile(best.Program)));
         }
 

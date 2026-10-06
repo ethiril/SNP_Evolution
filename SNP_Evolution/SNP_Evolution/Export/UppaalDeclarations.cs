@@ -3,9 +3,10 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Export
 {
@@ -237,7 +238,7 @@ namespace SnpEvolution.Export
                     }
                 }
             }
-            List<(Port Port, int Neuron)> watched = PortBinding.OutPorts(contract).Select(port => (port, part.Binding[port.Name] - 1)).ToList();
+            List<(Port Port, int Neuron)> watched = PortLayout.OutPorts(contract).Select(port => (port, part.Binding[port.Name] - 1)).ToList();
             text.AppendLine($"  if (step <= START[caseNo] && ({string.Join(" || ", watched.Select(pair => $"emit[{pair.Neuron}] > 0"))})) quietBroken = true;");
             for (int slot = 0; slot < done.Count; slot++)
             {

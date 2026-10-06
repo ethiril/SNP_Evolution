@@ -73,9 +73,7 @@ namespace SnpEvolution.Evolution.Tasks
         public IReadOnlyList<TaskCase> Cases { get; }
 
         public int StepsNeeded { get; }
-
-        // A controller that misjudges one window in a long train is still wrong, and with many windows one miss would score above the usual threshold.
-        public float SolvedFitness => 1f;
+        public float SolvedFitness => Solved.EveryRun;
 
         // Bursts of at least spikes input spikes within the given steps, each answered by exactly one output spike before
         // the next burst can start, among glitches of fewer spikes and quiet stretches, which get no answer. A burst or

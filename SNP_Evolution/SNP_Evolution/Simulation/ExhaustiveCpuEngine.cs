@@ -10,9 +10,10 @@ namespace SnpEvolution.Simulation
     // merged, which keeps the small networks evolution works with cheap. When only halting matters and the input is
     // spent, a configuration seen on any earlier step is dropped too, as its future has already been explored with
     // more steps to spare; a network that cycles without halting is then settled in a few steps. A trial whose
-    // configurations outgrow maxConfigurations falls back to sampling, and its result says it is not exact. Spike train
+    // configurations outgrow maxConfigurations is sampled instead, and its result says TooWide. Spike train
     // and Ports readouts keep what they have recorded in the merge key, so only computations with the same record so far
     // are merged; each distinct computation is reported once. A deterministic network then costs one configuration a step.
+    // Jitter would need a delay choice for every spike on every synapse, past following, so it is not supported.
     public sealed class ExhaustiveCpuEngine : ISimulationEngine
     {
         public const int DefaultMaxConfigurations = 2_000;
@@ -24,46 +25,48 @@ namespace SnpEvolution.Simulation
             this.maxConfigurations = maxConfigurations;
         }
 
-        // Refuses jitter: a delay choice for every spike on every synapse would multiply the computations past following.
+        public EngineSupport Support { get; } = new EngineSupport(Jitter: false, AxonalDelay: true, Ports: true, EveryComputation: true);
+
         public IReadOnlyList<TrialResult> Run(IReadOnlyList<Trial> trials, SimulationOptions options, Random random)
         {
-            if (options.Jitter > 0)
-            {
-                throw new ArgumentException("The exhaustive engine cannot follow jitter; sample jittered runs instead.", nameof(options));
-            }
-            int[] seeds = ParallelCpuEngine.Seeds(trials.Count, random);
+            int[] seeds = Sampling.Seeds(trials.Count, random);
             var results = new TrialResult[trials.Count];
             Parallel.For(0, trials.Count, index =>
-                results[index] = Explore(trials[index], options) ?? NetworkRunner.Sample(trials[index], options, new Random(seeds[index])));
+            {
+                TrialResult explored = Explore(trials[index], options);
+                results[index] = explored.Coverage == TrialCoverage.TooWide
+                    ? NetworkRunner.Sample(trials[index], options, new Random(seeds[index])) with { Coverage = TrialCoverage.TooWide }
+                    : explored;
+            });
             return results;
         }
 
-        // Null when the computation tree is too wide to follow.
-        public TrialResult? Explore(Trial trial, SimulationOptions options)
+        // Every computation of the trial; a TooWide result, with nothing in it, when there are too many to follow.
+        public TrialResult Explore(Trial trial, SimulationOptions options)
         {
-            if (options.Jitter > 0)
+            if (!Support.Runs(trial, options))
             {
-                throw new ArgumentException("The exhaustive engine cannot follow jitter; sample jittered runs instead.", nameof(options));
+                return TrialResult.Unsupported;
             }
             var outputs = new SortedSet<int>();
             var portRuns = new Dictionary<long[], PortRun>(StateComparer.Instance);
             var spikeTrains = new Dictionary<long[], IReadOnlyList<int>>(StateComparer.Instance);
             bool recordSpikeTrain = trial.Readout == Readout.SpikeTrain;
             bool canHalt = false;
-            PortWatch? watch = NetworkRunner.WatchOf(trial);
-            var frontier = new List<NetworkSimulation> { new NetworkSimulation(CompiledNetwork.Of(trial.Network), null, trial.Input, options.Timing, recordSpikeTrain, watch) };
+            PortWatch? watch = trial.PortsWatch;
+            var frontier = new List<NetworkStep> { new NetworkStep(CompiledNetwork.Of(trial.Network), trial.Input, options.Timing, recordSpikeTrain, watch) };
             HashSet<long[]>? seen = trial.Readout == Readout.Halting ? new HashSet<long[]>(StateComparer.Instance) : null;
             for (int step = 0; step < options.MaxSteps && frontier.Count > 0; step++)
             {
-                var next = new Dictionary<long[], NetworkSimulation>(StateComparer.Instance);
-                foreach (NetworkSimulation configuration in frontier)
+                var next = new Dictionary<long[], NetworkStep>(StateComparer.Instance);
+                foreach (NetworkStep configuration in frontier)
                 {
                     if (configuration.IsHalted)
                     {
                         // One halting computation is all an acceptor needs, so there is no point exploring further.
                         if (trial.Readout == Readout.Halting)
                         {
-                            return new TrialResult(Array.Empty<int>(), true, Exact: true);
+                            return new TrialResult(Array.Empty<int>(), true, TrialCoverage.Exact);
                         }
                         canHalt = true;
                         Finish(configuration);
@@ -76,17 +79,17 @@ namespace SnpEvolution.Simulation
                     }
                     if (!Expand(configuration, trial.Readout, outputs, next, seen))
                     {
-                        return null;
+                        return new TrialResult(Array.Empty<int>(), false, TrialCoverage.TooWide);
                     }
                 }
                 frontier = next.Values.ToList();
             }
             canHalt |= frontier.Any(configuration => configuration.IsHalted);
             frontier.ForEach(Finish);
-            return new TrialResult(outputs.ToList(), canHalt, Exact: true, spikeTrains.Values.ToList(), portRuns.Values.ToList());
+            return new TrialResult(outputs.ToList(), canHalt, TrialCoverage.Exact, spikeTrains.Values.ToList(), portRuns.Values.ToList());
 
             // Records a computation that has run its course, once for each distinct record.
-            void Finish(NetworkSimulation configuration)
+            void Finish(NetworkStep configuration)
             {
                 if (watch != null)
                 {
@@ -103,12 +106,12 @@ namespace SnpEvolution.Simulation
             }
         }
 
-        private static void AddPortRun(Dictionary<long[], PortRun> portRuns, NetworkSimulation configuration) =>
+        private static void AddPortRun(Dictionary<long[], PortRun> portRuns, NetworkStep configuration) =>
             portRuns.TryAdd(configuration.PortHistory().Concat(configuration.Spikes).ToArray(), configuration.PortRun());
 
         // Adds every successor of the configuration to next, or returns false once there are too many.
         private bool Expand(
-            NetworkSimulation configuration, Readout readout, SortedSet<int> outputs, Dictionary<long[], NetworkSimulation> next, HashSet<long[]>? seen)
+            NetworkStep configuration, Readout readout, SortedSet<int> outputs, Dictionary<long[], NetworkStep> next, HashSet<long[]>? seen)
         {
             int neuronCount = configuration.NeuronCount;
             var options = new int[neuronCount][];
@@ -117,7 +120,7 @@ namespace SnpEvolution.Simulation
             for (int neuron = 0; neuron < neuronCount; neuron++)
             {
                 int count = configuration.CollectApplicableRules(neuron, buffer);
-                options[neuron] = count == 0 ? new[] { NetworkSimulation.NoRule } : buffer[..count].ToArray();
+                options[neuron] = count == 0 ? new[] { NetworkStep.NoRule } : buffer[..count].ToArray();
                 combinations *= options[neuron].Length;
                 if (combinations > maxConfigurations)
                 {
@@ -132,7 +135,7 @@ namespace SnpEvolution.Simulation
                 {
                     choice[neuron] = options[neuron][position[neuron]];
                 }
-                NetworkSimulation successor = configuration.Clone();
+                NetworkStep successor = configuration.Clone();
                 successor.Apply(choice);
                 if (readout == Readout.Output && successor.Output is int output)
                 {

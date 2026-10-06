@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Storage;
 
@@ -22,15 +24,11 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
-        public void EveryKnownContractAgreesWithItsSpecification()
+        public void EveryKnownContractFindsTheSpecificationItIsBuiltFrom()
         {
-            Assert.All(ArithmeticParts.Known, contract =>
-            {
-                Specification? specification = Specifications.For(contract);
-                Assert.True(specification != null, contract.Name);
-                Assert.Empty(Specifications.Disagreements(contract, specification!));
-            });
+            Assert.All(ArithmeticParts.KnownEntries, entry => Assert.Same(entry.Specification, Specification.For(entry.Contract)));
         }
+
 
         [Fact]
         [Slow]
@@ -42,7 +40,7 @@ namespace SnpEvolution.Tests.Evolution
             BoundedResult result = BoundedCheck.Prove(register with { Contract = doubled }, AMinute);
 
             Assert.Equal(-1, result.Proven.UpTo);
-            Assert.Contains("disagree", result.Proven.Stopped);
+            Assert.Equal(Stop.NoSpecification, Assert.IsType<Verdict.Unknown>(result.Verdict).Reason.Stop);
         }
 
         [Fact]
@@ -53,7 +51,7 @@ namespace SnpEvolution.Tests.Evolution
 
             BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxBound = 32 });
 
-            Assert.Null(result.Counterexample);
+            Assert.IsNotType<Verdict.Failed>(result.Verdict);
             Assert.Equal(32, result.Proven.UpTo);
             Assert.True(clock.Elapsed < TimeSpan.FromMinutes(1), $"took {clock.Elapsed}");
         }
@@ -63,18 +61,21 @@ namespace SnpEvolution.Tests.Evolution
         public void CatchesAPartThatFailsOnlyAtTwentyWithItsTrace()
         {
             Part broken = RegisterFailingAtTwenty();
-            Assert.True(PartEvolution.Measure(broken).MeetsContract);
+            Assert.IsType<Verdict.Passed>(Verifier.Measure(broken).Verdict);
 
             BoundedResult result = BoundedCheck.Prove(broken, AMinute);
 
             Assert.Equal(19, result.Proven.UpTo);
             Assert.Equal("n=20", result.Proven.FailsAt);
-            Counterexample counterexample = Assert.IsType<Counterexample>(result.Counterexample);
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(result.Verdict).Counterexample;
             Assert.Equal("n=20", counterexample.Inputs);
-            Assert.Equal("done,out=20", counterexample.Expected);
-            Assert.NotEqual(counterexample.Expected, counterexample.Read);
-            Assert.StartsWith("Spikes held after each step", counterexample.Trace);
-            Assert.Contains("start", counterexample.Trace.Split('\n')[1]);
+            Assert.Equal(20, counterexample.Case.Outputs["out"]);
+            Assert.NotEqual("done,out=20", counterexample.Read);
+            string[] text = CounterexampleText.Of(broken, counterexample).Split('\n');
+            Assert.StartsWith("Counterexample at n=20:", text[0]);
+            Assert.Contains("Expected done,out=20", text[0]);
+            Assert.StartsWith("Spikes held after each step", text[1]);
+            Assert.Contains("start", text[2]);
         }
 
         [Fact]
@@ -85,10 +86,11 @@ namespace SnpEvolution.Tests.Evolution
             Neuron start = delay.Network.Neurons[0];
             var sometimesTwice = delay with { Network = new Network(new[] { start.WithRules(new[] { Rule.Standard("a", 1, 1), Rule.Standard("a", 1, 2) }), delay.Network.Neurons[1] }) };
 
-            Counterexample counterexample = Assert.IsType<Counterexample>(BoundedCheck.Prove(sometimesTwice, AMinute).Counterexample);
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(sometimesTwice, AMinute).Verdict).Counterexample;
 
-            Assert.NotEqual(counterexample.Expected, counterexample.Read);
-            Assert.StartsWith("Port firings of the failing computation", counterexample.Trace);
+            Assert.Equal(ContractRule.DoneOnce, counterexample.Rule);
+            Assert.Equal(2, counterexample.Run.Firings.Last().Count);
+            Assert.StartsWith("Port firings of the failing computation", CounterexampleText.Of(sometimesTwice, counterexample).Split('\n')[1]);
         }
 
         [Fact]
@@ -96,7 +98,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var log = new List<string>();
 
-            Assert.Null(BoundedCheck.Admit(RegisterFailingAtTwenty(), log.Add));
+            Assert.IsType<Verdict.Failed>(BoundedCheck.Admit(RegisterFailingAtTwenty(), log.Add).Verdict);
             Assert.Contains(log, line => line.Contains("Not admitted") && line.Contains("n=20"));
             Assert.Equal(24, BoundedCheck.Admission(FirstParts.Named("register")).MaxBound);
         }
@@ -109,6 +111,7 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.True(result.Proven.AllInputs);
             Assert.Equal(0, result.Proven.UpTo);
+            Assert.IsType<Verdict.Passed>(result.Verdict);
         }
 
         [Fact]
@@ -117,9 +120,9 @@ namespace SnpEvolution.Tests.Evolution
         {
             BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxConfigurations = 0 });
 
-            Assert.Null(result.Counterexample);
             Assert.Equal(-1, result.Proven.UpTo);
-            Assert.Contains("too many computations", result.Proven.Stopped);
+            Assert.Equal(Stop.TooWide, Assert.IsType<Verdict.Unknown>(result.Verdict).Reason.Stop);
+            Assert.Contains("too many computations", result.Proven.Stopped.ToString());
         }
 
         [Fact]
@@ -130,7 +133,7 @@ namespace SnpEvolution.Tests.Evolution
             {
                 BoundedResult result = BoundedCheck.Prove(part, BoundedCheck.Admission(part.Contract) with { Time = TimeSpan.FromMinutes(1) });
 
-                Assert.True(result.Counterexample == null, $"{part.Contract.Name}: {result.Counterexample}");
+                Assert.True(result.Verdict is not Verdict.Failed, $"{part.Contract.Name}: {result.Verdict}");
                 Assert.Equal(BoundedCheck.Admission(part.Contract).MaxBound, result.Proven.UpTo);
             });
         }
@@ -138,20 +141,50 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void InputsAtABoundHaveThatLargestValueAndIntervalsStartAtOne()
         {
-            Assert.Equal(16 - 9, BoundedCheck.InputsWithLargest(FirstParts.Named("add"), 3).Count());
-            Assert.Empty(BoundedCheck.InputsWithLargest(FirstParts.Named("interval to count"), 0));
-            Assert.Equal(new[] { 1 }, BoundedCheck.InputsWithLargest(FirstParts.Named("interval to count"), 1).Select(inputs => inputs["n"]));
+            Assert.Equal(16 - 9, BoundedInputs.WithLargest(FirstParts.Named("add"), 3).Count());
+            Assert.Empty(BoundedInputs.WithLargest(FirstParts.Named("interval to count"), 0));
+            Assert.Equal(new[] { 1 }, BoundedInputs.WithLargest(FirstParts.Named("interval to count"), 1).Select(inputs => inputs["n"]));
         }
 
         [Fact]
         public void ALibraryFileKeepsItsProvenBound()
         {
             Part delay = ReferenceParts.Delay(2);
-            LibraryPart part = LibraryPart.Of(delay, PartEvolution.Measure(delay), new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, "every input checked") };
+            LibraryPart part = Verifier.Measure(delay).ToLibraryPart(delay, new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
 
             LibraryPart read = PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "delay-2.json");
 
             Assert.Equal(part.Proven, read.Proven);
+            Assert.Contains("\"Stopped\": \"every input checked\"", PartLibraryFiles.ToJson(part));
+        }
+
+        // Part files keep the reason as text, so the files written before it was typed read back as the same reason.
+        [Theory]
+        [InlineData("every input checked")]
+        [InlineData("bound 6 reached")]
+        [InlineData("time limit of 10 s")]
+        [InlineData("n=3 has too many computations to follow exactly")]
+        [InlineData("counterexample at a=14,b=0,n=0")]
+        [InlineData("the contract has no specification")]
+        public void AStopReasonReadsBackFromItsText(string text)
+        {
+            StopReason reason = StopReason.Parse(text);
+
+            Assert.NotEqual(Stop.Other, reason.Stop);
+            Assert.Equal(text, reason.ToString());
+        }
+
+        // CEGIS adds a counterexample's case to the cases a search scores on.
+        [Fact]
+        [Slow]
+        public void ACounterexampleIsACaseAContractCanTake()
+        {
+            Part broken = RegisterFailingAtTwenty();
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(broken, AMinute).Verdict).Counterexample;
+
+            Contract withIt = broken.Contract with { Cases = broken.Contract.Cases.Append(counterexample.Case).ToList(), MaxLatency = counterexample.Contract.MaxLatency };
+
+            Assert.IsType<Verdict.Failed>(new Verifier(new ContractTask(withIt, broken.Binding)).Check(broken.Network));
         }
 
         [Fact]
@@ -159,7 +192,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ALibraryFileWithACounterexampleIsRefused()
         {
             Part broken = RegisterFailingAtTwenty();
-            LibraryPart part = LibraryPart.Of(broken, PartEvolution.Measure(broken), new PartOrigin(0, "by hand", 0)) with { Proven = BoundedCheck.Prove(broken, AMinute).Proven };
+            LibraryPart part = Verifier.Measure(broken).ToLibraryPart(broken, new PartOrigin(0, "by hand", 0)) with { Proven = BoundedCheck.Prove(broken, AMinute).Proven };
 
             var refusal = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "register.json"));
 

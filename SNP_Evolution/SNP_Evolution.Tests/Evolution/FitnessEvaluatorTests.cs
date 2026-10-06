@@ -1,4 +1,4 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -97,7 +97,7 @@ namespace SnpEvolution.Tests.Evolution
             lucky.Record(new FitnessResult(1f, new[] { 1, 1 }));
 
             Assert.False(evaluator.ConfirmSolved(lucky));
-            Assert.False(FitnessEvaluator.IsSolvingFitness(lucky.Fitness));
+            Assert.False(Solved.Solves(lucky.Fitness));
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace SnpEvolution.Tests.Evolution
         [InlineData(float.NaN, false)]
         public void SolvingFitnessIsBetweenTheThresholdAndOne(float fitness, bool solving)
         {
-            Assert.Equal(solving, FitnessEvaluator.IsSolvingFitness(fitness));
+            Assert.Equal(solving, Solved.Solves(fitness));
         }
 
         private sealed class ScriptedRandom : Random

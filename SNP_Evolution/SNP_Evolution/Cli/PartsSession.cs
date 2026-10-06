@@ -4,9 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 
@@ -52,12 +53,13 @@ namespace SnpEvolution.Cli
                 PartOutcome outcome = PartEvolution.Evolve(contract, options.Seed, settings, log);
                 if (outcome.Part is Part part && outcome.Measurement is PartMeasurement measurement)
                 {
-                    if (BoundedCheck.Admit(part, log) is not ProvenBound proven)
+                    BoundedResult admission = BoundedCheck.Admit(part, log);
+                    if (admission.Verdict is Verdict.Failed)
                     {
                         rows.Add(new Row(contract.Name, "fails past its cases", outcome.Evaluations, kept?.Part));
                         continue;
                     }
-                    Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, run, outcome.Evaluations)) with { Proven = proven }, run);
+                    Module module = library.AddPart(measurement.ToLibraryPart(part, new PartOrigin(outcome.Seed, run, outcome.Evaluations)) with { Proven = admission.Proven }, run);
                     rows.Add(new Row(contract.Name, "solved", outcome.Evaluations, module.Part));
                 }
                 else

@@ -1,8 +1,6 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Cli
@@ -42,7 +40,7 @@ namespace SnpEvolution.Tests.Cli
             try
             {
                 var library = new ModuleLibrary();
-                library.AddPart(LibraryPart.Of(ReferenceParts.Delay(2), PartEvolution.Measure(ReferenceParts.Delay(2)), new PartOrigin(1, "a test", PartCost)), "a test");
+                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2)).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", PartCost)), "a test");
                 PartLibraryFiles.Save(library, folder);
                 Settings settings = Budgeted(folder, PartCost + 100);
 

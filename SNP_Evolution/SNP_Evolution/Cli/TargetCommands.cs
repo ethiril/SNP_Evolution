@@ -2,14 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Search;
 using static SnpEvolution.Cli.CommandLine;
 using static SnpEvolution.Cli.CommandOptions;
 

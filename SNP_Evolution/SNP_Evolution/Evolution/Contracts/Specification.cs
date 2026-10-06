@@ -4,101 +4,53 @@ using System.Linq;
 
 namespace SnpEvolution.Evolution.Contracts
 {
-    // What a contract means for every input rather than for its test cases: which inputs it covers, the case each one
-    // should give, and the latency allowed when every input is at most a bound. A bounded check proves a part against it.
+    // What a part computes for every input rather than for its test cases: its name and ports, which inputs it covers,
+    // the case each input should give, and the latency it is allowed on that input. A contract is built from it and the
+    // inputs to test (ContractFor); a bounded check proves a part against it for every input up to a bound.
     public sealed record Specification(
+        string Name,
+        IReadOnlyList<Port> Done,
+        IReadOnlyList<Port> Data,
         Func<IReadOnlyDictionary<string, int>, bool> InDomain,
         Func<IReadOnlyDictionary<string, int>, ContractCase> Expected,
-        Func<int, int> Latency);
-
-    // Contracts are stored as test cases, so a specification is found by the contract's name and checked against its cases
-    // before it is trusted: a contract that only shares a known name is not proven against the wrong function.
-    public static class Specifications
+        Func<IReadOnlyDictionary<string, int>, int> Latency,
+        int MinLatency = 0,
+        bool OrderedTriggers = false)
     {
-        // Null when the contract has no specification, as a proposed contract does.
-        public static Specification? For(Contract contract)
+        public static Port Start => Port.In("start", PortKind.Trigger);
+
+        public static Port DoneOut => Port.Out("done", PortKind.Trigger);
+
+        public IEnumerable<Port> DataIn => Data.Where(port => port.Direction == PortDirection.In);
+
+        // The contract whose cases are the given inputs, each row a value per data in-port in order, and whose latency is
+        // the most any of them is allowed.
+        public Contract ContractFor(IEnumerable<IReadOnlyList<int>> values)
         {
-            if (!contract.DataIn.Any())
+            List<IReadOnlyDictionary<string, int>> inputs = values.Select(Inputs).ToList();
+            if (inputs.FirstOrDefault(input => !InDomain(input)) is IReadOnlyDictionary<string, int> outside)
             {
-                return contract.Cases.Count == 1 ? new Specification(_ => true, _ => contract.Cases[0], _ => contract.MaxLatency) : null;
+                throw new ArgumentException($"The input {string.Join(",", outside.Select(pair => $"{pair.Key}={pair.Value}"))} is outside the domain of {Name}.", nameof(values));
             }
-            bool binary = contract.DataIn.All(port => port.Kind == PortKind.Binary);
-            string name = binary ? contract.Name.Replace($" {ArithmeticParts.OperandBits}-bit", "") : contract.Name;
-            if (Counted(name) is not Specification counted)
-            {
-                return null;
-            }
-            Specification specification = counted with { Expected = inputs => counted.Expected(inputs) with { Inputs = inputs } };
-            // A binary port bounds its values, so the contract's own latency already covers every input.
-            return binary ? specification with { Latency = _ => contract.MaxLatency } : specification;
+            return new Contract(Name, Start, Done, Data, inputs.Select(Expected).ToList(), inputs.Max(Latency), MinLatency, OrderedTriggers);
         }
 
-        // Each case of the contract the specification leaves out or reads differently; empty when they agree.
-        public static IReadOnlyList<string> Disagreements(Contract contract, Specification specification) =>
-            contract.Cases.Select((@case, index) => (@case, index))
-                .Select(pair => !specification.InDomain(pair.@case.Inputs) ? $"case {pair.index + 1} is outside the specification's domain"
-                    : !SameCase(specification.Expected(pair.@case.Inputs), pair.@case) ? $"case {pair.index + 1} expects other outputs than the specification"
-                    : null)
-                .OfType<string>()
-                .ToList();
+        // The one data out-port's value for the given values of the data in-ports, in order, for a task that reads it.
+        public int Value(params int[] values) => Expected(Inputs(values)).Outputs.Values.Single();
 
-        private static bool SameCase(ContractCase expected, ContractCase given) =>
-            expected.Done == given.Done && expected.Outputs.Count == given.Outputs.Count
-            && expected.Outputs.All(pair => given.Outputs.TryGetValue(pair.Key, out int value) && value == pair.Value);
+        // The specification a contract was built from: a catalogued contract's, found by everything the contract says
+        // rather than by its name, or for a contract with no data in-ports its own (Fixed). Null otherwise, as for a
+        // proposed contract.
+        public static Specification? For(Contract contract) =>
+            ArithmeticParts.KnownEntries.FirstOrDefault(entry => entry.Contract.SameAs(contract))?.Specification ?? Fixed(contract);
 
-        // Latencies grow with the values as the contracts' own were set, from FirstParts.LatencyFor of the largest value
-        // in the cases; loops take a round per unit of one operand, each about as long as the other operand.
-        private static Specification? Counted(string name)
-        {
-            switch (name)
-            {
-                case "fan-out":
-                    return Single("n", n => Outputs(("a", n), ("b", n)), FirstParts.LatencyFor);
-                case "increment":
-                    return Single("n", n => Outputs(("out", n + 1)), bound => FirstParts.LatencyFor(bound + 1));
-                case "double":
-                    return Single("n", n => Outputs(("out", 2 * n)), bound => FirstParts.LatencyFor(2 * bound));
-                case "interval to count":
-                case "count to interval":
-                    return Single("n", n => Outputs(("out", n)), FirstParts.LatencyFor, n => n >= 1);
-                case "register":
-                    return Single("n", n => Outputs(("out", n)), FirstParts.LatencyFor);
-                case "decrement":
-                    return Single("n", n => Outputs(("out", n - 1)), FirstParts.LatencyFor, n => n >= 1);
-                case "zero test":
-                    return new Specification(_ => true, inputs => Case(Outputs(), inputs["n"] == 0 ? "zero" : "nonzero"), FirstParts.LatencyFor);
-                case "add":
-                    return Pair("a", "b", (a, b) => Outputs(("sum", a + b)), bound => FirstParts.LatencyFor(2 * bound));
-                case "gate":
-                    return new Specification(inputs => inputs["open"] <= 1, inputs => Case(Outputs(("out", inputs["n"] * inputs["open"]))), FirstParts.LatencyFor);
-                case "add loop":
-                    return new Specification(_ => true, inputs => Case(Outputs(("sum", inputs["a"] + inputs["b"] * inputs["n"]))), Loop);
-                case "subtract":
-                    return Pair("a", "b", (a, b) => Outputs(("difference", a - b)), FirstParts.LatencyFor, (a, b) => a >= b);
-                case "multiply":
-                    return Pair("a", "b", (a, b) => Outputs(("product", a * b)), Loop);
-                case "divide":
-                    return Pair("a", "b", (a, b) => Outputs(("quotient", a / b), ("remainder", a % b)), Loop, (_, b) => b >= 1);
-                case "compare":
-                    return new Specification(_ => true, inputs => Case(Outputs(), inputs["a"] < inputs["b"] ? "less" : "not less"), FirstParts.LatencyFor);
-            }
-            if (name.StartsWith("add ") && int.TryParse(name[4..], out int k) && k >= 1)
-            {
-                return Single("n", n => Outputs(("out", n + k)), bound => FirstParts.LatencyFor(k * (bound + k)));
-            }
-            return null;
-        }
+        // A contract with no data in-ports is its own specification: its one case, and its own latency.
+        public static Specification? Fixed(Contract contract) =>
+            !contract.DataIn.Any() && contract.Cases.Count == 1
+                ? new Specification(contract.Name, contract.Done, contract.Data, _ => true, _ => contract.Cases[0], _ => contract.MaxLatency, contract.MinLatency, contract.OrderedTriggers)
+                : null;
 
-        private static int Loop(int bound) => Math.Max(ArithmeticParts.LoopLatency, (bound + 1) * (4 * bound + 40));
-
-        private static Specification Single(string port, Func<int, Dictionary<string, int>> outputs, Func<int, int> latency, Func<int, bool>? inDomain = null) =>
-            new Specification(inputs => inDomain?.Invoke(inputs[port]) ?? true, inputs => Case(outputs(inputs[port])), latency);
-
-        private static Specification Pair(string first, string second, Func<int, int, Dictionary<string, int>> outputs, Func<int, int> latency, Func<int, int, bool>? inDomain = null) =>
-            new Specification(inputs => inDomain?.Invoke(inputs[first], inputs[second]) ?? true, inputs => Case(outputs(inputs[first], inputs[second])), latency);
-
-        private static Dictionary<string, int> Outputs(params (string Port, int Value)[] values) => values.ToDictionary(value => value.Port, value => value.Value);
-
-        private static ContractCase Case(Dictionary<string, int> outputs, string done = "done") => new ContractCase(new Dictionary<string, int>(), outputs, done);
+        private IReadOnlyDictionary<string, int> Inputs(IReadOnlyList<int> values) =>
+            DataIn.Zip(values).ToDictionary(pair => pair.First.Name, pair => pair.Second);
     }
 }

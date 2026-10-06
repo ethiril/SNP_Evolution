@@ -1,8 +1,10 @@
 using System.Collections.Generic;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Proposals;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
 

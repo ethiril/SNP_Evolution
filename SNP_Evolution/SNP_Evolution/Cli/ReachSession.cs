@@ -7,9 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli

@@ -1,7 +1,7 @@
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Networks;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using Xunit.Abstractions;
 
 namespace SnpEvolution.Tests.Evolution
@@ -22,14 +22,14 @@ namespace SnpEvolution.Tests.Evolution
             }
             (Composition loop, PortBinding binding) = HandBuiltMachines.AddLoop(library);
             Contract contract = ArithmeticParts.AddLoop();
-            Specification specification = Assert.IsType<Specification>(Specifications.For(contract));
+            Specification specification = Assert.IsType<Specification>(Specification.For(contract));
             ContractCase largeA = specification.Expected(new Dictionary<string, int> { ["a"] = 14, ["b"] = 0, ["n"] = 0 });
 
-            PartMeasurement measurement = PartEvolution.Measure(new Part(contract with { Cases = contract.Cases.Append(largeA).ToList() }, loop.Flatten(library), binding));
+            PartMeasurement measurement = Verifier.Measure(new Part(contract with { Cases = contract.Cases.Append(largeA).ToList() }, loop.Flatten(library), binding));
 
             output.WriteLine($"{measurement.Cost}, latency {measurement.Latency}");
             output.WriteLine(measurement.Description);
-            Assert.True(measurement.MeetsContract);
+            Assert.IsType<Verdict.Passed>(measurement.Verdict);
         }
 
         [Fact]

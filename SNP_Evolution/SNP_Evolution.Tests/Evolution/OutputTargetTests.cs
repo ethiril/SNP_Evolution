@@ -1,4 +1,5 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
 using static SnpEvolution.Tests.TestNetworks;
@@ -7,7 +8,7 @@ namespace SnpEvolution.Tests.Evolution
 {
     public class OutputTargetTests
     {
-        private static TrialResult Trains(params int[][] trains) => new TrialResult(Array.Empty<int>(), false, false, trains);
+        private static TrialResult Trains(params int[][] trains) => new TrialResult(Array.Empty<int>(), false, TrialCoverage.Sampled, trains);
 
         private static FitnessResult Evaluate(ITask task, int maxSteps) =>
             new FitnessEvaluator(new ParallelCpuEngine(), task, new SimulationOptions(maxSteps, 5, OutputTiming.Interval), 3, new Random(0)).Evaluate(PingPong());

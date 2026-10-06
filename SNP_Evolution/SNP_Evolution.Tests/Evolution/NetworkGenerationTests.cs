@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Tests.Evolution

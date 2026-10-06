@@ -5,10 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Networks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Benchmarking
@@ -75,11 +80,11 @@ namespace SnpEvolution.Evolution.Benchmarking
             while (evaluator.Evaluations < budget)
             {
                 run.NextGeneration();
-                if (run.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && evaluator.ConfirmSolved(best))
+                if (run.Best is Individual best && Solved.Solves(best.Fitness) && evaluator.ConfirmSolved(best))
                 {
                     IReadOnlyList<PartCount>? reuse = Reuse(best);
                     bool promoted = library != null && AlgorithmCatalog.IsComposition(algorithm.Name) && task.Task is ContractTask contractTask
-                        && Promotion.PromoteSolved(best.Genes, contractTask, library, new PartOrigin(seed, $"benchmark, {algorithm.Name}", evaluator.Evaluations), _ => { }) != null;
+                        && Promotion.PromoteSolved(best.Genes, contractTask, library, new PartOrigin(seed, $"benchmark, {algorithm.Name}", evaluator.Evaluations), _ => { }).Verdict is Verdict.Passed;
                     return new RunOutcome(algorithm.Name, task.Name, seed, true, evaluator.Evaluations, best.Fitness, best, reuse, promoted);
                 }
             }

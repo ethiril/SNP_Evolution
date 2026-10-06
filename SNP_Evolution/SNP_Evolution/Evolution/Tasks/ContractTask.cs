@@ -40,14 +40,14 @@ namespace SnpEvolution.Evolution.Tasks
         public ContractTask(Contract contract, PortBinding? binding = null)
         {
             Contract = contract.Validated();
-            Binding = (binding ?? PortBinding.AfterInputs(contract)).ValidatedFor(contract);
+            Binding = (binding ?? PortLayout.AfterInputs(contract)).ValidatedFor(contract);
             Name = "Contract " + contract.Name;
             InputCount = 1 + contract.DataIn.Count();
             dataOut = contract.DataOut.ToList();
             // Running on for the maximum latency again shows a second done or a part that is still busy.
             StepsAfterDone = dataOut.Where(port => port.Kind == PortKind.Binary).Select(port => port.Width).DefaultIfEmpty(0).Max() + contract.MaxLatency;
             var watch = new PortWatch(
-                PortBinding.OutPorts(contract).Select(port => Binding[port.Name]).ToList(),
+                PortLayout.OutPorts(contract).Select(port => Binding[port.Name]).ToList(),
                 contract.Done.Select(port => Binding[port.Name]).ToList(),
                 StepsAfterDone);
             List<EncodedCase> encoded = contract.Cases.Select(@case => PortEncoding.ForCase(contract, @case, QuietSteps)).ToList();
@@ -59,10 +59,7 @@ namespace SnpEvolution.Evolution.Tasks
         public Contract Contract { get; }
 
         // The contract's ports where a network for it has them, so composition search can wire parts to them by type.
-        public IReadOnlyList<PartPort> Boundary =>
-            new[] { Contract.Start }.Concat(Contract.DataIn).Select((port, index) => new PartPort(port, index + 1))
-                .Concat(PortBinding.OutPorts(Contract).Select(port => new PartPort(port, Binding[port.Name])))
-                .ToList();
+        public IReadOnlyList<PartPort> Boundary => PortLayout.InputsFirst(Contract, Binding);
 
         public PortBinding Binding { get; }
 
@@ -79,8 +76,7 @@ namespace SnpEvolution.Evolution.Tasks
         // The step each case sends its start spike on.
         public IReadOnlyList<int> StartSteps => startSteps;
 
-        // A part either meets its contract or does not: one neuron left holding a spike means it cannot be started again.
-        public float SolvedFitness => 1f;
+        public float SolvedFitness => Solved.EveryRun;
 
         public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
 
@@ -97,7 +93,9 @@ namespace SnpEvolution.Evolution.Tasks
             Contract.Name + " | " + string.Join(" | ", Enumerable.Range(0, Contract.Cases.Count).Select(caseIndex =>
                 string.Join(" or ", results[caseIndex].PortRuns.Select(run => Reading(run, caseIndex)).Distinct().OrderBy(reading => reading, StringComparer.Ordinal))));
 
-        public string CheckName(int check) => $"{CaseLabel(check / RuleCount)}: {RuleNames[check % RuleCount]}";
+        public string CheckName(int check) => $"{CaseLabel(check / RuleCount)}: {RuleName((ContractRule)(check % RuleCount))}";
+
+        public static string RuleName(ContractRule rule) => RuleNames[(int)rule];
 
         public string Describe(IReadOnlyList<TrialResult> results)
         {
@@ -263,7 +261,8 @@ namespace SnpEvolution.Evolution.Tasks
             };
         }
 
-        private int? Latency(PortRun run, int caseIndex) => FirstDone(run)?.Step - (startSteps[caseIndex] + 1);
+        // The step the computation's first done fired on, counted from the step start reaches the part; null when none fired.
+        public int? Latency(PortRun run, int caseIndex) => FirstDone(run)?.Step - (startSteps[caseIndex] + 1);
 
         private Firing? FirstDone(PortRun run) =>
             run.Firings.Skip(dataOut.Count).SelectMany(firings => firings).OrderBy(firing => firing.Step).Cast<Firing?>().FirstOrDefault();

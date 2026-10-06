@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
 {
     // One input to try a network on, and what to read back. Watch names the neurons a Ports readout watches.
-    public sealed record TaskCase(InputSpikes Input, Readout Readout, PortWatch? Watch = null);
+    public sealed record TaskCase(InputSpikes Input, Readout Readout, PortWatch? Watch = null)
+    {
+        // The case as a trial of the network.
+        public Trial Of(Network network) => new Trial(network, Input, Readout, Watch);
+    }
 
     // What a network should do: the cases it is run on and how its results are scored. Generating a set, computing
     // a function and accepting a set are all tasks, so the algorithms and engines never need to know which it is.
@@ -18,8 +23,8 @@ namespace SnpEvolution.Evolution.Tasks
 
         IReadOnlyList<TaskCase> Cases { get; }
 
-        // Sampled runs vary, so most tasks count a network as solving them a little short of 1.
-        float SolvedFitness => FitnessEvaluator.SolvedThreshold;
+        // Sampled runs vary, so most tasks count a network as solving them a little short of 1 (Solved).
+        float SolvedFitness => Solved.Sampled;
 
         // The fewest simulation steps a run needs for the task to be solvable; runs are lengthened to at least this.
         int StepsNeeded => 0;

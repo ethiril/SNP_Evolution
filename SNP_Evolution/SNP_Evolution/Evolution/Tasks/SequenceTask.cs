@@ -97,7 +97,7 @@ namespace SnpEvolution.Evolution.Tasks
 
         // The first gap nobody makes, as a timer: done fires that many steps after start.
         public Contract? Propose(IReadOnlyList<int> unsolvedChecks) =>
-            unsolvedChecks.Count > 0 ? ReferenceParts.DelayContract(Expected[unsolvedChecks[0]]) : null;
+            unsolvedChecks.Count > 0 ? CatalogueEntry.OneCase(Specifications.Delay(Expected[unsolvedChecks[0]])).Contract : null;
 
         // The gap before the check and the two after it, so a part evolved for them starts from a gap the main
         // networks already make.

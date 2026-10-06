@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Compilation;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -75,7 +77,7 @@ namespace SnpEvolution.Cli
             if (options.ShrinkGenerations == 0 || !shrink.Run(options.ShrinkGenerations))
             {
                 log($"Saved to {folder}");
-                return FitnessEvaluator.IsSolvingFitness(check.Fitness) ? 0 : 2;
+                return Solved.Solves(check.Fitness) ? 0 : 2;
             }
             NetworkFiles.SaveText(FitnessCsv.Format(shrink.FitnessHistory), Path.Combine(folder, "Shrunk.csv"));
             Save(shrink.Smallest, folder, "Shrunk");
@@ -120,7 +122,7 @@ namespace SnpEvolution.Cli
             log($"Evolving a register program for {target}.");
             var search = new ProgramSearch(target.Values, new ProgramSearchSettings(options.ProgramGenerations, Math.Max(settings.PopulationSize, 100), Lexicase: options.ProgramLexicase), random);
             ScoredProgram best = search.Run(log);
-            log(FitnessEvaluator.IsSolvingFitness(best.Fitness)
+            log(Solved.Solves(best.Fitness)
                 ? $"Found a program in {search.GenerationsRun} generations."
                 : $"No program generates exactly {target} after {search.GenerationsRun} generations; compiling the best, with fitness {best.Fitness:0.000} " +
                     $"on numbers up to {search.Bounds[search.Stage]} (stage {search.Stage + 1}/{search.Bounds.Count}).");

@@ -1,5 +1,7 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Evolution
@@ -26,7 +28,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void APartThatNeedsSpikesToArriveTogetherBreaksUnderJitter()
         {
-            Assert.InRange(Robustness.Of(ReferenceParts.Register(), jitter: 1, runs: 50), 0f, 0.9f);
+            Assert.InRange(Robustness.Of(PartFixtures.Register(), jitter: 1, runs: 50), 0f, 0.9f);
         }
 
         [Fact]
@@ -41,10 +43,10 @@ namespace SnpEvolution.Tests.Evolution
         {
             var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine(), RobustJitter: 1);
 
-            PartOutcome outcome = PartEvolution.Evolve(ReferenceParts.DelayContract(2), 1, settings, _ => { });
+            PartOutcome outcome = PartEvolution.Evolve(PartFixtures.DelayContract(2), 1, settings, _ => { });
 
             Assert.True(outcome.Solved);
-            Assert.True(outcome.Measurement!.MeetsContract);
+            Assert.IsType<Verdict.Passed>(outcome.Measurement!.Verdict);
             Assert.Equal(10, Robustness.Tenths(Robustness.Of(outcome.Part!, jitter: 1, runs: Robustness.CellRuns)));
         }
 

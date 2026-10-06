@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;

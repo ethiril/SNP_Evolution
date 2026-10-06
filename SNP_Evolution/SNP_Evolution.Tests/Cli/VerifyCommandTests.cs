@@ -1,6 +1,7 @@
 using SnpEvolution.Cli;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Storage;
 using SnpEvolution.Tests.Evolution;
 
@@ -68,7 +69,7 @@ namespace SnpEvolution.Tests.Cli
             try
             {
                 Part broken = BoundedCheckTests.RegisterFailingAtTwenty();
-                File.WriteAllText(file, PartLibraryFiles.ToJson(LibraryPart.Of(broken, PartEvolution.Measure(broken), new PartOrigin(0, "by hand", 0))));
+                File.WriteAllText(file, PartLibraryFiles.ToJson(Verifier.Measure(broken).ToLibraryPart(broken, new PartOrigin(0, "by hand", 0))));
 
                 int exit = CommandLine.Run(new[] { "verify", "--part", file, "--bound", "24" });
 

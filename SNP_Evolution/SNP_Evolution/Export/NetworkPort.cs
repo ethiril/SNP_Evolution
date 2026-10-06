@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Export

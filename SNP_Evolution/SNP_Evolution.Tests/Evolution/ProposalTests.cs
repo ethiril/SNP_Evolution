@@ -1,10 +1,13 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Proposals;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using Xunit.Abstractions;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;

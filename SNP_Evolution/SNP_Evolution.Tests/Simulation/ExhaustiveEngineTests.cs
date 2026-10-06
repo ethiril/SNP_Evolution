@@ -82,7 +82,7 @@ namespace SnpEvolution.Tests.Simulation
         {
             TrialResult result = new ExhaustiveCpuEngine(maxConfigurations: 1).Run(new[] { Trial.Generate(ReferenceNetworks.NaturalNumbers()) }, Options, new Random(0))[0];
 
-            Assert.False(result.Exact);
+            Assert.Equal(TrialCoverage.TooWide, result.Coverage);
             Assert.NotEmpty(result.Outputs);
         }
     }

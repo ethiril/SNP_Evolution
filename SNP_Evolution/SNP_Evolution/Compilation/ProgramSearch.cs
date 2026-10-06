@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Tasks;
 
 namespace SnpEvolution.Compilation
 {
@@ -81,11 +81,11 @@ namespace SnpEvolution.Compilation
                     stalled = 0;
                     parents = Rank(parents.Take(1).Concat(Enumerable.Range(0, mu - 1).Select(_ => Score(RandomProgram())))).ToList();
                 }
-                if (FitnessEvaluator.IsSolvingFitness(parents[0].Fitness) && !Confirm(parents))
+                if (Solved.Solves(parents[0].Fitness) && !Confirm(parents))
                 {
                     continue;
                 }
-                if (FitnessEvaluator.IsSolvingFitness(parents[0].Fitness))
+                if (Solved.Solves(parents[0].Fitness))
                 {
                     if (Stage == Bounds.Count - 1)
                     {
@@ -164,7 +164,7 @@ namespace SnpEvolution.Compilation
         private bool Confirm(List<ScoredProgram> parents)
         {
             ScoredProgram rescored = Score(parents[0].Program, ConfirmationBudget);
-            if (FitnessEvaluator.IsSolvingFitness(rescored.Fitness))
+            if (Solved.Solves(rescored.Fitness))
             {
                 return true;
             }

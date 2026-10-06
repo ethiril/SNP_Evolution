@@ -1,5 +1,6 @@
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Simulation.Metal;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
@@ -150,7 +151,7 @@ namespace SnpEvolution.Tests.Simulation
         {
             var trials = Enumerable.Repeat(LoopTrial(), 50).ToList();
 
-            IReadOnlyList<TrialResult> results = new MetalEngine(gpuThreshold: 0).Run(trials, Options, new Random(1));
+            IReadOnlyList<TrialResult> results = MetalEngine.OrCpu(gpuThreshold: 0).Run(trials, Options, new Random(1));
 
             Assert.All(results, result => Assert.Equal(new[] { new Firing(2, 1) }, result.PortRuns.First().Firings[1]));
         }

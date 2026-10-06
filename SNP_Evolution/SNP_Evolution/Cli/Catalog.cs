@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Simulation.Metal;
 
 namespace SnpEvolution.Cli
 {
@@ -15,7 +18,7 @@ namespace SnpEvolution.Cli
     {
         // The default: the GPU where there is one, which itself hands batches too small for it to the CPU.
         public static readonly CatalogEntry<Settings, ISimulationEngine> AutoEngine = MetalEngine.IsAvailable
-            ? new CatalogEntry<Settings, ISimulationEngine>("Auto: fastest available (GPU here, CPU for small batches)", _ => new MetalEngine())
+            ? new CatalogEntry<Settings, ISimulationEngine>("Auto: fastest available (GPU here, CPU for small batches)", _ => MetalEngine.OrCpu())
             : new CatalogEntry<Settings, ISimulationEngine>("Auto: fastest available (CPU, all cores here)", _ => new ParallelCpuEngine());
 
         public static readonly IReadOnlyList<CatalogEntry<Settings, ISimulationEngine>> Engines = new[]
@@ -26,7 +29,7 @@ namespace SnpEvolution.Cli
             new CatalogEntry<Settings, ISimulationEngine>("Exhaustive (exact outputs), all cores", _ => new ExhaustiveCpuEngine()),
         }
         .Concat(MetalEngine.IsAvailable
-            ? new[] { new CatalogEntry<Settings, ISimulationEngine>("GPU (Metal), for large networks", _ => new MetalEngine()) }
+            ? new[] { new CatalogEntry<Settings, ISimulationEngine>("GPU (Metal), for large networks", _ => MetalEngine.OrCpu()) }
             : Array.Empty<CatalogEntry<Settings, ISimulationEngine>>())
         .ToList();
 

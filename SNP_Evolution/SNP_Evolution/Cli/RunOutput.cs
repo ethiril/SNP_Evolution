@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Evolution.Proposals;
-using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 using static SnpEvolution.Cli.EvolutionSession;
 

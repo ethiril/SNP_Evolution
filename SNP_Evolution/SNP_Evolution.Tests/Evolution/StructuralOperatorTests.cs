@@ -1,5 +1,6 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Networks;
 using static SnpEvolution.Tests.TestNetworks;
 

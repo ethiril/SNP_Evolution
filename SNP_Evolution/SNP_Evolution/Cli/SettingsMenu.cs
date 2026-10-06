@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Simulation;
 using static SnpEvolution.Cli.MenuPrompts;
 using static SnpEvolution.Cli.SearchMenu;
