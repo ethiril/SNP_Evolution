@@ -1,0 +1,9 @@
+Stage  Values  Generations  Best fitness
+    1       3            8  1.000   solved
+    2       4           24  1.000   solved
+    3       5          392  1.000   solved
+    4       6           59  1.000   solved
+    5       7          424  1.000   solved
+    6       8         1369  1.000   solved
+    7       9           41  1.000   solved
+    8      10         7683  0.917

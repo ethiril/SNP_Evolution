@@ -1,0 +1,128 @@
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 1,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        6
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a*",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        3,
+        4,
+        5
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa(aaa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a(aaa)?",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a(a)*",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        2
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a?",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "a(a)*",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        2,
+        3
+      ],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        2
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa",
+          "Delay": 0,
+          "Fire": false,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [
+        2
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    }
+  ]
+}

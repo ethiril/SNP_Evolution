@@ -5,7 +5,9 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Simulation
 {
-    public sealed record SimulationOptions(int MaxSteps, int Repetitions, OutputTiming Timing = OutputTiming.Legacy);
+    // Jitter delays what each neuron sends along each synapse by 0 to Jitter extra steps at random (see NetworkSimulation);
+    // only sampling engines run it.
+    public sealed record SimulationOptions(int MaxSteps, int Repetitions, OutputTiming Timing = OutputTiming.Legacy, int Jitter = 0);
 
     // What a trial reads from the network.
     public enum Readout
@@ -16,8 +18,8 @@ namespace SnpEvolution.Simulation
         // Whether the network can halt; the run stops when it does.
         Halting,
 
-        // Every step the output neuron fires on, until MaxSteps or the network halts. Always sampled, since each
-        // computation has its own train.
+        // Every step the output neuron fires on, until MaxSteps or the network halts. The exhaustive engine reports each
+        // distinct train once.
         SpikeTrain,
 
         // Every step each watched neuron fires on and how many spikes it sends, plus every neuron's spikes when the
@@ -48,7 +50,7 @@ namespace SnpEvolution.Simulation
 
     // Outputs is sorted: every sampled run's output, or each possible output once when Exact. CanHalt says whether
     // some computation halted, which for an exact result means whether any computation can halt. SpikeTrains holds
-    // each sampled run's output spike steps for a SpikeTrain readout, and is empty otherwise. PortRuns holds each
+    // each sampled run's output spike steps for a SpikeTrain readout, or each distinct train once when Exact, and is empty otherwise. PortRuns holds each
     // sampled run, or each distinct computation once when Exact, for a Ports readout, and is empty otherwise.
     public sealed record TrialResult(IReadOnlyList<int> Outputs, bool CanHalt, bool Exact, IReadOnlyList<IReadOnlyList<int>>? SpikeTrains = null,
         IReadOnlyList<PortRun>? PortRuns = null)

@@ -1,0 +1,401 @@
+87 side run(s), 15815 generation(s) on the side in all.
+94 module(s) found, 24 kept. Uses are children scored with a new copy; wins beat their parent.
+
+Module 3: 6 neuron(s), inputs n1, n2, n3, n4, n5, n6, outputs n1, n2, n3, n4, n5, n6, 633/7768 wins, from a change that raised fitness from 0.813 to 1.000
+Neuron   Spikes     Rules                                    Sends to
+n1       a          aaa -> forget;2  |  aaaa/aaa -> forget   n5
+n2       aaaaaaaa   a -> aaa;3                               n1, n4
+n3       a          aaa -> aa;2                              n5
+n4       a          aaaa/aaa -> aa;2                         n6
+n5       aaaaaaa    aaa -> forget;2  |  aaa -> aa;3          n2
+n6       -          aa -> aaa;3  |  a(aa)+/a -> forget;1     n4
+
+Module 14: 9 neuron(s), inputs n2, outputs n8, 281/4233 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 7-7 after a trigger, fitness 1.000
+Neuron     Spikes     Rules                                                    Sends to
+n1         a          aaa*/aa -> a;3                                           n7, n8, n9
+n2         -          a -> a                                                   n3
+n3         -          a -> a                                                   n1
+n4         aaaaa      aaa/aa -> aa;1  |  aaa -> forget;1                       n3, n5, n7
+n5         aaaaaaaa   a -> aaa;3                                               n3, n4, n7
+n6         aa         aaa -> forget;2  |  aaa -> forget                        n7, n9
+n7         aaaaaaaa   aa -> forget;1  |  aa -> a;2  |  aaa(aaa)*/aa -> aaa;1   n1, n6, n9
+n8 (out)   a          aaa -> aa  |  aaa(a)+/a -> aaa                           n4, n7
+n9         aaaaaa     a?/aaa -> forget;2                                       n1, n5
+
+Module 91: 10 neuron(s), inputs none, outputs n6, 146/2239 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 10-10 after a trigger, fitness 0.167
+Neuron     Spikes   Rules                                           Sends to
+n1         -        aa -> a;3  |  aaa/a -> a;2                      n5, n9, n10
+n2         a        a(a)+/a -> a;2  |  a -> a;2  |  aa/a -> aaa;3   n4, n5, n10
+n3         a        aaa -> aaa;1  |  aa -> aaa;2                    n4, n5, n8
+n4         -        a -> aa;2  |  aaa+/aa -> aaa;1                  n1, n3, n5, n10
+n5         aaa      aaa -> a;3  |  aa -> a  |  aa/a -> a            n3
+n6 (out)   aa       aa -> aaa;1                                     n10
+n7         -        aa/aaa -> aa;2  |  aa -> a;1                    n1, n3, n6, n9, n10
+n8         aaaa     aaa/a -> aa;2  |  aaa -> forget;1               n4, n6, n9
+n9         a        a/aaa -> aa  |  aa -> a;2                       n2, n5, n7
+n10        -        a -> aaa;3                                      n1, n3, n4
+
+Module 85: 10 neuron(s), inputs none, outputs n6, 127/2105 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.542
+Neuron     Spikes   Rules                                           Sends to
+n1         -        aa -> a;3  |  aaa/a -> a;2                      n5, n9, n10
+n2         a        a(a)+/a -> a;2  |  a -> a;2  |  aa/a -> aaa;3   n4, n5, n10
+n3         a        aaa -> aaa;1  |  aa -> aaa;2                    n4, n5, n8
+n4         -        a -> aa;2  |  aaa+/aa -> aaa;1                  n1, n3, n5, n10
+n5         aaa      aaa -> a;3  |  aa -> a  |  aa/a -> a            n3, n9
+n6 (out)   aa       aa -> aa;1                                      n10
+n7         -        aa/aaa -> aa;2  |  aa -> a;1                    n1, n3, n6, n9, n10
+n8         aaaa     aaa/a -> aa;2  |  aaa -> forget;1               n4, n6, n9
+n9         a        aaa -> aa  |  aa -> a;2  |  aaa -> forget       n2, n5, n7
+n10        -        a -> aaa;3                                      n1, n3, n4
+
+Module 92: 9 neuron(s), inputs none, outputs n6, 122/2078 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.625
+Neuron     Spikes   Rules                           Sends to
+n1         -        aa -> a;3  |  aaa/a -> a;3      n9
+n2         a        a -> a;2                        n4
+n3         a        aa -> aaa;2                     n4, n5
+n4         -        a -> aa;2  |  aa+/aa -> aaa;1   n1
+n5         aaa      aaa -> a;3  |  aa/a -> a        n3, n8
+n6 (out)   aa       aa?/aa -> aa;1                  -
+n7         -        a+/aa -> a;1                    n1, n6, n8
+n8         a        aa -> a;2                       n2, n7
+n9         -        a -> a                          n8
+
+Module 86: 11 neuron(s), inputs none, outputs n4, 122/2125 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.125
+Neuron     Spikes   Rules                                               Sends to
+n1         -        a*/aaa -> a;2                                       n4, n7
+n2         aaa      a -> a;3  |  aaa -> forget;3                        n1, n4, n8, n9
+n3         aa       aaa -> forget;1  |  aa -> a;3                       n4
+n4 (out)   a        a -> aaa  |  aaaa/a -> aa;3                         n1, n2, n5, n6, n7, n9, n10
+n5         aa       aa -> a;3                                           n6, n9
+n6         aaa      aa -> aa;3  |  a -> aaa;1  |  aaa/a -> forget;3     n5, n8
+n7         aa       a/aa -> aa;3  |  a -> aaa;1  |  aaa/a -> forget;3   n10
+n8         -        aa/a -> forget;3  |  a -> a;3                       n2, n10
+n9         aaa      aa/aaa -> aa;2                                      n2, n3, n4, n5, n6, n7, n8, n10
+n10        -        a -> a;3                                            n3, n4
+n11        aaaa     a -> forget;3                                       n5, n6
+
+Module 83: 9 neuron(s), inputs none, outputs n4, 111/2031 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.583
+Neuron     Spikes   Rules                                 Sends to
+n1         -        aa -> a;1                             n4, n7
+n2         aa       a+/aaa -> aaa;1                       n3, n8
+n3         aaaaaa   a -> aa;2  |  aaa*/a -> forget;3      n1, n2, n9
+n4 (out)   aaa      aa(a)+/aaa -> aaa;2  |  aa/a -> a;3   -
+n5         aa       aaa*/a -> forget;1  |  a?/a -> a;1    n1, n3
+n6         aa       aa/a -> forget;1  |  a -> a;1         n1, n3
+n7         aaa      aaa -> aaa;2  |  aa/a -> a;3          n3
+n8         aaa      aaa+/a -> a;3                         n7
+n9         aaa      aaa(aa)+/aa -> aaa;1                  n3, n8
+
+Module 81: 8 neuron(s), inputs none, outputs n4, 104/1969 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.505
+Neuron     Spikes      Rules                                                      Sends to
+n1         a           aa/a -> aa;1                                               n3
+n2         -           aaa -> a;1                                                 n3, n8
+n3         aa          aaa -> aa;1  |  aa -> aaa                                  n2, n4
+n4 (out)   a           a(aaa)?/a -> aaa;3  |  aaa(a)+/aa -> aa;3  |  aaa -> a;3   -
+n5         aaaaaaaaa   aa(a)+/a -> forget;3  |  aa -> aa                          n6
+n6         a           aaa+/aaa -> a;3                                            n7
+n7         a           aaa*/aa -> aaa                                             n4
+n8         -           a -> a                                                     n1
+
+Module 87: 24 neuron(s), inputs none, outputs n5, 1/40 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.179
+Neuron     Spikes     Rules                                                  Sends to
+n1         aaaa       aaa/a -> aaa;2  |  aaa -> aa;2                         n2, n8, n9, n10, n12, n13
+n2         aaa        aa/a -> aa;3  |  a -> a;3  |  aaa/aa -> aa;3           n1, n8, n17
+n3         aaaa       aaa/a -> a;3  |  aa/a -> a;1                           n6, n7, n8
+n4         aaa        aa -> aaa  |  aaa -> aa;3  |  a -> aaa;2               n5
+n5 (out)   aa         aaa -> aaa;3  |  aa -> forget;1                        n1, n6, n7
+n6         a          aaa -> aaa;3  |  a -> aaa                              n1, n2, n3, n7, n8
+n7         aaaaa      aa -> aaa;2  |  a -> aa  |  aa -> forget;3             n1, n4, n8, n10
+n8         -          aa -> aa;2  |  aaaa/a -> a;2  |  aaa/aa -> aa          n3, n9, n10, n11
+n9         aaaaaaaa   aa -> aa;2  |  a -> forget;3  |  aa/a -> aa            n1, n4, n5, n7
+n10        aaaaa      aaa/aa -> a;2                                          n2, n3, n6, n12
+n11        -          aaa/aa -> forget;3  |  a -> a;1  |  aa/a -> forget;3   n1, n3, n5, n8, n10, n12, n13, n15
+n12        aaaaa      a -> forget  |  aaa/a -> aa;1  |  a -> a;3             n4, n5, n6, n11, n13, n14
+n13        a          aaa -> aaa  |  aaa -> aaa;2  |  a/aa -> aa             n1, n3, n4, n7, n12
+n14        -          a -> aa;2  |  aa?/a -> aaa;2                           n2, n3, n6, n8, n9, n12, n13
+n15        -          aa/a -> a                                              n2
+n16        a          aaa*/aa -> a;3                                         n22, n23
+n17        -          a -> a                                                 n18
+n18        -          a -> a                                                 n16
+n19        aaaaa      aaa/aa -> aa;1  |  aaa -> forget;1                     n18, n20, n22
+n20        aaaaaaaa   a -> aaa;3                                             n18, n19, n22
+n21        aa         aaaa/aaa -> forget;2  |  aaa -> forget                 n22, n23
+n22        aaaaaaa    aa -> forget;1  |  aa -> a;2  |  aaa(aaa)*/aa -> aaa   n16, n21, n23
+n23        a          aaa -> aa  |  aaa(a)+/a -> aaa                         n4, n19, n22
+n24        aaaaaa     a?/aaa -> forget;2                                     n16, n20
+
+Module 20: 5 neuron(s), inputs none, outputs n1, 133/2854 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 8-8 after a trigger, fitness 0.320
+Neuron     Spikes      Rules                                                 Sends to
+n1 (out)   a           aa(aa)?/a -> aaa;3  |  aaa(aa)+/aa -> aa;3            -
+n2         aaaaaaaaa   a+/a -> a;3  |  aa -> aa  |  a*/a -> forget;2         n3
+n3         a           aa+/aaa -> a;3                                        n4
+n4         a           aaa/a -> a  |  aa -> aaa                              n1
+n5         aaaaa       aa -> a;3  |  aaaa/a -> forget;2  |  aa -> forget;1   n1
+
+Module 94: 17 neuron(s), inputs none, outputs n3, 52/1155 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 1.000
+Neuron     Spikes      Rules                                                     Sends to
+n1         -           aaa*/aaa -> a;1  |  a -> forget;2                         n2
+n2         aa          aaa -> aa;1  |  aa -> aaa                                 n1, n3
+n3 (out)   a           a(aa)?/a -> aaa;3  |  aaaa(a)+/a -> aa;3  |  aaa -> a;3   -
+n4         aaaaaaaaa   aa(a)+/a -> forget;3  |  aa -> aa  |  a -> aaa            n5
+n5         a           aaa*/aaa -> a;3                                           n6
+n6         a           aaa*/aa -> aaa  |  a -> a                                 n3
+n7         -           a(aa)?/aaa -> a;2                                         n10
+n8         aaa         a -> a;3  |  aaa -> forget;3                              n10, n13, n14
+n9         aa          aaaa/aaa -> forget;1  |  aa -> a;3                        n10
+n10        a           a -> aaa  |  aaaaaa/a -> aa;3                             n2, n7, n8, n11, n12, n14, n15
+n11        aa          aaa/aa -> a;3                                             n12, n14
+n12        aaa         aa -> aa;3  |  a -> aaa;1  |  aaa/a -> forget;3           n11, n13
+n13        -           aa/a -> forget;3  |  a -> a;3                             n8, n15
+n14        aaaa        aa/aaa -> aa;2                                            n8, n9, n11, n12, n13, n15
+n15        -           a -> a;3                                                  n9, n10, n17
+n16        aaaa        a -> forget;3                                             n12
+n17        aaaaaaa     aa+/a -> aaa;3                                            n11
+
+Module 22: 6 neuron(s), inputs n1, n2, n3, n5, n6, outputs n1, n2, n5, n6, 145/3290 wins, from a change that raised fitness from 0.657 to 0.893
+Neuron   Spikes   Rules                                    Sends to
+n1       aa       aa*/aaa -> a                             -
+n2       -        aaa(aa)*/aaaa -> aaa                     -
+n3       -        a+/a -> a;2                              n2, n4
+n4       a        aaa*/aaa -> aa;2  |  aaa(a)?/aaaa -> a   n2
+n5       -        aa -> aaa;3  |  a(a)+/a -> forget;1      n6
+n6       a        aaa+/aaa -> a                            n1
+
+Module 90: 17 neuron(s), inputs none, outputs n3, 35/872 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.720
+Neuron     Spikes      Rules                                                     Sends to
+n1         -           aaa*/aaa -> a;1  |  a -> forget;2                         n2
+n2         aa          aaa -> aa;1  |  aa -> aaa                                 n1, n3
+n3 (out)   a           a(aa)?/a -> aaa;3  |  aaaa(a)+/a -> aa;3  |  aaa -> a;3   -
+n4         aaaaaaaaa   aa(a)+/a -> forget;3  |  aa -> aa                         n5
+n5         a           aaa*/aaa -> a;3                                           n6
+n6         a           aaa*/aa -> aaa                                            n3
+n7         -           a(aa)?/aaa -> a;2                                         n10
+n8         aaa         a -> a;3  |  aaa -> forget;3                              n10, n13, n14
+n9         aa          aaa -> forget;1  |  aa -> a;3                             n10
+n10        a           a -> aaa  |  aaaaaa/a -> aa;3                             n2, n7, n8, n11, n12, n14, n15
+n11        aa          aaa/aa -> a;3                                             n12, n14
+n12        aaa         aa -> aa;3  |  a -> aaa;1  |  aaa/a -> forget;3           n11, n13
+n13        -           aa/a -> forget;3  |  a -> a;3                             n8, n15
+n14        aaa         aa/aaa -> aa;2                                            n8, n9, n11, n12, n13, n15
+n15        -           a -> a;3                                                  n9, n10, n17
+n16        aaaa        a -> forget;3                                             n12
+n17        aaaaaa      aa+/a -> aaa;3                                            n11
+
+Module 19: 12 neuron(s), inputs none, outputs n7, 92/2270 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 7-8, fitness 1.000
+Neuron     Spikes      Rules                                                    Sends to
+n1         aaaaaaa     aa/a -> aaa                                              n4
+n2         aa          aaa -> forget;2  |  aaa -> aaa  |  aaa -> aaa;2          n5, n6
+n3         a           aa/a -> aa;2                                             n1, n6
+n4         aaaaaa      aaa/aa -> aaa;3                                          n1, n3, n5
+n5         -           a/aa -> aa  |  aaa -> a;1                                n2, n6, n12
+n6         aaa         aaa -> aa;1  |  aa -> aaa                                n1, n2, n5, n7
+n7 (out)   a           a(aa)?/a -> aaa;3  |  aaa(aa)+/aa -> aa;3                -
+n8         aaaaaaaaa   aa(a)+/a -> a;3  |  aa -> aa                             n9
+n9         a           aa+/aaa -> a;3                                           n10
+n10        a           aaa/a -> a  |  aa -> aaa                                 n7, n11
+n11        aaaaa       aa -> a;3  |  aaa/a -> forget;2  |  aaa/aa -> forget;1   n7
+n12        -           a -> a                                                   n3
+
+Module 8: 7 neuron(s), inputs none, outputs n4, 96/2430 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 5-6, fitness 1.000
+Neuron     Spikes     Rules                                  Sends to
+n1         aaaaaaaa   aa -> a                                n7
+n2         aaa        a -> aaa;1                             n1
+n3         a          aa -> a;3  |  aaa(aa)?/a -> forget;2   n1, n5
+n4 (out)   aaa        aa -> aaa;2  |  aaa -> a               n2
+n5         a          a -> aa;2                              n2, n3, n4
+n6         a          a -> aa  |  aaa -> aaa;1               n2, n3, n5
+n7         -          a -> a                                 n3
+
+Module 78: 20 neuron(s), inputs none, outputs n19, 11/318 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.030
+Neuron      Spikes     Rules                                                     Sends to
+n1          -          aa/a -> aaa;2                                             n3, n10
+n2          aaaa       a -> aaa  |  aa/a -> aa                                   n12, n13
+n3          aaaaaa     a -> forget;1  |  a -> aa;2  |  aa -> forget;2            n2, n4, n11
+n4          aaaaa      aa -> a;3                                                 n3, n6, n10, n11
+n5          -          aaa -> forget;3                                           n4, n8, n10, n13
+n6          aaaaaa     aaa -> aaa;2  |  aa -> forget                             n4, n10, n11, n14
+n7          -          aaa -> a;3  |  a -> aaa                                   n1, n2, n4, n5, n9, n13, n14, n19
+n8          aaa        aaa -> aaa;3                                              n2, n4, n5, n6, n7, n10, n13
+n9          aaaaa      aaa/aa -> aaa;3  |  aaa -> forget;1  |  a -> aa;1         n2, n6, n8
+n10         aaaaaa     aaaa/aaa -> aaa;2                                         n7, n8, n9, n11, n12, n14
+n11         aa         a -> aa;3                                                 n1, n7, n10, n12, n15
+n12         aa         aaa -> forget;1                                           n3, n6, n8, n10
+n13         aaaaaa     a -> aaa                                                  n1, n5, n8, n14
+n14         aa         a -> aa;2  |  a(aa)?/aa -> a;2                            n1, n6, n8, n9, n11, n20
+n15         aaaaaa     aa/a -> aa;1  |  aaa/aa -> forget;3  |  aaa -> aa;1       n13, n16, n17
+n16         aaaaaa     aaa -> forget;2                                           n15
+n17         aaa        aaa/aa -> a;2                                             n15, n16, n18, n20
+n18         aaaaaaaa   aaaa/aa -> forget;2  |  aa -> aa;3  |  aa*/aa -> aa;2     n15, n19
+n19 (out)   aaa        aaa/aa -> forget;3  |  aaa -> a;3                         n15, n17, n18
+n20         aaa        a+/a -> aa;2  |  aaa(aa)+/aaa -> a;3  |  aaa/aa -> aa;1   n17
+
+Module 2: 6 neuron(s), inputs n1, n2, n3, n4, n5, n6, outputs n1, n2, n3, n4, n5, n6, 87/2410 wins, from a change that raised fitness from 0.466 to 0.750
+Neuron     Spikes     Rules                                                    Sends to
+n1         aaaaa      aaa/aa -> aa;1  |  aaa -> forget;1                       n2, n4
+n2         aaaaaaaa   a -> aaa;3                                               n1, n4
+n3         aa         aaa -> forget;2  |  aaa -> forget                        n4, n6
+n4         aaaaaaaa   aa -> forget;1  |  aa -> a;2  |  aaa(aaa)*/aa -> aaa;1   n3, n6
+n5 (out)   a          aaa -> aa  |  a -> aaa                                   n1, n4
+n6         aaaaaa     a?/aaa -> forget;2  |  aaa -> aa;3                       n2
+
+Module 5: 22 neuron(s), inputs none, outputs n22, 55/1881 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 4-5, fitness 1.000
+Neuron      Spikes    Rules                                               Sends to
+n1          -         aa -> aa;2  |  a -> aa;1                            n10, n13, n14, n17, n19
+n2          aaaaaaa   a -> aa;1  |  a -> a;1                              n17, n18
+n3          aaaaaa    aaa -> aaa                                          n1, n7, n13, n15, n17
+n4          aa        aa -> aaa;1  |  aaa -> forget;1  |  aa -> aaa;2     n2, n3, n7, n10, n11, n13, n15, n21
+n5          aaaaa     aa/a -> aa                                          n1, n3, n13, n14, n15, n16, n17, n18, n19
+n6          aaaa      aa -> forget;2  |  aaa -> a;2  |  aa(a)*/a -> a;2   n2, n13, n19
+n7          aaaa      aa -> forget;2  |  aaa -> a;2  |  a -> a;2          n2, n13, n16, n22
+n8          a         aa -> a  |  aa -> aa;3                              n3, n10, n11, n12, n16, n17, n18, n21
+n9          aaaa      aaa -> a;3  |  a -> a;2                             n1, n4, n8, n13, n14, n16, n19
+n10         aaa       aaa -> a;2  |  a -> aaa;3                           n3, n4, n6, n12, n13, n15, n16, n17
+n11         aaaa      aaa -> aa;3  |  aaa/a -> a;1  |  a -> aa;3          n1, n5, n7, n9, n12, n16, n19, n20
+n12         a         a -> aaa;2                                          n3, n6, n15, n16
+n13         aaaa      a -> a;1  |  aa -> aa;1  |  aa -> aa;3              n2, n5, n6, n7, n8, n12, n14, n16, n20
+n14         aaaaaa    aa -> forget                                        n2, n4, n5, n7, n12, n13, n15, n16, n19, n21, n22
+n15         a         aaa/aa -> forget;2  |  aaa -> forget;3              n1, n2, n4, n8, n10, n13, n14, n18, n19
+n16         aaaaaaa   aa -> aa;1                                          n1, n3, n4, n5, n7, n8, n12, n15, n21, n22
+n17         aa        aaa/aa -> aa;3                                      n3, n4, n5, n8, n9, n13, n15, n18, n19
+n18         aaaa      a -> aaa  |  aa/a -> forget                         n4, n9, n11, n13, n15, n16
+n19         aa        aa -> aa;2                                          n2, n9, n12, n15, n17, n18
+n20         aaa       a -> aa  |  aaa(a)?/aa -> aa;1                      n2, n7, n9, n14, n16, n17, n22
+n21         aaaa      a -> aaa  |  aa/a -> forget                         n4, n10, n14, n16, n18, n19
+n22 (out)   aa        aa -> aa;2                                          n2, n10, n11, n13, n15, n18, n20, n21
+
+Module 1: 6 neuron(s), inputs n1, n2, n3, n4, n5, n6, outputs n1, n2, n3, n4, n5, n6, 75/2711 wins, from a change that raised fitness from 0.259 to 0.465
+Neuron     Spikes     Rules                                          Sends to
+n1         aaaaa      aaa/aa -> aa;1  |  aaa -> forget;1             n2, n3, n5
+n2         aaaaaa     aaa/aa -> a;3  |  a -> a  |  aa -> aa          n3, n6
+n3         aaaaaaaa   aa -> forget;1  |  aa -> a;2  |  aa -> aaa;1   -
+n4         aaaaaa     aaa -> aaa                                     n5, n6
+n5         aa         aa -> aaa;1  |  a -> aa                        n1, n2, n3, n6
+n6 (out)   -          aaa -> aa  |  a -> aaa  |  a -> forget;1       n1, n2, n3
+
+Module 4: 20 neuron(s), inputs none, outputs n7, 48/1769 wins, from the network that solved Spike intervals 1,1,2,3,5,8,13,21,34,55,89,...
+Neuron     Spikes     Rules                                       Sends to
+n1         a          aaa -> forget;2  |  aaaa/aaa -> forget      n5, n8, n10, n11, n13, n15, n16, n19, n20
+n2         aaaaaaaa   a -> aaa;3                                  n1, n4, n6, n17
+n3         a          aaa -> aa;2                                 n11, n13, n14, n16, n19, n20
+n4         a          aaaa/aaa -> aa;2                            n8, n10, n12, n15, n18, n19
+n5         aa         aa -> aaa;1  |  a -> aa                     n2, n3, n7, n8, n9, n12, n13, n16, n17
+n6         aaaaaaa    a(a)?/a -> aaa;2                            n1, n4, n15
+n7 (out)   a          aaa -> aa  |  a -> aaa                      n1, n8, n9, n13, n16, n19
+n8         aaaaaaa    a -> a  |  a -> forget;2                    n1, n2, n3, n13, n18
+n9         aaaaa      a -> aa;2  |  aa -> forget                  n2, n12, n15, n17
+n10        -          aaa -> forget;3                             n3, n7, n8, n11, n14, n15, n16, n17, n19
+n11        aaaaaaa    aaa -> forget;2  |  aaa -> aa;3             n2, n6, n8, n9, n16, n17, n18, n20
+n12        -          aa -> aaa;3  |  a(aa)+/a -> forget;1        n4, n6, n7, n14, n15, n17, n19, n20
+n13        aaa        aa -> a;1  |  aa/a -> a;3                   n9, n11, n14, n16
+n14        -          aa -> aaa;3  |  a -> forget;1               n1, n2, n6, n7, n9, n10, n17, n18, n19
+n15        aa         a -> a;3  |  aaa -> forget;3  |  a -> a;1   n1, n2, n9, n14, n16
+n16        aaa        aaa/a -> aaa                                n1, n3, n4, n7, n10, n12, n13, n17
+n17        aaaa       aa/a -> aaa  |  aa(a)?/a -> forget;3        n2, n3, n4, n6, n7, n15
+n18        aaaaa      a -> aaa;3  |  aa -> aaa;2                  n3, n10, n11, n13, n14, n15, n16, n20
+n19        aaa        aa+/a -> a;3                                n1, n6, n7, n8, n11, n20
+n20        aaaaa      aaa/aa -> a;2                               n1, n4, n9, n11, n12
+
+Module 89: 24 neuron(s), inputs none, outputs n13, 0/35 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.043
+Neuron      Spikes     Rules                                                 Sends to
+n1          -          aaa -> a;3  |  aa -> aaa;3  |  aa/a -> a;3            n2, n3, n4, n6, n9, n10, n11, n14, n16, n17, n22, n23
+n2          aa         aaa/aa -> forget  |  a -> aaa  |  aaa -> a            n3, n5
+n3          aaa        aa -> a;3                                             n4, n7, n9, n11, n12
+n4          aaaa       aa -> forget                                          n6, n8, n9, n11
+n5          a          aa -> a;1  |  aa -> aaa;3                             n7, n12
+n6          aaaaa      aa -> aa;1  |  a -> forget;1                          n1, n5, n7, n8, n11
+n7          aa         aaa(a)?/aaa -> aa;1  |  a -> forget;2  |  aa -> a;2   n4, n14, n15, n16, n19, n20, n21
+n8          aaaaaa     aa -> forget  |  a -> a                               n4, n12
+n9          aa         aaa -> aa  |  aa -> a;1  |  a -> a                    n3, n4, n10
+n10         aaaaaa     a -> forget;3  |  a -> aaa;1  |  aa -> aaa;3          n4, n6, n15, n17, n18, n20, n22
+n11         aaaaa      a -> aa;1  |  a -> a  |  a -> forget;3                n3, n4, n9, n10
+n12         aaaaaa     a -> aa;1                                             n2, n5, n8
+n13 (out)   a          aaa/a -> aa;1  |  aaa -> a;1  |  aa -> a;2            n4, n9, n11, n12, n17
+n14         aa         a -> a;1  |  aaa/aa -> aaa;3  |  aaa -> aa;1          n1, n3, n6, n7, n10, n15, n18, n23
+n15         aa         aaa/aa -> a;3  |  aaa/a -> forget  |  aa/a -> aaa     n2, n6, n7, n9, n10, n17, n18, n24
+n16         aa         aa -> a;3                                             n1, n4, n7, n8, n11, n13, n17, n20, n22
+n17         aaaaaaaa   aa/a -> forget;1  |  aaa -> aaa;3  |  aaa -> aa;3     n2, n3, n5, n8, n9, n12, n19, n23
+n18         aaaa       a -> a;2                                              n4, n5, n6, n12, n13, n14, n15, n20
+n19         aa         aa -> forget                                          n4, n5, n6, n7, n8, n9, n10, n13, n14, n15, n16, n17, n18
+n20         aaa        aa/a -> aa;1                                          n2, n4, n5, n6, n7, n13, n14, n16, n17, n23
+n21         aa         aa -> forget;3  |  a -> aa;3                          n4, n10, n12, n13, n17, n19, n22
+n22         -          aa/aaa -> aa;3                                        n1, n5, n8, n9, n12, n13, n15, n19, n20, n21
+n23         a          a -> a;2  |  a -> aa                                  n1, n2, n3, n4, n9, n12, n13, n16, n18, n19, n21
+n24         -          a -> a                                                n3
+
+Module 93: 23 neuron(s), inputs n4, n5, outputs n1, n3, n6, n7, n8, n9, n10, n13, 4/188 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 10-10 after a trigger, fitness 1.000
+Neuron     Spikes     Rules                                                  Sends to
+n1         aa         a -> aaa;3                                             n3
+n2         a          aa(aaa)?/a -> forget;2  |  aa -> forget  |  aa -> aa   n1, n3, n4, n5
+n3         a          aaa/a -> aa  |  aa -> a;3  |  aa -> aaa;3              n1, n2, n6, n7
+n4         a          a -> forget;2  |  aaa+/aa -> forget  |  aa -> aa       n1, n2, n5, n6, n7
+n5         aaa        a -> forget;2  |  a+/aaa -> forget                     n1, n8, n13, n14
+n6         aa         aa/a -> aa;2  |  aaa -> aaa  |  aaa/a -> aa            -
+n7 (out)   -          aa -> aaa;2  |  a -> aa;2  |  aaa -> a;1               n2, n3, n4, n6, n8, n11, n13, n14
+n8         a          aa -> aa;3                                             n1, n4, n9, n10, n12
+n9         -          aaa -> a;3  |  aaa -> aa  |  aa/a -> a;3               n3, n4, n6, n7, n12, n13, n14
+n10        aaaaaaaa   a -> aaa;3  |  a -> a;1                                n4, n7, n8, n9, n13, n14
+n11        aaaaaa     aaaa/aa -> a  |  a -> aaa;3  |  a -> a                 n5, n9, n10, n14
+n12        aaaaaaaa   a -> a;2  |  a(a)?/a -> forget;1                       n1, n3, n5, n6, n7, n11
+n13        aaa        aa -> forget;2                                         n2, n4, n6, n11, n12
+n14        a          aaa -> aaa;1  |  aaa -> forget;2                       n3, n4, n5, n6, n8, n11, n12, n13
+n15        -          aa -> a;3  |  aaa/a -> a;3                             n23
+n16        a          a -> a;2                                               n18
+n17        a          a/aa -> aaa;2                                          n18, n19
+n18        a          a -> aa;2  |  aa+/aa -> aaa;1                          n15
+n19        aaa        aaa -> a;3  |  aa/a -> a                               n17, n22
+n20        aa         aa?/aa -> aa;1                                         n4
+n21        -          a+/aa -> a;1                                           n15, n20, n22
+n22        a          aa -> a;2                                              n16, n21
+n23        -          a -> a                                                 n22
+
+Module 6: 23 neuron(s), inputs n1, n2, n5, n9, n12, n13, n15, n17, n18, n19, n22, n23, outputs n1, n2, n3, n6, n8, n10, n11, n16, 35/1417 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 5-5 after a trigger, fitness 1.000
+Neuron     Spikes     Rules                                             Sends to
+n1         aaaaa      aa/a -> forget                                    n5, n7, n8, n10, n11, n12, n13, n14, n15, n17, n18, n19, n22
+n2 (out)   a          aaa*/aaa -> aaa;3  |  aaa -> a  |  aa -> forget   n1, n7, n9, n14
+n3         aaaaa      aaa -> aa;2                                       n10, n13, n15, n16, n21
+n4         aaaaa      a -> aaa  |  a -> aaa;1  |  aaa -> aaa            n1, n2, n8, n9, n11, n16, n20
+n5         aa         a -> forget;2  |  aa -> aaa;2  |  aa -> aa;2      n2, n3, n4, n7, n8, n9, n17, n21
+n6         aaaaa      a -> a;1                                          n3, n4, n5, n8, n11, n13, n16, n19, n21, n23
+n7         aaaaaaaa   a -> aaa;3  |  aaa -> aaa;3  |  aa -> aa          n2, n8, n10, n11, n22
+n8         aaaa       a -> aa;2  |  aaa -> aaa                          n1, n7, n10, n13, n17, n20
+n9         aaaaaaa    a -> aa                                           n5, n7, n10, n12, n13, n20, n21
+n10        aaaaaaa    a -> forget  |  aaa/aa -> forget;2                n1, n5, n14, n15, n20, n22, n23
+n11        aa         aa -> aa;3  |  aa -> aaa;2                        n2, n10, n12, n13, n14, n15, n17, n20, n22, n23
+n12        aaaaaa     a -> a  |  a -> a                                 n1, n3, n4, n5, n9, n10, n16, n20, n21
+n13        aa         aa -> aaa;3  |  aa -> a;2  |  aaa/a -> aa;3       n1, n6, n7, n9, n10, n11, n12, n15, n19
+n14        aaaa       aaa -> aa;2  |  aa -> aa;1  |  a -> aa            n10, n12, n13, n16, n17
+n15        aaaaaa     aaa -> forget;2  |  aa -> a;3                     n1, n4, n5, n6, n7, n8, n17, n18, n20, n21, n22
+n16        aaaa       aa/a -> aa;2  |  a -> aaa;1  |  aaa -> a;2        n1, n10, n11, n13, n15, n20
+n17        aaaaa      a -> aaa;3  |  aaa/a -> a  |  aaa -> aaa;2        n4, n5, n11, n12, n18, n23
+n18        aaaaaaa    a -> forget;2  |  aaa -> aaa;3  |  aa -> a;1      n1, n4, n9, n13, n14, n16, n17, n20, n23
+n19        aaaaa      aaa -> aa;2                                       n2, n4, n11, n12, n16, n18, n22
+n20        aaaaaaaa   aaa -> aaa;2  |  aa -> a;3                        n4, n6, n11, n13, n15, n16, n17, n21
+n21        aaa        a -> forget;3                                     n1, n8, n9, n12, n17, n18, n20, n22
+n22        aaaaa      aaa/aa -> aaa;1  |  aa/a -> aa;1  |  aa -> a;1    n2, n3, n4, n6, n13, n15, n20
+n23        -          aa -> a;2  |  aa -> aaa;2                         n3, n5, n6, n8, n11, n13, n16, n17, n18, n21
+
+Module 88: 23 neuron(s), inputs none, outputs n13, 1/82 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 9-10, fitness 0.034
+Neuron      Spikes     Rules                                          Sends to
+n1          aa         aaa -> forget;3  |  aa/a -> aa;2               n2, n5, n9, n11, n13, n17, n21, n22, n23
+n2          aaaaaaaa   aaa -> aa;3  |  a -> aaa  |  aa -> a;3         n4, n8, n9, n11, n12, n13
+n3          aaa        a -> aaa                                       n1, n6, n9, n11, n12, n14, n16
+n4          a          a*/a -> a  |  aaa -> a  |  a -> a              n5, n10, n12, n20
+n5          -          a/aa -> a;1                                    n2, n8, n10, n11, n13, n14, n20
+n6          aaaaaaa    a -> aa;1  |  aaa -> aa;1                      n7, n8, n12, n14
+n7          aaaa       aa -> aa;3                                     n2, n3, n4, n8, n9, n13
+n8          aaaaa      aaa/aa -> forget;2                             n5, n6, n10, n13, n16, n20, n21
+n9          -          aa -> a;1  |  aaa -> a;2                       n4, n5, n8, n11, n13
+n10         aaaaaaa    aa -> forget;2                                 n2, n11, n16, n17, n18, n19, n23
+n11         aaa        aaa -> aaa;3                                   n2, n4, n7, n12
+n12         -          a -> aaa  |  aaa/a -> aaa;2                    n3, n6, n10, n11
+n13 (out)   -          aaa -> a;1                                     n2, n4, n6, n7, n9, n14, n16, n17
+n14         aaaaaaaa   aa -> aaa;2                                    n2, n3, n7, n9, n10, n13, n20, n21
+n15         aaaaaa     aa/a -> forget;2  |  a -> aaa;3                n1, n3, n5, n7, n9, n11, n13, n16, n18, n19, n21, n23
+n16         aaaa       aaa -> aa  |  aa -> aa;3                       n5, n9, n11, n12, n14, n19, n21, n22
+n17         aaaaaaaa   aaa/a -> a;3                                   n1, n8, n10, n12, n13, n14, n19, n20, n21, n23
+n18         aa         aaa -> aa;3  |  aaa/a -> a                     n2, n4, n7, n9, n12, n16, n17, n21
+n19         aaaa       a -> aaa  |  aaa/aa -> aaa;1                   n2, n4, n5, n13, n14, n16, n17, n21
+n20         -          a -> a;3  |  a -> aa;3                         n1, n2, n4, n5, n6, n10, n18, n19, n21, n22
+n21         aaaaaa     aaa/a -> aaa;3                                 n5, n10, n11, n15, n17, n19, n20
+n22         aaaa       aa -> aaa;1  |  a -> forget;2  |  a -> aaa;2   n4, n7, n8, n9, n12, n13, n15, n16, n19, n21
+n23         aaa        aaaa/aaa -> a                                  n4, n5, n6, n8, n14, n16, n22

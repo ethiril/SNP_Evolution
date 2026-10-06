@@ -99,13 +99,15 @@ The last two read the whole output spike train (`Readout.SpikeTrain`), not just 
 - **Acceptor**: read a number on the input neuron and halt if and only if it belongs to the set. Scored by balanced accuracy.
 - **Contract**: behave as a part with a start trigger, one or more done triggers and typed data ports (interval, count, trigger or binary), as a `Contract` in `Evolution/Contracts/` describes (`ContractTask`). Each case is checked against four rules: nothing is sent before start, done fires exactly once with the right outputs, every neuron ends with the spikes it started with, and done fires within the maximum latency. It reads the named port neurons (`Readout.Ports`), which the exhaustive engine follows over every computation. `ReferenceParts` holds a hand-built delay and register that meet their contracts.
 
+- **Streaming**: a controller with no start or done (`StreamingTask`). A long sensor train arrives on the one input neuron, drawn from a fixed seed per case so every network sees the same trains, and the output's spike train is judged window by window, one check per window. Scored by balanced accuracy over windows that want output and windows that want silence, so a silent network earns 0.5 and one that copies its input less; it counts as solved only at 1. The **debouncer** answers each burst of at least m spikes within w steps with exactly one spike, and glitches of fewer spikes with none. The **rate detector** fires at least once in every window of a fast stretch (at least m spikes per w steps) and never in a slow one; the first window after each change of rate is not judged.
+
 `TaskSuite` holds a benchmark suite of these tasks, and the settings menu can select any of them. It includes eight arithmetic contracts (`ArithmeticParts`): n1 - n2 (with n1 >= n2), n1 x n2, n1 div n2 with remainder, and n1 < n2 with two done branches. Each comes in count encoding and in binary with 4-bit operands and an 8-bit product. Cases include zero operands and one larger pair.
 
 ## Engines
 
 - **Auto: fastest available** is the default. It is the GPU engine below on a Mac, and CPU, all cores elsewhere.
 - **CPU, all cores** and **CPU, single thread** sample a number of random runs of each network, as before.
-- **Exhaustive (exact outputs)** follows every possible computation, merging those that reach the same configuration. Its outputs are therefore the exact set the network can produce within the step limit, with no luck in the score. An exact solution is accepted without retesting. If a network's computations branch too widely, the engine samples it instead. It always samples spike trains, because merging computations would lose the trains that led to them.
+- **Exhaustive (exact outputs)** follows every possible computation, merging those that reach the same configuration. Its outputs are therefore the exact set the network can produce within the step limit, with no luck in the score. An exact solution is accepted without retesting. If a network's computations branch too widely, the engine samples it instead. Spike trains and port readings are kept in the merge key, so only computations with the same record so far are merged and each distinct train is reported once; a deterministic network costs one configuration a step. It refuses jitter (see Timing robustness).
 - **GPU (Metal), for large networks** is listed on Macs. It samples like the CPU engines, but runs every run of every network in the population at once on the GPU, with one threadgroup per run. On an M5 Pro it is about 6 to 12 times faster than all CPU cores for networks of a thousand neurons or more. Its rule choices come from a hash of the seed rather than `System.Random`, so individual runs differ from the CPU engines' while following the same distribution, and the same seed repeats them. Batches too small to repay the GPU round trip, and networks with more than 64 output neurons, delays above 65,535 or emissions above 32,767, run on the CPU instead.
 
 ## Algorithms
@@ -209,10 +211,11 @@ For each contract the library has no part for, the command evolves one from scra
 - `--library DIR` (`parts/` at the repository root by default): the library folder.
 - `--engine exact|sampled`: the engine the search scores on; verification is always exhaustive.
 - `--redo on`: evolve contracts the library already has a part for; the new part replaces the old only if it is cheaper.
+- `--robust J`: shrink towards the most robust part at jitter J rather than the smallest (see Timing robustness).
 
 The library folder holds one JSON file per contract (`delay-1.json`, `zero-test.json`) with the network (in the usual network file format), contract, port binding, hardware cost, latency, seed, run and evaluations. Loading verifies every part again and refuses a file whose part fails its contract or whose contract differs from the catalogue, naming the file. Two parts that read the same on every case of a contract count as one, and the cheaper is kept under the first one's id.
 
-The run ends with a table of each contract, whether it was solved, the evaluations it used, and the kept part's neurons, synapses and latency. It exits with 2 when a contract is left without a part.
+The run ends with a table of each contract, whether it was solved, the evaluations it used, and the kept part's neurons, synapses, latency and robustness to jitter. It exits with 2 when a contract is left without a part.
 
 With seed 1 and the default budget (47 minutes on a 15-core machine), the run solved delay 2, 3 and 4 (2 neurons, 1 synapse each) and sequencer 2 (6 neurons, 8 synapses). Delay 1 was solved by other seeds but not this one, and sequencer 3 and the zero test came close (best fitness 0.97). None of the parts with count ports was solved. Their best networks score about 0.8, getting every rule right except putting the right values out and firing done once. A part that holds a count until start needs the parity trick of the hand-built register: each input spike is stored as two, and start makes the total odd so that a rule matching odd counts drains it. Larger networks, lexicase off, and partial credit for right values when done misfires all left the best near 0.8 within 50000 evaluations. The `parts/` folder in the repository holds the parts this run found.
 
@@ -289,6 +292,14 @@ A network outside the profile is refused, naming the rule that breaks it, becaus
 The co-simulation tests skip with the reason when iverilog or the Python packages are missing.
 
 **Uppaal.** `export-uppaal --part FILE` writes a part as Uppaal timed automata (`NAME.xml`) with queries for its contract (`NAME.q`), and runs them with `verifyta` when it is on PATH, at `UPPAAL_VERIFYTA`, or in an Uppaal folder in `/Applications`. It exits with 3 when a query fails. This is our own translation of our engine's step, as the published one could not be read (see RESEARCH.md). It has not yet been run under Uppaal, so treat it as untested.
+
+## Timing robustness
+
+Asynchronous hardware jitters, so a part that works only in lockstep will break there. `SimulationOptions.Jitter` = j makes whatever a neuron sends along each synapse arrive 0 to j steps late, drawn at random per synapse per step; a late arrival is lost if its receiver is closed when it lands, and input from the environment is never late. With j = 0 nothing is drawn, so every run is as before. Only the sampling engines run it: the exhaustive engine refuses it, since a delay choice for every spike would multiply the computations, and the GPU engine hands jittered batches to the CPU.
+
+A part's robustness at jitter j (`Robustness`) is the share of 100 sampled runs, each running every case once, in which every case still stays quiet before start, fires the right done once with the right outputs, and returns every neuron to its starting spikes. The latency bound is left out, since jitter moves timing by design; time-free SN P systems ask the same of a result. Runs get 1 + j times the lockstep steps, and spikes still on their way when a run stops count against returning to start.
+
+The `evolve-parts` summary reports every library part's robustness at j = 1 and j = 2. `--robust J` makes robustness a MAP-Elites dimension of the shrink: cells are robustness at jitter J in tenths by neuron count, and the shrink keeps the most robust part that verifies, the cheapest among equally robust ones.
 
 ## Benchmarking and choosing an algorithm
 

@@ -10,7 +10,8 @@ namespace SnpEvolution.Evolution.Contracts
 {
     // How a part is evolved for one contract. Budget is search evaluations; ShrinkBudget is spent after a part is found
     // making it smaller. ExtraNeurons is how far past the port neurons a network may grow. HardwareProfile keeps every
-    // network searched and shrunk within the hardware profile.
+    // network searched and shrunk within the hardware profile. RobustJitter, when above 0, shrinks over cells of robustness
+    // at that jitter and keeps the most robust part that verifies, the cheapest among equally robust ones.
     public sealed record PartSearchSettings(
         long Budget,
         long ShrinkBudget,
@@ -22,7 +23,8 @@ namespace SnpEvolution.Evolution.Contracts
         int MaxDelay = 3,
         int MaxInitialSpikes = 4,
         int MaxProduce = 2,
-        bool HardwareProfile = false);
+        bool HardwareProfile = false,
+        int RobustJitter = 0);
 
     // A network run on every case of a contract on the exhaustive engine. Latency is the slowest case's, from the step
     // start reaches the part to the step done fires; Behaviour is what ContractTask.Behaviour reads. MeetsContract says
@@ -107,7 +109,7 @@ namespace SnpEvolution.Evolution.Contracts
             new Verifier(task, new SimulationOptions(task.StepsNeeded, Repetitions, OutputTiming.Interval)).Measure(network);
 
         // Every cell of the archive starts from the part; each generation the cheapest solving elites are verified, and
-        // the cheapest that verifies is kept.
+        // the cheapest that verifies is kept, or under RobustJitter the most robust.
         // The verifier checks only the contract, so under the profile the shrink edits must keep every network within it themselves.
         internal static (Operators.ICrossover Crossover, Operators.IMutation Edits) ShrinkOperators(NetworkFactory factory, bool hardwareProfile) =>
             hardwareProfile
@@ -117,31 +119,38 @@ namespace SnpEvolution.Evolution.Contracts
         private static PartMeasurement Shrink(PartMeasurement start, FitnessEvaluator evaluator, Verifier verifier, NetworkFactory factory, PartSearchSettings settings, Random random)
         {
             (Operators.ICrossover crossover, Operators.IMutation edits) = ShrinkOperators(factory, settings.HardwareProfile);
-            var archive = new MapElites(settings.Population, random, () => start.Network, evaluator, crossover, edits,
-                cells: HardwareCost.Cell);
-            PartMeasurement smallest = start;
+            ContractTask task = verifier.Task;
+            Func<Network, (int, int)> cells = settings.RobustJitter > 0 ? Robustness.Cells(task, settings.RobustJitter) : HardwareCost.Cell;
+            var archive = new MapElites(settings.Population, random, () => start.Network, evaluator, crossover, edits, cells: cells);
+            // Robustness in tenths first when it is asked for, then cost; the cells function has measured every network in the archive.
+            int Robust(Network network) => settings.RobustJitter > 0 ? cells(network).Item1 : 0;
+            int Compare(Network first, Network second) =>
+                Robust(first) != Robust(second) ? Robust(second).CompareTo(Robust(first)) : HardwareCost.Of(first).CompareTo(HardwareCost.Of(second));
+            PartMeasurement kept = start;
             var tried = new HashSet<string>();
             while (evaluator.Evaluations < settings.ShrinkBudget)
             {
                 archive.NextGeneration();
                 foreach (Individual candidate in archive.Population
-                    .Where(individual => individual.Fitness == 1 && HardwareCost.Of(individual.Genes).CompareTo(smallest.Cost) < 0)
-                    .OrderBy(individual => HardwareCost.Of(individual.Genes), HardwareCost.SmallestFirst)
+                    .Where(individual => individual.Fitness == 1 && Compare(individual.Genes, kept.Network) < 0)
+                    .OrderBy(individual => individual.Genes, Comparer<Network>.Create(Compare))
                     .Take(3))
                 {
-                    if (tried.Add(NetworkNotation.Format(candidate.Genes)) && verifier.Verify(candidate.Genes) is PartMeasurement smaller && smaller.Cost.CompareTo(smallest.Cost) < 0)
+                    if (tried.Add(NetworkNotation.Format(candidate.Genes)) && verifier.Verify(candidate.Genes) is PartMeasurement better && Compare(better.Network, kept.Network) < 0)
                     {
-                        smallest = smaller;
+                        kept = better;
                         break;
                     }
                 }
             }
-            return smallest;
+            return kept;
         }
 
         private sealed class Verifier
         {
             private readonly ContractTask task;
+
+            public ContractTask Task => task;
             private readonly ExhaustiveCpuEngine engine = new ExhaustiveCpuEngine(VerifyConfigurations);
             private readonly SimulationOptions options;
 

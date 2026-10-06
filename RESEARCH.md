@@ -311,6 +311,37 @@ What would address them, in order:
 
 These are milestone M3 in `.github/tickets/m3/`.
 
+### Spec to verified circuit
+
+Notes from 2026-10-06. Every task so far scores fixed values: a target sequence, or a contract's listed cases. A network that lists the 16 Fibonacci values scores the same as one that adds. Finishing M3 would not change that. Part programs make a general Fibonacci machine easy to express (about four instructions), but the Fibonacci benchmark still scores the fixed sequence, and its check on 4 more values never feeds back into selection. The aim here is to score the rule, and to prove networks general rather than test them on a few more values.
+
+**Why this is the useful direction.** Neuromorphic hardware is shipping (Innatera Pulsar, BrainChip Akida, SynSense) and is being used for real maths (Sandia's finite-element solver on Loihi 2, *Nature Machine Intelligence*, November 2025). Reviews name programming as the bottleneck: there are few tools, and no clear advantage over conventional hardware yet. The algorithm circuits in use were all derived by hand. Existing tools only compile hand-written designs: Fugu composes bricks, Lava ships libraries, and Syn2Logic (Podobas, August 2026) compiles a DSL to RTL and validates on benchmarks only. None of them searches for the smallest circuit or proves one correct. Verification work on SNNs is about the robustness of trained networks, not whether an exact circuit computes its function. So the niche is: **a spec goes in, the smallest verified spiking circuit comes out.** This is superoptimisation, as STOKE does for x86 code (Schkufza et al. 2013), with the proof step built in.
+
+**Why superoptimise rather than synthesise.** When the algorithm is known, compiling it always gives a correct network, so evolution from scratch is the wrong baseline. The main route is to compile, then search for smaller and faster networks under the hardware profile, with correctness held as a constraint and every elite verified again. Synthesis from the spec alone is run alongside as the discovery arm, on the same budget.
+
+**What the spec has to do.**
+- A reference function, or a checker for relations (any x with R(input, x)), over an input domain with a size n, with an encoding onto the existing port kinds.
+- Training cases up to n, held-out cases above n, and counterexamples kept apart. Varying the inputs and holding some out is the standard cure for overfitting in GP (Helmuth and Spector's benchmark suite).
+- Generators are judged on the rule from varied starting values. Each gap is judged against the network's own earlier gaps, with the first gaps pinned to the inputs. Otherwise plain Fibonacci passes the relation check from any start.
+
+**Limits on "for every n".** SN P systems are Turing-universal, so proving a system correct for every input is undecidable in general. For restricted classes, Ibarra et al. found that reachability and emptiness are decidable but equivalence is not. Bounded proofs plus counterexamples come first. A loop of verified parts has the structure an induction needs, and its rule conditions are eventually periodic, so one round can be written in Presburger arithmetic and handed to a solver. That is an investigation, not a promise.
+
+**Risks.** The audience today is researchers, in membrane computing and neuromorphic algorithms. Results matter for chips only under the hardware profile. Unary encodings are uncompetitive, so binary arithmetic matters more. The published arithmetic circuits could not be opened, so our seeds come from our own compiler and comparisons are on size only.
+
+Planned as milestone M4 in `.github/tickets/m4/`: specs as targets, superoptimisation, a usable tool, and results. The flagship result is arithmetic against the published hand designs.
+
+Sources for this section:
+- **Theilman, Aimone (2025)**, "Solving Sparse Finite Element Problems on Neuromorphic Hardware", *Nature Machine Intelligence*. https://arxiv.org/abs/2501.10526 ; coverage: https://spectrum.ieee.org/neuromorphic-math — *Abstract and coverage.*
+- **Podobas (2026)**, "Syn2Logic: End-to-End Neuromorphic Design Automation". https://arxiv.org/abs/2608.25536 — *Abstract.*
+- **Aimone et al. (2019)**, "Composing Neural Algorithms with Fugu". https://arxiv.org/abs/1905.12130
+- "Neuromorphic Programming: Emerging Directions for Brain-Inspired Hardware" (2024). https://arxiv.org/abs/2410.22352 — *Abstract.*
+- Uptime Institute (October 2025), "Emerging tech: neuromorphic computing". https://intelligence.uptimeinstitute.com/resource/emerging-tech-neuromorphic-computing — *Summary.*
+- Innatera Pulsar. https://innatera.com/pulsar
+- "Towards Efficient Formal Verification of Spiking Neural Network" (2024). https://arxiv.org/abs/2408.10900 ; "Configuring Safe Spiking Neural Controllers for Cyber-Physical Systems through Formal Verification" (2024). https://arxiv.org/abs/2408.01996 — *Abstracts.*
+- **Ibarra et al.**, SN P systems with bounded spikes and semilinear sets. https://sites.cs.ucsb.edu/~omer/DOWNLOADABLE/spiking_psystems08.pdf ; asynchronous SN P decidability. https://sites.cs.ucsb.edu/~omer/DOWNLOADABLE/asyn_psystems09.pdf — *Abstracts.*
+- **Helmuth, Spector (2015)**, general program synthesis benchmark suite. https://www.cs.hamilton.edu/~thelmuth/Pubs/2015-GECCO-benchmark-suite.pdf ; survey of generalisation in GP. https://arxiv.org/abs/1211.1119
+- **Schkufza, Sharma, Aiken (2013)**, "Stochastic Superoptimization", ASPLOS. *From memory, not checked in this search.*
+
 ## Next steps
 
 - Read the full text of Dong 2023 and Zeng 2012, which were paywalled when the comparison table was made, and check Zeng's multiplier and divider sizes, which Chen and Guo give two ways.

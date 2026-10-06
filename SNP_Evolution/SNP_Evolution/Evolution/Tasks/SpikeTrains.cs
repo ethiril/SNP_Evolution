@@ -24,6 +24,9 @@ namespace SnpEvolution.Evolution.Tasks
             return word;
         }
 
+        // How many spikes fall on steps from start up to, but not including, end.
+        public static int CountIn(IReadOnlyList<int> spikeSteps, int start, int end) => spikeSteps.Count(step => step >= start && step < end);
+
         public static string Format(IEnumerable<bool> word) => string.Concat(word.Select(bit => bit ? '1' : '0'));
     }
 }

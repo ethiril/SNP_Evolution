@@ -8,7 +8,8 @@ namespace SnpEvolution.Cli
     internal static class ConsoleUi
     {
         private const string Indent = "    ";
-        private const string MenuKeys = " [Up/Down] move   [Enter] select   [1-9] pick   [Esc] back";
+        private static readonly (string Key, string Action)[] MenuKeys =
+            { ("↑/↓", "move"), ("Enter", "select"), ("1-9", "pick"), ("Esc", "back") };
 
         // Returns null when the user goes back with ESC, Backspace or the left arrow. Options are numbered, and a
         // number key picks its option at once; a letter key moves to the next option starting with it.
@@ -36,7 +37,7 @@ namespace SnpEvolution.Cli
                         WriteLineColoured(ConsoleColor.Yellow, " " + title);
                     }
                     PrintOptions(options, selection, boxWidth);
-                    WriteLineColoured(ConsoleColor.DarkGray, MenuKeys);
+                    PrintKeys();
                     ConsoleKeyInfo key = Console.ReadKey(true);
                     switch (key.Key)
                     {
@@ -222,22 +223,42 @@ namespace SnpEvolution.Cli
             WriteLineColoured(ConsoleColor.Cyan, value);
         }
 
+        // The selected row sets both colours, since the terminal's own text colour is unreadable on some
+        // backgrounds, and carries a pointer so it still shows in terminals without colour.
         private static void PrintOptions(IReadOnlyList<string> options, int selection, int boxWidth)
         {
-            Console.WriteLine(Indent + new string('-', boxWidth));
+            WriteLineColoured(ConsoleColor.DarkGray, Indent + "┌" + new string('─', boxWidth - 2) + "┐");
             for (int index = 0; index < options.Count; index++)
             {
-                Console.Write(Indent);
-                if (index == selection)
-                {
-                    Console.BackgroundColor = ConsoleColor.DarkCyan;
-                }
+                bool selected = index == selection;
                 string number = index < 9 ? $"{index + 1}." : "  ";
-                Console.Write("| " + $"{number,-3} {options[index]}".PadRight(boxWidth - 4) + " |");
-                Console.ResetColor();
-                Console.WriteLine();
+                WriteColoured(ConsoleColor.DarkGray, Indent + "│");
+                if (selected)
+                {
+                    Console.BackgroundColor = ConsoleColor.Cyan;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.Write(("› " + $"{number,-3} {options[index]}").PadRight(boxWidth - 2));
+                    Console.ResetColor();
+                }
+                else
+                {
+                    WriteColoured(ConsoleColor.DarkGray, "  " + $"{number,-3} ");
+                    Console.Write(options[index].PadRight(boxWidth - 8));
+                }
+                WriteLineColoured(ConsoleColor.DarkGray, "│");
             }
-            Console.WriteLine(Indent + new string('-', boxWidth));
+            WriteLineColoured(ConsoleColor.DarkGray, Indent + "└" + new string('─', boxWidth - 2) + "┘");
+        }
+
+        private static void PrintKeys()
+        {
+            Console.Write(" ");
+            foreach ((string key, string action) in MenuKeys)
+            {
+                WriteColoured(ConsoleColor.Yellow, key);
+                WriteColoured(ConsoleColor.DarkGray, " " + action + "   ");
+            }
+            Console.WriteLine();
         }
 
         private static int NextStartingWith(IReadOnlyList<string> options, int selection, char letter)

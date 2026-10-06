@@ -136,6 +136,10 @@ namespace SnpEvolution.Evolution.Tasks
             };
         }
 
+        // Whether one computation of the case passes every rule; untimed leaves out OnTime, for runs whose timing is meant to vary.
+        public bool Keeps(PortRun run, int caseIndex, bool timed = true) =>
+            Enum.GetValues<ContractRule>().Where(rule => timed || rule != ContractRule.OnTime).All(rule => ScoreRule(rule, run, caseIndex) == 1);
+
         // The first computation that fails the check, or null when every computation of its case passes it.
         public PortRun? FailingRun(IReadOnlyList<TrialResult> results, int check) =>
             results[check / RuleCount].PortRuns.FirstOrDefault(run => ScoreRule((ContractRule)(check % RuleCount), run, check / RuleCount) < 1);

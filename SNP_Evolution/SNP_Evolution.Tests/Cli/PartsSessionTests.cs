@@ -80,8 +80,8 @@ namespace SnpEvolution.Tests.Cli
         {
             string table = PartsSession.FormatTable(new[] { new PartsSession.Row("add", "not solved", 50_000, null) });
 
-            Assert.StartsWith("Contract   Result       Evaluations   Neurons   Synapses   Latency", table);
-            Assert.Contains("add        not solved   50000         -         -          -", table);
+            Assert.StartsWith("Contract   Result       Evaluations   Neurons   Synapses   Latency   Robust j=1   Robust j=2", table);
+            Assert.Contains("add        not solved   50000         -         -          -         -            -", table);
         }
     }
 }

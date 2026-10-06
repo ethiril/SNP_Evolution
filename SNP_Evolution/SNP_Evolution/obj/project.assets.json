@@ -58,7 +58,7 @@
     "/Users/michaelstachowicz/.nuget/packages/": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-local.20261006210312",
     "restore": {
       "projectUniqueName": "/Users/michaelstachowicz/SNP_Evolution/SNP_Evolution/SNP_Evolution/SNP_Evolution.csproj",
       "projectName": "SNP_Evolution",
