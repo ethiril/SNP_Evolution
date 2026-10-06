@@ -213,7 +213,7 @@ The library folder holds one JSON file per contract (`delay-1.json`, `zero-test.
 
 The run ends with a table of each contract, whether it was solved, the evaluations it used, and the kept part's neurons, synapses and latency. It exits with 2 when a contract is left without a part.
 
-RESULTS_PLACEHOLDER
+With seed 1 and the default budget (47 minutes on a 15-core machine), the run solved delay 2, 3 and 4 (2 neurons, 1 synapse each) and sequencer 2 (6 neurons, 8 synapses). Delay 1 was solved by other seeds but not this one, and sequencer 3 and the zero test came close (best fitness 0.97). None of the parts with count ports was solved. Their best networks score about 0.8, getting every rule right except putting the right values out and firing done once. A part that holds a count until start needs the parity trick of the hand-built register: each input spike is stored as two, and start makes the total odd so that a rule matching odd counts drains it. Larger networks, lexicase off, and partial credit for right values when done misfires all left the best near 0.8 within 50000 evaluations. The `parts/` folder in the repository holds the parts this run found.
 
 ## Benchmarking and choosing an algorithm
 

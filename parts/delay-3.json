@@ -1,0 +1,85 @@
+{
+  "Contract": {
+    "Name": "delay 3",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 3,
+    "MinLatency": 3,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 2
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa*",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 2,
+    "Synapses": 1,
+    "DistinctRules": 2,
+    "Rules": 2,
+    "RegisterWidth": 1,
+    "LassoTable": 5
+  },
+  "Latency": 3,
+  "Origin": {
+    "Seed": 376120304,
+    "Run": "evolve-parts --seed 1 --budget 50000",
+    "Evaluations": 26091
+  }
+}
