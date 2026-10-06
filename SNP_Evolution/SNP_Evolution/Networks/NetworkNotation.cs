@@ -18,7 +18,7 @@ namespace SnpEvolution.Networks
         // "aa -> a" fires, "aa -> forget" consumes without emitting, ";d" shows a delay and ";d axonal" an axonal one.
         // Standard rules add the spikes they consume, "a(aa)*/a -> aa", leaving out "E/" when E only matches the consumed count.
         public static string Rule(Rule rule) =>
-            $"{Condition(rule)} -> {(rule.Fire ? Spikes(rule.IsStandard ? rule.Produce : 1) : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay + (rule.Axonal ? " axonal" : "") : "")}";
+            $"{Condition(rule)} -> {(rule.Fire ? Spikes(rule.Sends) : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay + (rule.DelayKind == DelayKind.Axonal ? " axonal" : "") : "")}";
 
         private static string Condition(Rule rule)
         {

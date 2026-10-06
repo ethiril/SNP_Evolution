@@ -71,7 +71,7 @@ namespace SnpEvolution.Export
             }
             for (int neuron = 0; neuron < part.Network.Neurons.Count; neuron++)
             {
-                if (part.Network.Neurons[neuron].Rules.FirstOrDefault(rule => !rule.IsStandard && rule.Delay > 0 && !rule.Axonal) is Rule held)
+                if (part.Network.Neurons[neuron].Rules.FirstOrDefault(rule => rule.DelayKind == DelayKind.Holding) is Rule held)
                 {
                     throw new ArgumentException($"Neuron {neuron + 1} has a legacy rule with a delay ({NetworkNotation.Rule(held)}), which holds the neuron; the Uppaal export covers closing and axonal delays only.");
                 }
@@ -111,10 +111,9 @@ namespace SnpEvolution.Export
             for (int rule = 0; rule < neuron.Rules.Count; rule++)
             {
                 Rule each = neuron.Rules[rule];
-                int produce = each.Fire ? (each.IsStandard ? each.Produce : 1) : 0;
                 string consume = (each.Consume ?? -1).ToString(CultureInfo.InvariantCulture);
                 Edge($"closedFor[{id}] == 0 && applies_{number}_{rule + 1}(spikes[{id}])",
-                    $"fireRule({id}, {consume}, {produce}, {each.Delay}, {(each.Axonal ? "true" : "false")})");
+                    $"fireRule({id}, {consume}, {each.Sends}, {each.Delay}, {(each.DelayKind == DelayKind.Axonal ? "true" : "false")})");
             }
             Edge($"closedFor[{id}] == 0 && !anyApplies_{number}(spikes[{id}])", $"idle({id})");
             text.Append("</template>\n");

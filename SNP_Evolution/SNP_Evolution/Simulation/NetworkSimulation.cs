@@ -18,10 +18,7 @@ namespace SnpEvolution.Simulation
     // One computation of a network. Each step every neuron that can apply a rule applies one, chosen at random among
     // those that apply; the exhaustive engine instead drives the choices itself through ApplicableRules and Apply.
     //
-    // Legacy and standard rules keep their own delay semantics. A delayed legacy rule emits at once, then holds the
-    // neuron for d steps, still receiving spikes, before emptying it. A delayed standard rule consumes at once and
-    // closes the neuron for d steps: spikes sent to it are lost, and it emits when it reopens on step t + d. An axonal
-    // rule consumes at once and leaves the neuron open, and its spikes leave on step t + d, as if the axon held them.
+    // What a delay does follows the rule's DelayKind: holding, closing or axonal.
     //
     // With jitter j, what a neuron sends along each synapse arrives 0 to j steps late, drawn at random per synapse per
     // step, as on asynchronous hardware; a late arrival is lost if its receiver is closed when it lands. Input from the
@@ -383,35 +380,29 @@ namespace SnpEvolution.Simulation
             }
             SpikeRelease release = network.RuleFires[rule] ? SpikeRelease.Fired : SpikeRelease.Forgot;
             int delay = network.RuleDelay[rule];
-            long consume = network.RuleConsume[rule];
-            if (network.ruleAxonal[rule])
+            int sends = network.RuleProduce[rule];
+            switch (network.ruleDelayKind[rule])
             {
-                spikes[neuron] = consume == CompiledNetwork.ConsumesAll ? 0 : spikes[neuron] - consume;
-                inFlight![FlightSlot(neuron, StepCount + delay)] += network.RuleProduce[rule];
-                return release == SpikeRelease.Fired ? SpikeRelease.None : release;
-            }
-            if (consume == CompiledNetwork.ConsumesAll)
-            {
-                emitting[neuron] = network.RuleProduce[rule];
-                if (delay > 0)
-                {
+                case DelayKind.Axonal:
+                    spikes[neuron] = network.Rule(rule).Leaves(spikes[neuron]);
+                    inFlight![FlightSlot(neuron, StepCount + delay)] += sends;
+                    return release == SpikeRelease.Fired ? SpikeRelease.None : release;
+                case DelayKind.Holding:
+                    emitting[neuron] = sends;
                     legacyDelay[neuron] = delay;
                     legacyPending[neuron] = release;
                     return SpikeRelease.None;
-                }
-                spikes[neuron] = 0;
-                return release;
+                case DelayKind.Closing:
+                    spikes[neuron] = network.Rule(rule).Leaves(spikes[neuron]);
+                    closedFor[neuron] = delay;
+                    pendingEmission[neuron] = sends;
+                    closed[neuron] = true;
+                    return SpikeRelease.None;
+                default:
+                    spikes[neuron] = network.Rule(rule).Leaves(spikes[neuron]);
+                    emitting[neuron] = sends;
+                    return release;
             }
-            spikes[neuron] -= consume;
-            if (delay > 0)
-            {
-                closedFor[neuron] = delay;
-                pendingEmission[neuron] = network.RuleProduce[rule];
-                closed[neuron] = true;
-                return SpikeRelease.None;
-            }
-            emitting[neuron] = network.RuleProduce[rule];
-            return release;
         }
 
         private void RecordOutputNeuron(SpikeRelease release)

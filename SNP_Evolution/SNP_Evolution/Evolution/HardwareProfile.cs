@@ -85,17 +85,17 @@ namespace SnpEvolution.Evolution
             {
                 yield return $"it consumes {consume} spike(s) rather than all of them";
             }
-            if (rule.IsStandard && rule.Fire && rule.Produce != 1)
+            if (rule.Fire && rule.Sends != 1)
             {
-                yield return $"it sends {rule.Produce} spikes rather than one";
+                yield return $"it sends {rule.Sends} spikes rather than one";
             }
             if (Threshold(rule.Condition) == null)
             {
                 yield return $"its condition accepts {AcceptedCounts(rule.Condition)} rather than every count from a threshold up";
             }
-            if (rule.Delay > 0 && !rule.Axonal)
+            if (rule.DelayKind is DelayKind.Closing or DelayKind.Holding)
             {
-                yield return $"its delay of {rule.Delay} {(rule.IsStandard ? "closes" : "holds")} the neuron, and the profile only has axonal delays";
+                yield return $"its delay of {rule.Delay} {(rule.DelayKind == DelayKind.Closing ? "closes" : "holds")} the neuron, and the profile only has axonal delays";
             }
         }
 
@@ -115,7 +115,7 @@ namespace SnpEvolution.Evolution
         }
 
         // The fewest spikes, at least one, the rule could apply to, or 1 when it applies to none.
-        private static int SmallestAccepted(Rule rule) => (int)Math.Min(int.MaxValue, rule.Condition.SmallestAccepted(Math.Max(1, rule.Consume ?? 1)) ?? 1);
+        private static int SmallestAccepted(Rule rule) => (int)Math.Min(int.MaxValue, rule.Condition.SmallestAccepted(Math.Max(1, rule.LeastHeld)) ?? 1);
     }
 
     // Puts what another operator makes back within the profile, so every child of a profile run fits it.
