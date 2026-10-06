@@ -44,6 +44,7 @@ Move with the arrow keys and press Enter to select, or press an option's number.
   - *Starting from the natural numbers or even numbers network*: evolve a hand-designed network towards the target. To evolve only its rules, as in the original paper, first pick a "rule expressions only" algorithm in Settings > Evolution.
   - *Suggest settings*: show what the advisor recommends for the selected task, apply it if you agree, and optionally run a quick pilot that picks the algorithm. *Match a target* does this before every run.
   - *Compile a target, then shrink it*: type a sequence or set target, then build a network that is correct by construction and evolve it smaller (see [Compile, then shrink](#compile-then-shrink)). For a set you can give a register program file, or leave it empty to evolve one. Leave the shrink generations empty for 300, or enter 0 to only compile.
+  - *Evolve the first library parts*: run `evolve-parts` (see [Evolving library parts](#evolving-library-parts)) with a seed you give, 1 if left empty.
   - *Redo a saved run*: after a run you can save it under a name. Saved runs can be run again as they were, have their settings loaded to change first, or be deleted.
 - **Run a network**: run the natural numbers or even numbers network, or import one from a JSON file.
 - **Benchmark**: run every algorithm on the task suite, or find the best algorithm for the selected task.
@@ -73,7 +74,7 @@ When evolving, the console shows the best network after every generation: its ne
 
 Sequence and binary lines add "(varies between runs)" when the network is nondeterministic. With the MAP-Elites algorithm, the end of the run also lists the fittest network of each size.
 
-Running a network shows the numbers it generated, one run's spike train with the intervals between its spikes, and how long the run took. For a network with input neurons, it shows its score on the selected task instead of the spike train. Evolved networks are saved to a timestamped folder, named in the message at the end of a run. To load one, choose *Run a network > Import* and give the path from the folder you run the program in, such as `6234234242322/TargetNet.json`.
+Running a network shows the numbers it generated, one run's spike train with the intervals between its spikes, and how long the run took. For a network with input neurons, it shows its score on the selected task instead of the spike train. Evolved networks are saved to a timestamped folder inside `Test Data`, named in the message at the end of a run. To load one, choose *Run a network > Import* and give the path from the folder you run the program in, such as `Test Data/6234234242322/TargetNet.json`.
 
 ## Rule forms
 
@@ -174,6 +175,45 @@ snp-evolution compile --kind set --target "2,4,6" --program my-program.txt
 - **Shrinking** (`--shrink N` generations, 300 by default, 0 to skip) starts every network from the compiled one. Children compete on fitness first and size second, and a smaller network only counts once it passes the same retests that stop a run. It uses the usual edits apart from those that only add, plus two more: bypassing a neuron (whatever sent to it sends on to its targets) and merging two neurons with the same rules.
 
 The run saves `Program.txt` (the recurrence or program), `Compiled.*` and `Shrunk.*` (network, notation, graph and page) and `Shrunk.csv` (fitness history).
+
+## Evolving library parts
+
+`evolve-parts` evolves small verified parts that later runs can build machines from. Each part has a start input, a done output and typed data ports, and a contract it must meet: nothing comes out before start, done fires exactly once with the right values on the outputs, every neuron ends where it began, and done fires in time. The goals are ten general arithmetic parts, none specific to any target (`FirstParts.Table()` prints them):
+
+| Part | Ports besides start and done | Contract |
+|---|---|---|
+| Delay k | none | done fires k steps after start (k = 1..4, one contract each) |
+| Fan-out | count in; count out x2 | both outputs carry n |
+| Increment | count in; count out | output carries n + 1 |
+| Double | count in; count out | output carries 2n |
+| Add | count in x2; count out | output carries n1 + n2 (cases cover pairs up to 6 + 6) |
+| Interval to count | interval in; count out | output carries n |
+| Count to interval (timer) | count in; interval out | two output spikes n steps apart |
+| Register | count in; count out | holds n until started again, then drains it |
+| Zero test | count in; done-zero, done-nonzero | the right branch fires, the other never |
+| Sequencer | done out xk | fires its outputs in order, each one step after the previous (k = 2, 3) |
+
+Count cases run from 0 to 8 plus 12, to catch a part that only memorised small values.
+
+```
+snp-evolution evolve-parts --seed 1
+snp-evolution evolve-parts --only "add,fan-out" --budget 200000 --redo on
+```
+
+For each contract the library has no part for, the command evolves one from scratch with MAP-Elites (lexicase parents, standard rules), verifies it on the exhaustive engine over every computation of every case, then shrinks it with MAP-Elites over hardware-cost cells and keeps the cheapest network that still verifies. Hardware cost orders by neurons, then synapses, then rules, then register width (the most spikes any neuron holds during the cases); distinct rules and lasso table size break any remaining tie.
+
+- `--seed N` (1 by default): each contract gets its own seed from it, so the same seed writes the same library whichever contracts run together.
+- `--budget N` (50000 by default): search evaluations per contract; shrinking spends a quarter as many again.
+- `--only NAMES`: contracts whose names contain any of the comma-separated names.
+- `--library DIR` (`parts/` at the repository root by default): the library folder.
+- `--engine exact|sampled`: the engine the search scores on; verification is always exhaustive.
+- `--redo on`: evolve contracts the library already has a part for; the new part replaces the old only if it is cheaper.
+
+The library folder holds one JSON file per contract (`delay-1.json`, `zero-test.json`) with the network (in the usual network file format), contract, port binding, hardware cost, latency, seed, run and evaluations. Loading verifies every part again and refuses a file whose part fails its contract or whose contract differs from the catalogue, naming the file. Two parts that read the same on every case of a contract count as one, and the cheaper is kept under the first one's id.
+
+The run ends with a table of each contract, whether it was solved, the evaluations it used, and the kept part's neurons, synapses and latency. It exits with 2 when a contract is left without a part.
+
+With seed 1 and the default budget (47 minutes on a 15-core machine), the run solved delay 2, 3 and 4 (2 neurons, 1 synapse each) and sequencer 2 (6 neurons, 8 synapses). Delay 1 was solved by other seeds but not this one, and sequencer 3 and the zero test came close (best fitness 0.97). None of the parts with count ports was solved. Their best networks score about 0.8, getting every rule right except putting the right values out and firing done once. A part that holds a count until start needs the parity trick of the hand-built register: each input spike is stored as two, and start makes the total odd so that a rule matching odd counts drains it. Larger networks, lexicase off, and partial credit for right values when done misfires all left the best near 0.8 within 50000 evaluations. The `parts/` folder in the repository holds the parts this run found.
 
 ## Benchmarking and choosing an algorithm
 

@@ -50,6 +50,11 @@ namespace SnpEvolution.Cli
         public bool TriggeredModules { get; set; } = true;
         public int ModuleIncubation { get; set; } = 30;
         public IReadOnlyList<string> ModuleFiles { get; set; } = System.Array.Empty<string>();
+        // Where evolve-parts saves verified parts and later runs load them from, and the evaluations it may spend
+        // searching for each part.
+        public string PartLibraryFolder { get; set; } = DefaultPartLibraryFolder();
+        public long PartBudget { get; set; } = 50_000;
+
         public int BenchmarkSeeds { get; set; } = 5;
         public long EvaluationBudget { get; set; } = 5_000;
         public int BenchmarkPopulationSize { get; set; } = 40;
@@ -91,6 +96,20 @@ namespace SnpEvolution.Cli
 
         // A copy to try changes on without touching these settings.
         public Settings Copy() => (Settings)MemberwiseClone();
+
+        // parts/ at the root of the repository the program runs in, or in the working directory outside one.
+        public static string DefaultPartLibraryFolder()
+        {
+            string start = System.IO.Directory.GetCurrentDirectory();
+            for (string? folder = start; folder != null; folder = System.IO.Path.GetDirectoryName(folder))
+            {
+                if (System.IO.Directory.Exists(System.IO.Path.Combine(folder, ".git")))
+                {
+                    return System.IO.Path.Combine(folder, "parts");
+                }
+            }
+            return System.IO.Path.Combine(start, "parts");
+        }
 
         public static Settings Defaults() => new Settings
         {

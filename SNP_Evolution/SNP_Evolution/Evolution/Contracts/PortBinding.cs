@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace SnpEvolution.Evolution.Contracts
 
         public int this[string port] => Positions[port];
 
+        [JsonIgnore]
         public int NeuronsNeeded => Positions.Values.DefaultIfEmpty(0).Max();
 
         // Throws ArgumentException unless every out-port and done port has its own neuron.

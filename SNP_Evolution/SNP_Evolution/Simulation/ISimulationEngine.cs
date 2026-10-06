@@ -36,8 +36,9 @@ namespace SnpEvolution.Simulation
     public readonly record struct Firing(int Step, long Spikes);
 
     // One computation as a Ports readout sees it: each watched neuron's firings in step order, in PortWatch.Neurons
-    // order, and every neuron's spikes when the run stopped and when it began.
-    public sealed record PortRun(IReadOnlyList<IReadOnlyList<Firing>> Firings, IReadOnlyList<long> FinalSpikes, IReadOnlyList<long> InitialSpikes);
+    // order, every neuron's spikes when the run stopped and when it began, and the most spikes any neuron held on any
+    // step, which is how wide a register hardware needs.
+    public sealed record PortRun(IReadOnlyList<IReadOnlyList<Firing>> Firings, IReadOnlyList<long> FinalSpikes, IReadOnlyList<long> InitialSpikes, long MostHeld = 0);
 
     // One network given one input. Watch is what a Ports readout watches (nothing when null), and is ignored otherwise.
     public sealed record Trial(Network Network, InputSpikes Input, Readout Readout, PortWatch? Watch = null)

@@ -77,6 +77,12 @@ namespace SnpEvolution.Evolution.Tasks
                 .SelectMany(caseIndex => Enum.GetValues<ContractRule>().Select(rule => ScoreRuleOverRuns(rule, results[caseIndex].PortRuns, caseIndex)))
                 .ToList();
 
+        // What every case read, as text: per distinct computation the done ports that fired and each data out-port's value
+        // ("?" when it is no value), with the contract's name. Two parts with the same text behave the same on the contract.
+        public string Behaviour(IReadOnlyList<TrialResult> results) =>
+            Contract.Name + " | " + string.Join(" | ", Enumerable.Range(0, Contract.Cases.Count).Select(caseIndex =>
+                string.Join(" or ", results[caseIndex].PortRuns.Select(run => Reading(run, caseIndex)).Distinct().OrderBy(reading => reading, StringComparer.Ordinal))));
+
         public string CheckName(int check) => $"{CaseLabel(check / RuleCount)}: {RuleNames[check % RuleCount]}";
 
         public string Describe(IReadOnlyList<TrialResult> results)
@@ -132,8 +138,17 @@ namespace SnpEvolution.Evolution.Tasks
             {
                 return 1;
             }
+            if (Contract.OrderedTriggers && !TriggersInOrder(run, startSteps[caseIndex]))
+            {
+                return 0;
+            }
+            return ScoreOutputs(run, caseIndex, dones[0].Firing.Step);
+        }
+
+        private float ScoreOutputs(PortRun run, int caseIndex, int done)
+        {
+            ContractCase @case = Contract.Cases[caseIndex];
             int start = startSteps[caseIndex];
-            int done = dones[0].Firing.Step;
             return dataOut.Select((port, slot) =>
             {
                 List<Firing> firingsAfterStart = run.Firings[slot].Where(firing => firing.Step > start).ToList();
@@ -142,34 +157,72 @@ namespace SnpEvolution.Evolution.Tasks
             }).Average();
         }
 
+        private string Reading(PortRun run, int caseIndex)
+        {
+            int start = startSteps[caseIndex];
+            List<(string Port, Firing Firing)> dones = Contract.Done
+                .SelectMany((port, slot) => run.Firings[dataOut.Count + slot].Select(firing => (Port: port.Name, Firing: firing)))
+                .OrderBy(done => done.Firing.Step)
+                .ToList();
+            int done = dones.Count == 0 ? int.MaxValue : dones[0].Firing.Step;
+            IEnumerable<string> values = dataOut.Select((port, slot) =>
+            {
+                List<Firing> firingsAfterStart = run.Firings[slot].Where(firing => firing.Step > start).ToList();
+                int? value = port.Kind == PortKind.Binary ? ReadBinaryWord(port.Width, firingsAfterStart, done) : ReadUnaryValue(port.Kind, firingsAfterStart, done);
+                return $"{port.Name}={value?.ToString() ?? "?"}";
+            });
+            return string.Join(",", dones.Select(done => done.Port).DefaultIfEmpty("no done").Concat(values));
+        }
+
+        // Each trigger out-port's first firing after start comes on a later step than the one listed before it.
+        private bool TriggersInOrder(PortRun run, int start)
+        {
+            List<int> firstSteps = dataOut.Select((port, slot) => (port, slot))
+                .Where(pair => pair.port.Kind == PortKind.Trigger)
+                .Select(pair => run.Firings[pair.slot].Where(firing => firing.Step > start).Select(firing => firing.Step).DefaultIfEmpty(-1).First())
+                .Where(step => step >= 0)
+                .ToList();
+            return firstSteps.Zip(firstSteps.Skip(1)).All(pair => pair.First < pair.Second);
+        }
+
         private static float ScoreBinaryWord(int width, List<Firing> firingsAfterStart, int done, int expected)
         {
-            if (firingsAfterStart.Any(firing => firing.Step < done || firing.Step >= done + width))
+            if (ReadBinaryWord(width, firingsAfterStart, done) is not int word)
             {
                 return 0;
             }
-            int word = firingsAfterStart.Aggregate(0, (bits, firing) => bits | 1 << (firing.Step - done));
             int wrongBits = BitOperations.PopCount((uint)(word ^ expected));
             return wrongBits == 0 ? 1 : CloseCredit.AtBest * (width - wrongBits) / width;
         }
 
         private static float ScoreUnaryValue(PortKind kind, List<Firing> firingsAfterStart, int done, int expected)
         {
-            if (firingsAfterStart.Any(firing => firing.Step >= done))
+            if (ReadUnaryValue(kind, firingsAfterStart, done) is not int read)
             {
                 return 0;
             }
-            int? value = kind switch
+            return kind == PortKind.Trigger ? (read == expected ? 1 : 0) : CloseCredit.Score(read, expected);
+        }
+
+        // Null when the word spills outside its window after done.
+        private static int? ReadBinaryWord(int width, List<Firing> firingsAfterStart, int done) =>
+            firingsAfterStart.Any(firing => firing.Step < done || firing.Step >= done + width)
+                ? null
+                : firingsAfterStart.Aggregate(0, (bits, firing) => bits | 1 << (firing.Step - done));
+
+        // Null when the port fires at or after done, or its firings are no value of its kind.
+        private static int? ReadUnaryValue(PortKind kind, List<Firing> firingsAfterStart, int done)
+        {
+            if (firingsAfterStart.Any(firing => firing.Step >= done))
+            {
+                return null;
+            }
+            return kind switch
             {
                 PortKind.Count => (int)firingsAfterStart.Sum(firing => firing.Spikes),
                 PortKind.Interval => firingsAfterStart.Count == 2 ? firingsAfterStart[1].Step - firingsAfterStart[0].Step : null,
                 _ => firingsAfterStart.Count <= 1 ? firingsAfterStart.Count : null,
             };
-            if (value is not int read)
-            {
-                return 0;
-            }
-            return kind == PortKind.Trigger ? (read == expected ? 1 : 0) : CloseCredit.Score(read, expected);
         }
 
         private int? Latency(PortRun run, int caseIndex) => FirstDone(run)?.Step - (startSteps[caseIndex] + 1);

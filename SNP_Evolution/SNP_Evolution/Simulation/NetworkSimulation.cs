@@ -256,6 +256,7 @@ namespace SnpEvolution.Simulation
                     spikes[inputNeurons[index]] += input.SpikesArriving(index, StepCount);
                 }
             }
+            portRecorder?.NoteHeld(spikes);
             StepCount++;
         }
 

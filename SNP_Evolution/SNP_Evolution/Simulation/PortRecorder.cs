@@ -13,7 +13,9 @@ namespace SnpEvolution.Simulation
         private readonly bool[] isDone;
         private readonly List<Firing>[] firings;
         private int? firstDoneStep;
+        private long mostHeld;
 
+        // A watched position past the last neuron is a port the network lacks, which never fires.
         public PortRecorder(PortWatch watch, int neuronCount)
         {
             this.watch = watch;
@@ -22,10 +24,13 @@ namespace SnpEvolution.Simulation
             firings = new List<Firing>[watch.Neurons.Count];
             for (int slot = 0; slot < watch.Neurons.Count; slot++)
             {
-                watchSlot[watch.Neurons[slot] - 1] = slot;
+                if (watch.Neurons[slot] <= neuronCount)
+                {
+                    watchSlot[watch.Neurons[slot] - 1] = slot;
+                }
                 firings[slot] = new List<Firing>();
             }
-            foreach (int position in watch.Done)
+            foreach (int position in watch.Done.Where(position => position <= neuronCount))
             {
                 isDone[position - 1] = true;
             }
@@ -38,6 +43,7 @@ namespace SnpEvolution.Simulation
             isDone = other.isDone;
             firings = other.firings.Select(slot => new List<Firing>(slot)).ToArray();
             firstDoneStep = other.firstDoneStep;
+            mostHeld = other.mostHeld;
         }
 
         public PortRecorder Clone() => new PortRecorder(this);
@@ -57,13 +63,23 @@ namespace SnpEvolution.Simulation
             }
         }
 
+        // Called once a step, after every spike has arrived.
+        public void NoteHeld(long[] spikes)
+        {
+            foreach (long held in spikes)
+            {
+                mostHeld = Math.Max(mostHeld, held);
+            }
+        }
+
         public PortRun Run(long[] finalSpikes, long[] initialSpikes) =>
-            new PortRun(firings.Select(slot => (IReadOnlyList<Firing>)slot.ToArray()).ToArray(), finalSpikes, Array.AsReadOnly(initialSpikes));
+            new PortRun(firings.Select(slot => (IReadOnlyList<Firing>)slot.ToArray()).ToArray(), finalSpikes, Array.AsReadOnly(initialSpikes),
+                Math.Max(mostHeld, initialSpikes.DefaultIfEmpty(0).Max()));
 
         // Negative separators keep the flattening unambiguous, since steps and spike counts are never negative.
         public long[] History()
         {
-            var history = new List<long> { firstDoneStep ?? -1 };
+            var history = new List<long> { firstDoneStep ?? -1, mostHeld };
             for (int slot = 0; slot < firings.Length; slot++)
             {
                 history.Add(-1 - slot);
