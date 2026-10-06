@@ -53,6 +53,6 @@ namespace SnpEvolution.Evolution
         public override string ToString() =>
             $"{Neurons} neurons, {Synapses} synapses, {Rules} rules ({DistinctRules} distinct), register width {RegisterWidth}, lasso table {LassoTable}";
 
-        private static string RuleKey(Rule rule) => $"{rule.Expression}:{rule.Delay}:{rule.Fire}:{rule.Consume}:{rule.Produce}";
+        private static string RuleKey(Rule rule) => $"{rule.Expression}:{rule.Delay}:{rule.Fire}:{rule.Consume}:{rule.Produce}:{rule.Axonal}";
     }
 }

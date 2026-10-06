@@ -41,7 +41,8 @@ namespace SnpEvolution.Cli
                 options.GetValueOrDefault("library", settings.PartLibraryFolder),
                 Engine(options),
                 IsOn(options, "redo"),
-                engine);
+                engine,
+                HardwareProfileOption(options, false));
             return PartsSession.Run(parts, Console.WriteLine);
         }
 

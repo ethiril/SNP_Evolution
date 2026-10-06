@@ -15,10 +15,10 @@ namespace SnpEvolution.Networks
         public static string Spikes(long count) =>
             count == 0 ? "-" : count <= MaxSpelledOutSpikes ? new string('a', (int)count) : "a^" + count;
 
-        // "aa -> a" fires, "aa -> forget" consumes without emitting, and ";d" shows a delay. Standard rules add the
-        // spikes they consume, "a(aa)*/a -> aa", leaving out "E/" when E only matches the consumed count.
+        // "aa -> a" fires, "aa -> forget" consumes without emitting, ";d" shows a delay and ";d axonal" an axonal one.
+        // Standard rules add the spikes they consume, "a(aa)*/a -> aa", leaving out "E/" when E only matches the consumed count.
         public static string Rule(Rule rule) =>
-            $"{Condition(rule)} -> {(rule.Fire ? Spikes(rule.IsStandard ? rule.Produce : 1) : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay : "")}";
+            $"{Condition(rule)} -> {(rule.Fire ? Spikes(rule.IsStandard ? rule.Produce : 1) : "forget")}{(rule.Delay > 0 ? ";" + rule.Delay + (rule.Axonal ? " axonal" : "") : "")}";
 
         private static string Condition(Rule rule)
         {

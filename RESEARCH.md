@@ -234,6 +234,17 @@ What to build, in order of payoff:
 
 Items 1 and 3 belong in the existing build PRs; items 4 to 6 would be new PRs after build PR 6.
 
+#### Hardware profile and exporters
+
+Items 4 and 5 are built (`HardwareProfile`, `Export/`, README "Exporting to hardware"). Notes from 2026-10-06:
+
+- **Delays.** Neither of our delay semantics is an axonal delay. A delayed standard rule closes its neuron, so spikes sent to it while it waits are lost. A delayed legacy rule sends at once and then holds the neuron. Integrate-and-fire hardware resets and keeps integrating while the spike is in flight. So rules gained a third, axonal kind of delay (`Rule.Axonal`): consume now, stay open, deliver d steps later. The profile's delays are all axonal, and they map onto NIR `Delay` nodes and Loihi's synaptic delays one to one.
+- **The profile.** One rule per neuron, `a^{>=k} / a^*` firing or forgetting, no initial spikes (NIR has no initial state), axonal delays only. One threshold per neuron is forced anyway: two consume-everything rules both apply from the larger threshold up, so they would be a nondeterministic choice.
+- **Time step.** NIR is defined in continuous time and leaves the step to the backend, so the step is part of the claim. We fix one SN P step as one time step, dt = 1. A spike sent on step t is integrated on step t + 1, which is the one-step latency a discrete NIR backend gives a recurrent connection, so every synapse is the recurrent edge `neurons -> [Delay] -> w_rec -> neurons`. The environment's spike on step t is presented at time step t + 1, through `Input -> w_in`. NIR's IF fires when v > v_threshold, so threshold k is written as k - 0.5, and reset is to 0. Under this mapping the IF neuron spikes on step t exactly when the SN P neuron applies its rule on step t. Its potential after the step equals what the SN P neuron holds after applying its rule, and the co-simulation checks both on every step. An axonal delay d is a `Delay` of d time steps, arriving on t + 1 + d.
+- **Simulators.** snnTorch's NIR import maps `IF` to a leaky neuron with beta 0.9 and supports only one threshold per layer, so it cannot reproduce integer IF exactly. norse's `IAFCell` integrates without leak and fires on v > v_th, and nirtorch's executor feeds a recurrent edge the previous step's output. norse has no `Delay`, so `tools/snp_nir.py` supplies a shift register for it.
+- **Verilog.** Every deterministic network exports, in either rule form and with every kind of delay. Co-simulation under Icarus Verilog matches `NetworkSimulation` on the library's evolved delay 2, the hand-built register, add and increment (every contract case), and 25 random deterministic networks with holding, closing and axonal delays. It compares what every neuron sends and holds on every step.
+- **What the profile costs.** PROFILE_BENCHMARK
+
 Sources for this section:
 - **Aimone, Severa, Vineyard (2019)**, "Composing neural algorithms with Fugu", ICONS. https://arxiv.org/abs/1905.12130 — Bricks with declared sizes and timing, a control neuron that fires on completion, and a NetworkX graph as output. *HTML read.*
 - **von Seeler, Offenberg, Michaelis, Luboeinski, Lehr, Tetzlaff (2025)**, "Adding numbers with spiking neural circuits on neuromorphic hardware", *Neuromorph. Comput. Eng.* https://arxiv.org/abs/2503.10387 — Sequential and parallel adders in Lava on Loihi 2, with all input bits at once; Table I gives theoretical neuron and synapse counts, and Figure 5 the resources measured on the chip. *Full text read (arXiv v2).*

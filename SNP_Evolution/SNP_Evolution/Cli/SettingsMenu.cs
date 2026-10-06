@@ -106,6 +106,7 @@ namespace SnpEvolution.Cli
                     ConsoleUi.Row("Runs per network", settings.Repetitions),
                     ConsoleUi.Row("Rule form", settings.RuleForm),
                     ConsoleUi.Row("Output timing", settings.OutputTiming),
+                    ConsoleUi.Row("Hardware profile", settings.HardwareProfile ? "on (threshold-and-reset rules only)" : "off"),
                 }, selection) is int choice)
             {
                 selection = choice;
@@ -125,6 +126,9 @@ namespace SnpEvolution.Cli
                         break;
                     case 4:
                         settings.OutputTiming = ChooseEnum(settings, "How the output neuron's spikes become a number:", settings.OutputTiming);
+                        break;
+                    case 5:
+                        settings.HardwareProfile = !settings.HardwareProfile;
                         break;
                 }
             }

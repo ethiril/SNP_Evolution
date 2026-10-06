@@ -103,7 +103,9 @@ namespace SnpEvolution.Simulation.Metal
                     Fires = network.ruleFires[rule] ? 1u : 0u,
                 };
             }
+            // The kernel has no axon to hold spikes in flight, so networks with axonal delays run on the CPU.
             IsSupported = outputCount <= MaxOutputs
+                && network.MaxAxonalDelay == 0
                 && network.ruleDelay.All(delay => delay <= MaxSmallValue)
                 && network.ruleProduce.All(produce => produce <= short.MaxValue);
             Accepts = new byte[network.accepts.Length];

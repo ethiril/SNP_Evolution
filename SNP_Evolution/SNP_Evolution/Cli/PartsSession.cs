@@ -18,7 +18,7 @@ namespace SnpEvolution.Cli
     internal static class PartsSession
     {
         public sealed record Options(int Seed, long Budget, IReadOnlyList<Contract> Contracts, string Folder, Func<ISimulationEngine> CreateEngine, bool Redo,
-            string EngineOption = "");
+            string EngineOption = "", bool HardwareProfile = false);
 
         public sealed record Row(string Contract, string Status, long? Evaluations, LibraryPart? Part);
 
@@ -35,8 +35,8 @@ namespace SnpEvolution.Cli
                 log(exception.Message);
                 return 1;
             }
-            string run = $"evolve-parts --seed {options.Seed} --budget {options.Budget}{options.EngineOption}";
-            PartSearchSettings settings = SearchSettings(options.Budget, options.CreateEngine);
+            string run = $"evolve-parts --seed {options.Seed} --budget {options.Budget}{options.EngineOption}{(options.HardwareProfile ? " --profile hardware" : "")}";
+            PartSearchSettings settings = SearchSettings(options.Budget, options.CreateEngine) with { HardwareProfile = options.HardwareProfile };
             var rows = new List<Row>();
             foreach (Contract contract in options.Contracts)
             {

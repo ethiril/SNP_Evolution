@@ -19,7 +19,8 @@ namespace SnpEvolution.Simulation
     //
     // Legacy and standard rules keep their own delay semantics. A delayed legacy rule emits at once, then holds the
     // neuron for d steps, still receiving spikes, before emptying it. A delayed standard rule consumes at once and
-    // closes the neuron for d steps: spikes sent to it are lost, and it emits when it reopens on step t + d.
+    // closes the neuron for d steps: spikes sent to it are lost, and it emits when it reopens on step t + d. An axonal
+    // rule consumes at once and leaves the neuron open, and its spikes leave on step t + d, as if the axon held them.
     public sealed class NetworkSimulation
     {
         public const int NoRule = -1;
@@ -39,6 +40,10 @@ namespace SnpEvolution.Simulation
         private readonly int[] matchingRules;
         private readonly List<int>? outputSpikeSteps;
         private readonly PortRecorder? portRecorder;
+
+        // Spikes on their way down each neuron's axon, in a ring of flightSlots per neuron indexed by step; null without axonal rules.
+        private readonly long[]? inFlight;
+        private readonly int flightSlots;
         private int outputCounter;
         private bool outputEngaged;
         private int emitterCount;
@@ -68,6 +73,8 @@ namespace SnpEvolution.Simulation
             matchingRules = new int[network.MaxRulesPerNeuron];
             outputSpikeSteps = recordSpikeTrain ? new List<int>() : null;
             portRecorder = watch == null ? null : new PortRecorder(watch, count);
+            flightSlots = network.MaxAxonalDelay + 1;
+            inFlight = network.MaxAxonalDelay > 0 ? new long[count * flightSlots] : null;
         }
 
         private NetworkSimulation(NetworkSimulation other)
@@ -80,6 +87,10 @@ namespace SnpEvolution.Simulation
             Array.Copy(other.legacyPending, legacyPending, legacyPending.Length);
             Array.Copy(other.closedFor, closedFor, closedFor.Length);
             Array.Copy(other.pendingEmission, pendingEmission, pendingEmission.Length);
+            if (inFlight != null)
+            {
+                Array.Copy(other.inFlight!, inFlight, inFlight.Length);
+            }
             outputCounter = other.outputCounter;
             outputEngaged = other.outputEngaged;
             StepCount = other.StepCount;
@@ -98,6 +109,9 @@ namespace SnpEvolution.Simulation
         public IReadOnlyList<int> OutputSpikeSteps => outputSpikeSteps ?? (IReadOnlyList<int>)Array.Empty<int>();
 
         public IReadOnlyList<long> Spikes => (long[])spikes.Clone();
+
+        // What each neuron sent along every synapse on the last step, spikes leaving its axon included.
+        public IReadOnlyList<long> Sent => (long[])emitting.Clone();
 
         // Whether a Ports readout has seen all it waits for after done.
         public bool PortRunOver => portRecorder?.IsOver(StepCount) ?? false;
@@ -126,7 +140,7 @@ namespace SnpEvolution.Simulation
                         return false;
                     }
                 }
-                return true;
+                return inFlight == null || Array.TrueForAll(inFlight, spikes => spikes == 0);
             }
         }
 
@@ -201,8 +215,23 @@ namespace SnpEvolution.Simulation
                 state[5 * count + 1] = outputEngaged ? 1 : 0;
                 state[5 * count + 2] = Output ?? -1;
             }
+            if (inFlight != null)
+            {
+                // In arrival order from this step, so the same spikes in flight give the same state whatever the step.
+                long[] flight = new long[inFlight.Length];
+                for (int neuron = 0; neuron < count; neuron++)
+                {
+                    for (int ahead = 0; ahead < flightSlots; ahead++)
+                    {
+                        flight[neuron * flightSlots + ahead] = inFlight[FlightSlot(neuron, StepCount + ahead)];
+                    }
+                }
+                state = [.. state, .. flight];
+            }
             return portRecorder == null ? state : [.. state, .. portRecorder.History()];
         }
+
+        private int FlightSlot(int neuron, int step) => neuron * flightSlots + step % flightSlots;
 
         // Everything a Ports readout has recorded, flattened, so computations with different records are never merged.
         public long[] PortHistory() => portRecorder?.History() ?? Array.Empty<long>();
@@ -219,6 +248,13 @@ namespace SnpEvolution.Simulation
         private void Release(int neuron, int rule)
         {
             SpikeRelease release = ReleaseSpikes(neuron, rule);
+            if (inFlight != null && inFlight[FlightSlot(neuron, StepCount)] is long arriving and > 0)
+            {
+                // Spikes that have travelled the axon leave now, whatever the neuron itself does on this step.
+                inFlight[FlightSlot(neuron, StepCount)] = 0;
+                emitting[neuron] += arriving;
+                release = SpikeRelease.Fired;
+            }
             if (network.isOutput[neuron])
             {
                 RecordOutputNeuron(release);
@@ -297,6 +333,12 @@ namespace SnpEvolution.Simulation
             SpikeRelease release = network.RuleFires[rule] ? SpikeRelease.Fired : SpikeRelease.Forgot;
             int delay = network.RuleDelay[rule];
             long consume = network.RuleConsume[rule];
+            if (network.ruleAxonal[rule])
+            {
+                spikes[neuron] = consume == CompiledNetwork.ConsumesAll ? 0 : spikes[neuron] - consume;
+                inFlight![FlightSlot(neuron, StepCount + delay)] += network.RuleProduce[rule];
+                return release == SpikeRelease.Fired ? SpikeRelease.None : release;
+            }
             if (consume == CompiledNetwork.ConsumesAll)
             {
                 emitting[neuron] = network.RuleProduce[rule];

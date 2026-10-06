@@ -9,7 +9,8 @@ using SnpEvolution.Simulation;
 namespace SnpEvolution.Evolution.Contracts
 {
     // How a part is evolved for one contract. Budget is search evaluations; ShrinkBudget is spent after a part is found
-    // making it smaller. ExtraNeurons is how far past the port neurons a network may grow.
+    // making it smaller. ExtraNeurons is how far past the port neurons a network may grow. HardwareProfile keeps every
+    // network searched and shrunk within the hardware profile.
     public sealed record PartSearchSettings(
         long Budget,
         long ShrinkBudget,
@@ -20,7 +21,8 @@ namespace SnpEvolution.Evolution.Contracts
         int ExtraNeurons = 4,
         int MaxDelay = 3,
         int MaxInitialSpikes = 4,
-        int MaxProduce = 2);
+        int MaxProduce = 2,
+        bool HardwareProfile = false);
 
     // A network run on every case of a contract on the exhaustive engine. Latency is the slowest case's, from the step
     // start reaches the part to the step done fires; Behaviour is what ContractTask.Behaviour reads. MeetsContract says
@@ -55,7 +57,8 @@ namespace SnpEvolution.Evolution.Contracts
                 MaxNeurons: task.Binding.NeuronsNeeded + settings.ExtraNeurons,
                 MaxDelay: settings.MaxDelay,
                 MaxInitialSpikes: settings.MaxInitialSpikes,
-                MaxProduce: settings.MaxProduce);
+                MaxProduce: settings.MaxProduce,
+                HardwareProfile: settings.HardwareProfile);
             var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
             var options = new SimulationOptions(task.StepsNeeded, Repetitions, OutputTiming.Interval);
             var search = new FitnessEvaluator(settings.CreateEngine(), task, options, solvedRetestCount: 3, random);
@@ -107,7 +110,14 @@ namespace SnpEvolution.Evolution.Contracts
         // the cheapest that verifies is kept.
         private static PartMeasurement Shrink(PartMeasurement start, FitnessEvaluator evaluator, Verifier verifier, NetworkFactory factory, PartSearchSettings settings, Random random)
         {
-            var archive = new MapElites(settings.Population, random, () => start.Network, evaluator, new Operators.NeuronCrossover(), ShrinkRun.Edits(factory),
+            Operators.ICrossover crossover = new Operators.NeuronCrossover();
+            Operators.IMutation edits = ShrinkRun.Edits(factory);
+            if (settings.HardwareProfile)
+            {
+                crossover = new ProfileCrossover(crossover);
+                edits = new ProfileMutation(edits);
+            }
+            var archive = new MapElites(settings.Population, random, () => start.Network, evaluator, crossover, edits,
                 cells: HardwareCost.Cell);
             PartMeasurement smallest = start;
             var tried = new HashSet<string>();

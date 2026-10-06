@@ -102,7 +102,8 @@ namespace SnpEvolution.Evolution
 
         private static bool SameRule(Rule? first, Rule? second) =>
             first != null && second != null
-            && (first.Expression, first.Delay, first.Fire, first.Consume, first.Produce) == (second.Expression, second.Delay, second.Fire, second.Consume, second.Produce);
+            && (first.Expression, first.Delay, first.Fire, first.Consume, first.Produce, first.Axonal)
+                == (second.Expression, second.Delay, second.Fire, second.Consume, second.Produce, second.Axonal);
 
         private void Speciate()
         {

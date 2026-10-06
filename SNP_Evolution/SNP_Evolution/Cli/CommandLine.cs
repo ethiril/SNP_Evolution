@@ -26,14 +26,19 @@ namespace SnpEvolution.Cli
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
     //   compile --target VALUES [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--population N] [--seed N]:
     //          compiles a recurrence (sequence) or register program (set, evolved unless --program gives one), then shrinks it
-    //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on]:
+    //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware]:
     //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for
     //   reach --target VALUES --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [any evolve option]:
     //          runs each setup on seeds 1..N with the same budget and compares how far into the target they get
     //   compose --task NAME [--library DIR] [--hand-built on|leaves] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N]
     //          [--evaluations N] [--generations N] [--population N] [--max-parts N] [--glue N]:
     //          composition search for one suite task; a solved contract is promoted to a part and the library saved
+    //   export-verilog --part FILE | --network FILE [--steps N] [--out DIR] [--check on|off]:
+    //          writes a deterministic network as Verilog with a testbench, and co-simulates it under iverilog when installed
+    //   export-nir --part FILE | --network FILE [--steps N] [--out DIR]:
+    //          writes a hardware-profile network for tools/snp_nir.py, which makes the NIR file and co-simulates it in norse
     //   tasks | algorithms
+    // evolve, compose and evolve-parts take --profile hardware, which keeps every rule to threshold-and-reset forms.
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
     // Composition search builds from the part library in --library DIR, or the settings' part library folder.
     // NAME matches any task or algorithm whose name contains it, ignoring case, unless one name is exactly NAME.
@@ -46,12 +51,14 @@ namespace SnpEvolution.Cli
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
             "                    [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]\n" +
             "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
-            "                    [--triggered on|off] [--incubate N] [--evaluations N] [--library DIR] [--max-parts N] [--glue N] [--glue-weight X]\n" +
+            "                    [--triggered on|off] [--incubate N] [--evaluations N] [--library DIR] [--max-parts N] [--glue N] [--glue-weight X] [--profile hardware]\n" +
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
             "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]\n" +
             "       snp-evolution reach --target \"1,1,2,3,5,8,13\" --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [evolve options]\n" +
-            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on]\n" +
-            "       snp-evolution compose --task \"Contract multiply\" [--library DIR] [--hand-built on] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N] [--evaluations N]";
+            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware]\n" +
+            "       snp-evolution compose --task \"Contract multiply\" [--library DIR] [--hand-built on] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N] [--evaluations N]\n" +
+            "       snp-evolution export-verilog --part parts/delay-2.json | --network FILE [--steps N] [--out DIR] [--check on|off]\n" +
+            "       snp-evolution export-nir --part FILE | --network FILE [--steps N] [--out DIR]";
 
         public static int Run(string[] args)
         {
@@ -59,6 +66,11 @@ namespace SnpEvolution.Cli
             for (int index = 1; index + 1 < args.Length; index += 2)
             {
                 options[args[index].TrimStart('-')] = args[index + 1];
+            }
+            if (options.GetValueOrDefault("profile") is string profile && !profile.Equals("hardware", StringComparison.OrdinalIgnoreCase) && !profile.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Error.WriteLine($"--profile takes hardware or none, not '{profile}'.");
+                return 1;
             }
             var settings = new Settings();
             BenchmarkSettings benchmark = settings.BenchmarkSettings with
@@ -93,6 +105,10 @@ namespace SnpEvolution.Cli
                     return Reach(options, args);
                 case "compose":
                     return Compose(options);
+                case "export-verilog":
+                    return ExportCommands.Verilog(options);
+                case "export-nir":
+                    return ExportCommands.Nir(options);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;

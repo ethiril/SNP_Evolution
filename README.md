@@ -82,8 +82,9 @@ Two rule forms are supported, and one network can mix them:
 
 - **Legacy** (`aa -> a`, the original program's rules): when the expression matches the spike count, the neuron empties and sends one spike. A delayed rule sends its spike at once, then holds the neuron for d steps before emptying it.
 - **Standard** (`E/a^c -> a^p;d`, as in the SN P literature): when the expression matches and the neuron holds at least c spikes, the rule consumes exactly c spikes and sends p along each synapse. A delayed rule closes the neuron for d steps: spikes sent to it in that time are lost, and it fires when it reopens. The notation leaves out `E/` when E only matches a^c, so `aaa -> aa` consumes 3 spikes and sends 2.
+- **Axonal delays** (`a+ -> a;2 axonal`): either form's delay can instead be axonal, as integrate-and-fire hardware has it. The rule consumes at once, the neuron stays open and can fire again, and its spikes reach the targets d steps later. Only the hardware profile (see [Exporting to hardware](#exporting-to-hardware)) makes these; the Metal engine runs such networks on the CPU.
 
-The *Rule Form* setting (Legacy, Standard or Mixed) picks the form of the rules evolution creates. The *Output Timing* setting picks how the output neuron's spikes become a number. *Legacy* counts every non-spiking step from the start, as the original program did. *Interval* counts the steps between the first two spikes, as the literature does. JSON files gain optional `Consume`, `Produce` and `IsInput` fields, and older files load as legacy rules.
+The *Rule Form* setting (Legacy, Standard or Mixed) picks the form of the rules evolution creates. The *Output Timing* setting picks how the output neuron's spikes become a number. *Legacy* counts every non-spiking step from the start, as the original program did. *Interval* counts the steps between the first two spikes, as the literature does. JSON files gain optional `Consume`, `Produce`, `Axonal` and `IsInput` fields, and older files load as legacy rules.
 
 ## Tasks
 
@@ -240,6 +241,36 @@ On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lex
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built on
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built leaves
 ```
+
+## Exporting to hardware
+
+Evolved networks can be written out for FPGAs (Verilog) and neuromorphic toolchains (NIR), and every export is checked by running it next to our own engine and requiring the same spikes on every step of every neuron.
+
+**Hardware profile.** `--profile hardware` (for `evolve`, `compose` and `evolve-parts`; *Settings > Simulation > Hardware profile* in the menu) limits rules to the form integrate-and-fire hardware runs: `a^{>=k} / a^* -> a`, which fires once the neuron holds at least k spikes, consumes them all and sends one, or the same rule forgetting. Each neuron has one such rule and starts empty, since NIR has no initial state, and a delay is axonal. A profile network is an integrate-and-fire network with integer threshold k, reset to zero and unit weights. Generation makes profile rules directly, and every edit and crossover puts its child back within the profile (`HardwareProfile.Conform`). `HardwareProfile.Problems` says whether any network fits and names each rule that does not. The profile is off by default. `parts-profile/` holds the parts `evolve-parts --seed 1 --profile hardware --library parts-profile` found.
+
+**Verilog.** `export-verilog` writes any deterministic network as a synthesisable Verilog module, a testbench and the trace our engine expects:
+
+```
+snp-evolution export-verilog --part parts/delay-2.json --out export
+snp-evolution export-verilog --network saved.json --steps 60 --out export
+```
+
+Each neuron is its own module: a spike counter, its rule conditions as lasso lookups (a tail table, then a period), and only the state its rules need. That is a countdown for a delayed legacy rule, a countdown, closed flag and pending spikes for a delayed standard rule, and a shift register of spikes in flight for axonal delays. One clock is one step. Input neurons and a part's ports are module ports; a part's testbench drives every contract case. Counters are as wide as the most spikes any neuron held on the contract's cases (`HardwareCost` register width), and an `overflow` output goes high if a run ever needs more. A network that could choose between two rules is refused, with the rules and the count they share, since hardware would need a policy for the choice. When Icarus Verilog is installed, the command compiles and runs the testbench and compares its output with our engine's; it exits with 3 if they differ. Install it with:
+
+```
+brew install icarus-verilog
+```
+
+**NIR.** `export-nir` writes a profile network as `NAME.nir.json`, with every contract case and the trace to match. `tools/snp_nir.py` turns that into a NIR file (`write`) and runs the NIR file in norse on every case (`check`); the command does both when the Python side is set up:
+
+```
+snp-evolution export-nir --part parts-profile/delay-2.json --out export
+python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements.txt
+```
+
+A network outside the profile is refused, naming the rule that breaks it, because only there is the mapping exact. Each neuron becomes an `IF` neuron with threshold k - 0.5 and reset 0, synapses have weight 1 (0 from a forgetting neuron), and an axonal delay is a `Delay` node. One SN P step is one time step; the full mapping is at the top of `tools/snp_nir.py` and in RESEARCH.md. snnTorch is not used, because its NIR import reads `IF` as a leaky neuron.
+
+The co-simulation tests skip with the reason when iverilog or the Python packages are missing.
 
 ## Benchmarking and choosing an algorithm
 

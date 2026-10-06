@@ -24,6 +24,14 @@ namespace SnpEvolution.Evolution
     {
         public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure, Modules);
 
+        // Under the hardware profile, what an operator or the starting networks make is put back within it, so no edit
+        // has to know the profile; outside it they are returned as given.
+        public IMutation Conformed(IMutation mutation) => Factory.Space.HardwareProfile ? new ProfileMutation(mutation) : mutation;
+
+        public ICrossover Conformed(ICrossover crossover) => Factory.Space.HardwareProfile ? new ProfileCrossover(crossover) : crossover;
+
+        public Func<Network> Conformed(Func<Network> create) => Factory.Space.HardwareProfile ? () => HardwareProfile.Conform(create()) : create;
+
         public IParentSelection Selection(IParentSelection usual) => Lexicase ? new LexicaseSelection(usual) : usual;
     }
 
@@ -43,23 +51,23 @@ namespace SnpEvolution.Evolution
             new AlgorithmChoice("Generational, tournament of 3, structural", context =>
                 Generational(context, context.Selection(new TournamentSelection(3)), new NeuronCrossover(), context.StructuralMutation(Math.Max(context.MutationRate, 0.5f)))),
             new AlgorithmChoice("(mu + lambda) evolution strategy", context =>
-                new MuPlusLambdaStrategy(Math.Max(1, context.PopulationSize / 5), context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, context.StructuralMutation(1))),
+                new MuPlusLambdaStrategy(Math.Max(1, context.PopulationSize / 5), context.PopulationSize, context.Random, context.Conformed(context.CreateStartingNetwork), context.Evaluator, context.Conformed(context.StructuralMutation(1)))),
             new AlgorithmChoice("MAP-Elites over network size", context =>
-                new MapElites(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1),
+                new MapElites(context.PopulationSize, context.Random, context.Conformed(context.CreateStartingNetwork), context.Evaluator, context.Conformed(new NeuronCrossover()), context.Conformed(context.StructuralMutation(1)),
                     context.Lexicase ? new LexicaseSelection() : null)),
             new AlgorithmChoice("NEAT-style speciated", context =>
-                new SpeciatedAlgorithm(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1))),
+                new SpeciatedAlgorithm(context.PopulationSize, context.Random, context.Conformed(context.CreateStartingNetwork), context.Evaluator, context.Conformed(new NeuronCrossover()), context.Conformed(context.StructuralMutation(1)))),
             new AlgorithmChoice(CompositionPrefix + "MAP-Elites", context =>
             {
                 CompositionSpace space = CompositionSpace.For(context);
-                return new MapElites(context.PopulationSize, context.Random, space.NewNetwork, context.Evaluator, new KeepFirstParent(), space.Mutation(1, context.Pressure),
+                return new MapElites(context.PopulationSize, context.Random, context.Conformed(space.NewNetwork), context.Evaluator, context.Conformed(new KeepFirstParent()), context.Conformed(space.Mutation(1, context.Pressure)),
                     context.Lexicase ? new LexicaseSelection() : null);
             }),
             new AlgorithmChoice(CompositionPrefix + "tournament of 3", context =>
             {
                 CompositionSpace space = CompositionSpace.For(context);
-                return new GeneticAlgorithm(context.PopulationSize, context.Random, space.NewNetwork, context.Evaluator,
-                    new GeneticOperators(context.Selection(new TournamentSelection(3)), new KeepFirstParent(), space.Mutation(Math.Max(context.MutationRate, 0.5f), context.Pressure)),
+                return new GeneticAlgorithm(context.PopulationSize, context.Random, context.Conformed(space.NewNetwork), context.Evaluator,
+                    new GeneticOperators(context.Selection(new TournamentSelection(3)), context.Conformed(new KeepFirstParent()), context.Conformed(space.Mutation(Math.Max(context.MutationRate, 0.5f), context.Pressure))),
                     Elitism, context.Log);
             }),
         };
@@ -70,7 +78,7 @@ namespace SnpEvolution.Evolution
         public static bool IsComposition(string algorithmName) => algorithmName.StartsWith(CompositionPrefix);
 
         private static GeneticAlgorithm Generational(EvolutionContext context, IParentSelection selection, ICrossover crossover, IMutation mutation) =>
-            new GeneticAlgorithm(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator,
-                new GeneticOperators(selection, crossover, mutation), Elitism, context.Log);
+            new GeneticAlgorithm(context.PopulationSize, context.Random, context.Conformed(context.CreateStartingNetwork), context.Evaluator,
+                new GeneticOperators(selection, context.Conformed(crossover), context.Conformed(mutation)), Elitism, context.Log);
     }
 }

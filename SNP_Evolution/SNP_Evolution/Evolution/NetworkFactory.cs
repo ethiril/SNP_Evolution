@@ -20,7 +20,8 @@ namespace SnpEvolution.Evolution
 
     // The bounds evolution searches within. The first InputCount neurons of every network are its input neurons.
     // DuplicateNeurons lets mutation copy working neurons, which helps build repeated parts such as counters but
-    // disrupts small networks, so it is off unless asked for.
+    // disrupts small networks, so it is off unless asked for. HardwareProfile keeps every network within HardwareProfile:
+    // one threshold rule per neuron and no initial spikes, whatever the rule form and limits say.
     public sealed record GenomeSpace(
         int InputCount = 0,
         RuleForm RuleForm = RuleForm.Legacy,
@@ -30,7 +31,8 @@ namespace SnpEvolution.Evolution
         int MaxDelay = 1,
         int MaxInitialSpikes = 4,
         int MaxProduce = 2,
-        bool DuplicateNeurons = false)
+        bool DuplicateNeurons = false,
+        bool HardwareProfile = false)
     {
         public int SmallestNetwork => Math.Max(MinNeurons, InputCount + 1);
     }
@@ -63,6 +65,12 @@ namespace SnpEvolution.Evolution
 
         public Rule NewRule()
         {
+            if (Space.HardwareProfile)
+            {
+                // The threshold follows the fewest spikes a random expression accepts, as the other forms' conditions do.
+                int threshold = (int)Math.Max(1, SmallestAccepted(expressions.Next()));
+                return HardwareProfile.ThresholdRule(threshold, random.NextDouble() < FiringRuleChance, random.Next(0, Space.MaxDelay + 1));
+            }
             bool standard = Space.RuleForm == RuleForm.Standard || (Space.RuleForm == RuleForm.Mixed && random.Next(2) == 0);
             int delay = random.Next(0, Space.MaxDelay + 1);
             if (!standard)
@@ -83,12 +91,13 @@ namespace SnpEvolution.Evolution
         }
 
         // A relay that passes each spike straight on, in the space's rule form.
-        public Rule RelayRule() => Space.RuleForm == RuleForm.Legacy ? new Rule("a", 0, true) : new Rule("a", 0, true, 1, 1);
+        public Rule RelayRule() => Space.HardwareProfile ? HardwareProfile.ThresholdRule(1)
+            : Space.RuleForm == RuleForm.Legacy ? new Rule("a", 0, true) : new Rule("a", 0, true, 1, 1);
 
         public Neuron NewNeuron(IReadOnlyList<int> connections, bool isOutput = false, bool isInput = false) =>
             new Neuron(
-                Enumerable.Range(0, random.Next(1, Space.MaxRulesPerNeuron + 1)).Select(_ => NewRule()).ToList(),
-                isInput ? 0 : random.Next(0, Space.MaxInitialSpikes + 1),
+                Enumerable.Range(0, Space.HardwareProfile ? 1 : random.Next(1, Space.MaxRulesPerNeuron + 1)).Select(_ => NewRule()).ToList(),
+                isInput || Space.HardwareProfile ? 0 : random.Next(0, Space.MaxInitialSpikes + 1),
                 connections,
                 isOutput,
                 isInput);
