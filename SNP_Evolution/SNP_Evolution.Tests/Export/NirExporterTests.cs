@@ -14,8 +14,7 @@ namespace SnpEvolution.Tests.Export
         // Parts evolve-parts --profile hardware found, kept in the repository next to parts/.
         private static Part ProfilePart(string file)
         {
-            string folder = Path.Combine(Path.GetDirectoryName(Settings.DefaultPartLibraryFolder())!, "parts-profile");
-            return PartLibraryFiles.Read(File.ReadAllText(Path.Combine(folder, file)), file).Part;
+            return RepositoryFiles.ReadPart("parts-profile", file).Part;
         }
 
         private static string Check(NirDescription description)

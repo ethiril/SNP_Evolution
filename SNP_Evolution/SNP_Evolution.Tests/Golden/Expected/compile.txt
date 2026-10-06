@@ -1,0 +1,844 @@
+$ snp-evolution compile --target "1,1,2,3,5,8,13" --seed 1 --shrink 20
+exit 0
+--- stdout
+Recurrence: g(n) = g(n-1) + g(n-2), starting 1,1.
+Saved the file to: <work>/runs/<run>/Program.txt
+Compiled: 15 neurons, 29 rules, 44 synapses (size 1834).
+----------- Saving Network -----------
+Saved the file to: <work>/runs/<run>/Compiled.json
+Saved the file to: <work>/runs/<run>/Compiled.txt
+Saved the file to: <work>/runs/<run>/Compiled.svg
+Saved the file to: <work>/runs/<run>/Compiled.html
+The compiled network scores 1.000: intervals [1,1,2,3,5,8,13] / [1,1,2,3,5,8,13]
+Shrinking from 15 neurons, 29 rules, 44 synapses (size 1834).
+Shrink generation 5: 15 neurons, 29 rules, 43 synapses (size 1833).
+Shrink generation 6: 15 neurons, 28 rules, 44 synapses (size 1824).
+Shrink generation 11: 14 neurons, 27 rules, 44 synapses (size 1714).
+Shrink generation 19: 14 neurons, 26 rules, 44 synapses (size 1704).
+Saved the file to: <work>/runs/<run>/Shrunk.csv
+----------- Saving Network -----------
+Saved the file to: <work>/runs/<run>/Shrunk.json
+Saved the file to: <work>/runs/<run>/Shrunk.txt
+Saved the file to: <work>/runs/<run>/Shrunk.svg
+Saved the file to: <work>/runs/<run>/Shrunk.html
+
+Smallest correct network after 20 generations of shrinking: 14 neurons, 26 rules, 44 synapses (size 1704), from 15 neurons, 29 rules, 44 synapses (size 1834).
+Neuron     Spikes   Rules                                   Sends to
+n1 (out)   a        a -> a                                  -
+n2         aaa      aaaaaa(aa)*/aa -> a  |  aaa -> a        n1, n3
+n3         aa       aa+/aaa -> a                            n1, n11, n12
+n4         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n7, n8, n9, n10
+n5         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n11, n12, n14
+n6         -        aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n11, n12
+n7         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n11, n12, n13, n14
+n8         -        aaaaa(aa)*/aa -> forget  |  aaa -> a    n5, n6
+n9         aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa       n4, n5, n6, n13, n14
+n10        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n4, n13, n14
+n11        aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa       n4, n5, n6, n13, n14
+n12        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n9, n10
+n13        aa       aaaaa(aa)*/aa -> forget  |  aaa -> aa   n7, n8, n9, n10
+n14        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n7, n8
+
+Past the target, the next 4 values of the recurrence: compiled carries on, shrunk does not (intervals [1,1,2,3,5,8,13,17,26,43,53,80] / [1,1,2,3,5,8,13,21,34,55,89]).
+Saved to <work>/runs/<run>
+--- stderr
+--- file runs/<run>/Compiled.json
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 1,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 3,
+      "Connections": [
+        1,
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        12,
+        13
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        14,
+        15
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        1,
+        12,
+        13
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        6,
+        7
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        4,
+        5
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        10,
+        11
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        8,
+        9
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    }
+  ]
+}
+--- (no newline at end of file)
+--- file runs/<run>/Compiled.txt
+Neuron     Spikes   Rules                                  Sends to
+n1 (out)   a        a -> a                                 -
+n2         aaa      aaaaa(aa)*/aa -> forget  |  aaa -> a   n1, n3
+n3         aa       aaaaa(aa)*/aa -> forget  |  aaa -> a   n1, n12, n13
+n4         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa      n8, n9, n10, n11
+n5         -        aaaaa(aa)*/aa -> forget  |  aaa -> a   n14, n15
+n6         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa      n12, n13, n14, n15
+n7         -        aaaaa(aa)*/aa -> forget  |  aaa -> a   n1, n12, n13
+n8         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa      n12, n13, n14, n15
+n9         -        aaaaa(aa)*/aa -> forget  |  aaa -> a   n6, n7
+n10        aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa      n4, n5, n6, n7
+n11        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a   n1, n4, n5
+n12        aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa      n4, n5, n6, n7
+n13        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a   n10, n11
+n14        aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa      n8, n9, n10, n11
+n15        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a   n1, n8, n9
+--- file runs/<run>/Program.txt
+g(n) = g(n-1) + g(n-2), starting 1,1
+--- file runs/<run>/Shrunk.csv
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+0.4642857,0.4642857,0.14285715,0.42857143,1,0.42857143,0.2857143,0,0.42857143,0,0.2857143,0.60714287,0.2857143,0.875,0.2857143,0.75,0.7380952,0.875,0.035714287,1,0.75,0.5952381,0.4642857,0.5714286,0.2857143,1,0.2857143,0.4642857,0.45238096,0.4642857,0.4642857,0.17857143,0.5714286,0.6336012,0,0.75,0.2857143,0.42857143,0.42857143,0.42857143,0.60714287,0.5142857,0.5952381,0.71428573,0.2857143,0.71428573,0.5952381,0.5714286,0.88095236,1
+0.2857143,0,0.2857143,0.75,0.875,0.14285715,0.2857143,0.88095236,0.45238096,0.2857143,0.7380952,0.60714287,0.17857143,0.5952381,0.7380952,0.45238096,0.42857143,0.4642857,0.8741666,0.32142857,0.32142857,0.86904764,0.875,0.17857143,0.7380952,0.5952381,0.60714287,0.30952382,0.71428573,0.42857143,0.5952381,0.71428573,0.32142857,1,0,0.30952382,0.5952381,0.42857143,1,0.85714287,0.5952381,0.4642857,0,0.7380952,0.2857143,0.5857143,0.85714287,1,1,0.42857143
+0.4642857,0.2857143,0.035714287,0.875,1,0.5714286,0.2857143,1,0.4642857,0,1,0.71428573,0.71428573,0.73214287,0.32142857,0.4642857,0.4357143,0,0,0.87142855,0.60714287,1,0.14285715,0.5952381,0.17857143,0,1,0.2857143,0.71428573,0.45238096,0.42857143,0,0.60714287,0.32142857,0.45238096,0.14285715,0.4642857,0.71428573,0.2857143,0.7380952,0.32142857,0.4642857,0.2857143,1,0.45238096,0.45238096,0.7380952,0.5952381,1,0.5714286
+1,1,0.60714287,0.30952382,0.32142857,0.14285715,0.2857143,1,0.32142857,1,0.85714287,0.5714286,0.5714286,0.2857143,0.2857143,0.42857143,0.035714287,0.5714286,0.2857143,0.4642857,0.85714287,0.60714287,0,0.45238096,0,0.60714287,1,0.7380952,0.60714287,0.2857143,0.5714286,0.5714286,1,0.4642857,0.42142856,0.7380952,1,0.2857143,0.45238096,0.7261905,0.2857143,0.2857143,0,0.4642857,0.4642857,0.4642857,1,0.4642857,0.60714287,0.60714287
+1,0.75,1,0.875,1,0.85714287,0.4642857,0.4642857,0.32142857,0.32142857,0.14285715,1,0.73214287,0.7261905,0.4642857,0.2857143,0.4642857,0.14285715,0.89285713,1,0.2857143,0.16666666,0.73214287,0,0.45238096,0.5952381,0.5714286,0.45238096,0.5714286,0.4642857,0.32142857,0.2857143,0.4642857,1,0.2857143,0.035714287,0.42857143,1,0.87142855,1,0.5952381,0.75,0.42142856,0.71428573,0.4642857,0.71428573,0.4642857,0.32142857,1,1
+0,1,0.30357143,0.75,0.2857143,0.4642857,1,0.71428573,1,0.5952381,0.71428573,1,0.17857143,0,0.17857143,0.42857143,0.17857143,0.44047618,0.4642857,0.17857143,0.73214287,0.4642857,0.4642857,0.875,1,0.17857143,0.75,0.32142857,1,0.7261905,0.71428573,0.42857143,0.60714287,0.035714287,0.2857143,0.2857143,0.5714286,0.42857143,1,0.44642857,0,0.035714287,0.60714287,0.42857143,0.5714286,0.60714287,0.5714286,1,0,1
+0.5714286,1,1,0.023809524,0.60714287,0.2857143,0.5714286,0.60714287,0.7380952,0.75,1,0.30357143,0.2857143,0.5857143,0,1,0.75,0.42857143,0.87142855,0.17857143,1,0.2857143,0.39285713,0.71428573,0.71428573,0.81747025,0.60714287,0.5714286,1,0.2857143,1,0.5714286,0.14285715,0,0.73214287,0.5714286,0.60714287,0.75,0.60714287,0.45238096,0.2857143,0,0.71428573,0.44047618,0.5714286,0.86904764,0.5714286,0.5714286,1,0.2857143
+1,0.4642857,0.45238096,0.7261905,0.60714287,0.7380952,0.7285714,0.32142857,1,0.4642857,0.75,0.14285715,1,0.2857143,0.58928573,0.85714287,0,0.86904764,0.85714287,0.17857143,0.5714286,0.2857143,0.14285715,0.32142857,0.5714286,0.4642857,1,0.86904764,0.30952382,0.86904764,0.2857143,1,0.5952381,0.86904764,0.60714287,0.71428573,0.5952381,0.5714286,0.4642857,0.32142857,0.5714286,0.40833336,0.71428573,0.17857143,0.71428573,0.71428573,0.2857143,1,0.87142855,0.32142857
+0.45238096,1,0.5714286,0.42857143,0.32142857,0.75,0.42857143,0.85714287,0.7380952,0.4642857,0.42857143,1,0.5952381,0.45238096,0.5952381,0.17857143,0.60714287,0.4642857,1,0.2857143,0.2857143,0.7261905,0.60714287,1,0.2857143,0.7380952,1,1,0.45238096,0.14285715,0.30357143,1,0,0.14285715,1,0.2857143,1,0.2857143,0.42857143,1,0.14285715,1,0.75,1,0.73214287,0.2857143,0.5714286,1,0.5714286,0.17857143
+0.45238096,0,0.7380952,0.5857143,0.5714286,0.4642857,0,0.75,0.4642857,0.5714286,0.60714287,0.2857143,1,0.2857143,0.5857143,0.85714287,0.14285715,0.42857143,0.32142857,0.2857143,0.71428573,0.17857143,0.2857143,0.22142857,0.58928573,0.2857143,0.5714286,0.44047618,0.45238096,0.73214287,0.48720235,0.2857143,0,0.2857143,0.38928574,0,0.45238096,0.2857143,0.4642857,0.85714287,0.17857143,0.42857143,0.2857143,0.5952381,0.42857143,1,0.5952381,0.2857143,0.58928573,0.42857143
+0.71428573,0.85714287,0.87142855,1,0.60714287,0.4642857,0.73214287,0.4642857,0.4642857,1,1,0.45238096,0.42857143,0.14285715,0.5714286,0.4642857,0.58928573,0,0.75,0.42857143,0.4642857,1,0.4642857,0.4642857,0.5952381,0.14285715,0.4642857,0.2857143,1,0.42857143,1,0.75,0.4642857,0.59851193,0.42857143,1,0.7380952,0.035714287,0.30357143,1,0.325,0.32142857,1,0.14285715,0.32142857,0.2857143,0,0.5714286,1,0.42857143
+0,0.42857143,0.17857143,0.7380952,0.42857143,0.035714287,1,0.5714286,0.85714287,0,0,0.42857143,0.4642857,0.17857143,0.4642857,0.7380952,0,0.60714287,0.44642857,0.42857143,1,0.4642857,0.035714287,0.75,0.035714287,0.60714287,0.87142855,0.7380952,0.5714286,0.5952381,0.42857143,0.2857143,0.4642857,1,0.5793651,0.4642857,0.42857143,0.60714287,0.88095236,0.5857143,0,0.2857143,0.14285715,0.4642857,0.5857143,0.60714287,0.7380952,0.17857143,0.4642857,1
+0.17857143,0.60714287,0,1,1,1,0.4642857,0.75,0.32142857,0.5952381,0.4642857,0.44047618,0.5714286,0.2857143,0.4642857,0.32142857,0.60714287,0.4642857,1,1,0.45625,0.71428573,0.4642857,0.60714287,0.5714286,0.75,0.14285715,0.58928573,0.60714287,0.75,0.014285714,0.4642857,1,0.5714286,0.58928573,0.2857143,0.7151786,0.44047618,0.7285714,0.4642857,0.42857143,0.85714287,0.60714287,0.2857143,0.7244898,0.2857143,0.42857143,0.88095236,0.4642857,0.45238096
+1,0.60714287,0.71428573,0.2857143,0.60714287,1,0.4642857,0.42857143,0.2857143,0.44642857,0.60714287,0.60714287,0,0.71428573,0.42857143,0.4642857,0.60714287,0.2857143,0.4642857,0,0.5952381,0.2857143,0,0.5714286,1,1,0.45238096,0.71428573,1,0.2857143,0.17857143,0.4642857,0.5714286,1,0.14285715,0.5952381,0.86904764,0.75,0.035714287,1,0,0.86904764,0.58928573,0.2857143,1,0.4375,0.14285715,0.17857143,0,1
+0.71428573,0.60714287,0.60714287,0.60714287,1,0.5714286,0.4642857,0.45238096,0.71428573,0.5714286,0.60714287,1,0.035714287,0.32142857,1,0.42857143,0.4642857,0,0.89285713,0.60714287,0.4642857,0.75,0.88095236,0.4642857,0.42857143,0.42857143,0.4642857,0.7380952,0.2857143,0.30357143,0.035714287,0.4642857,0,0,0.60714287,1,0.7380952,0.2857143,0.4642857,1,0.4642857,0.035714287,0.5714286,0,0,0.5714286,0.7380952,0.60714287,0.2857143,0.5793651
+0.75,0.14285715,1,0.32142857,0.5714286,0.5714286,0.32142857,0.73214287,0.71428573,0.14285715,0.5714286,0.45785713,0.60714287,0.035714287,0.5857143,0.60714287,0.4642857,0.16666666,0.7380952,0.58928573,0.30357143,0.2857143,0.86507934,0.60714287,0.85714287,0.60714287,0.7380952,0.58928573,0,0.7380952,0.4642857,0.7380952,0.14285715,0.45238096,0.60714287,0.71428573,0.2857143,0.71428573,0.66324407,1,0.035714287,1,1,1,1,0,0.014285714,0.60714287,1,0.7380952
+0.5857143,0,0.75,0.71428573,0.7380952,0,0.32142857,0.45238096,1,0.71428573,0.71428573,1,0.88095236,0.5857143,0.5714286,0.4642857,0.4642857,0.4642857,0.4642857,1,1,0.71428573,0.58928573,0.4642857,0.60714287,0.2857143,0.60714287,0,0.71428573,0.75,0.71428573,0.14285715,0.58928573,0.2857143,1,0.45238096,0.5857143,0.60714287,0.60714287,0,0,0.32142857,0.5714286,0.023809524,0.60714287,1,0.73214287,0.71428573,0.2857143,0.75
+0.60714287,0.2857143,0.5714286,0.75,0.60714287,0.60714287,0.5714286,0.58928573,0.60714287,0.71428573,0.2857143,0.5714286,0.5952381,0.2857143,1,0,0.42857143,0.14285715,0.14285715,0.5714286,0,0.2857143,0.45238096,1,0.5952381,0.5857143,0.45238096,1,0.2857143,0.45238096,0.5857143,0.60714287,0.5857143,0.4642857,0.2857143,0.4642857,0.4642857,0.60714287,0.7380952,1,0.5952381,1,0.2857143,0.45238096,0.4642857,0.44642857,0.4642857,0.7380952,0.32142857,0.4642857
+0,0.4642857,0.4642857,0.5714286,0.5714286,0.17857143,1,0.32142857,0.014285714,0.88095236,0.2857143,0,0,0.17857143,0.60714287,1,1,0.5714286,0.60714287,0,0.14285715,1,1,0.2857143,0,0.85714287,0.4642857,0.2857143,0.2857143,0.4642857,0.4642857,0.875,1,1,0.45238096,0.85714287,0.32142857,0.2857143,1,0.50029767,0.14285715,0.88095236,0.4642857,1,0.17857143,0.14285715,0.60714287,0.45238096,0.14285715,0.5714286
+--- file runs/<run>/Shrunk.json
+{
+  "Neurons": [
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 1,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 1,
+      "Connections": [],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 3,
+      "Connections": [
+        1,
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aa+",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        11,
+        12
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        11,
+        12,
+        14
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        1,
+        11,
+        12
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        5,
+        6
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        4,
+        5,
+        6,
+        13,
+        14
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        4,
+        13,
+        14
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        4,
+        5,
+        6,
+        13,
+        14
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        9,
+        10
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 2
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaaaa(aa)*",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 2,
+      "Connections": [
+        1,
+        7,
+        8
+      ],
+      "IsOutput": false,
+      "IsInput": false
+    }
+  ]
+}
+--- (no newline at end of file)
+--- file runs/<run>/Shrunk.txt
+Neuron     Spikes   Rules                                   Sends to
+n1 (out)   a        a -> a                                  -
+n2         aaa      aaaaaa(aa)*/aa -> a  |  aaa -> a        n1, n3
+n3         aa       aa+/aaa -> a                            n1, n11, n12
+n4         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n7, n8, n9, n10
+n5         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n11, n12, n14
+n6         -        aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n11, n12
+n7         -        aaaaa(aa)*/aa -> aa  |  aaa -> aa       n11, n12, n13, n14
+n8         -        aaaaa(aa)*/aa -> forget  |  aaa -> a    n5, n6
+n9         aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa       n4, n5, n6, n13, n14
+n10        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n4, n13, n14
+n11        aa       aaaaa(aa)*/aa -> aa  |  aaa -> aa       n4, n5, n6, n13, n14
+n12        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n9, n10
+n13        aa       aaaaa(aa)*/aa -> forget  |  aaa -> aa   n7, n8, n9, n10
+n14        aa       aaaaa(aa)*/aa -> forget  |  aaa -> a    n1, n7, n8

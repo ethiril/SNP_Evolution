@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Tasks;
-using Newtonsoft.Json;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules

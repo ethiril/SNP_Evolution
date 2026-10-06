@@ -12,7 +12,12 @@ From the `SNP_Evolution` folder:
 ```
 dotnet run --project SNP_Evolution    # start the console menu
 dotnet test                           # run the test suite
+dotnet test --filter "Speed!=slow"    # the fast set, golden runs included, in seconds
 ```
+
+Warnings are errors, and `dotnet format --verify-no-changes` must pass; both projects share `Directory.Build.props` and `.editorconfig`. Tests that run searches, time-limited bounded checks or external tools are marked `[Slow]`. CI (`.github/workflows/ci.yml`) builds, checks formatting and runs the fast set, then the slow set, on every push and pull request, on Linux with iverilog; the Metal, Uppaal and norse tests skip there.
+
+The golden runs in `SNP_Evolution.Tests/Golden` run fixed-seed commands (evolve, evolve-parts, compile, compose, verify and the three exports) and every engine on the reference networks and parts, and compare their output with the files in `Golden/Expected` exactly, evaluation counts included. A change that alters one fails them. When a change is meant to alter results, rerun with `SNP_UPDATE_GOLDEN=1 dotnet test --filter Golden` and say in the pull request why the files changed.
 
 ## Installing the command
 
@@ -74,7 +79,7 @@ When evolving, the console shows the best network after every generation: its ne
 
 Sequence and binary lines add "(varies between runs)" when the network is nondeterministic. With the MAP-Elites algorithm, the end of the run also lists the fittest network of each size.
 
-Running a network shows the numbers it generated, one run's spike train with the intervals between its spikes, and how long the run took. For a network with input neurons, it shows its score on the selected task instead of the spike train. Evolved networks are saved to a timestamped folder inside `Test Data`, named in the message at the end of a run. To load one, choose *Run a network > Import* and give the path from the folder you run the program in, such as `Test Data/6234234242322/TargetNet.json`.
+Running a network shows the numbers it generated, one run's spike train with the intervals between its spikes, and how long the run took. For a network with input neurons, it shows its score on the selected task instead of the spike train. Evolved networks are saved to a timestamped folder inside `runs/` at the root of the repository (or of the working directory outside one), named in the message at the end of a run; git ignores it. To load one, choose *Run a network > Import* and give that path, such as `../runs/6234234242322/TargetNet.json` from the `SNP_Evolution` folder. `Test Data/`, `Combined Data/` and `CompositeLowHighGen/` hold earlier runs.
 
 ## Rule forms
 

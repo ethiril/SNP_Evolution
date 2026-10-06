@@ -33,6 +33,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void TheHandBuiltLibraryHoldsThePromotedAddLoopBuiltFromParts()
         {
             var log = new List<string>();

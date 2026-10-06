@@ -39,6 +39,7 @@ namespace SnpEvolution.Tests.Evolution
             AlgorithmCatalog.All.Where(choice => !choice.Name.Contains("only")).Select(choice => choice.Name));
 
         [Theory]
+        [Slow]
         [MemberData(nameof(StructuralAlgorithms))]
         public void StructuralAlgorithmsSolveTheIdentityFunction(string name)
         {
@@ -145,6 +146,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void SelectorHalvesTheCandidatesUntilOneIsLeft()
         {
             List<AlgorithmChoice> candidates = AlgorithmCatalog.All.Take(3).ToList();

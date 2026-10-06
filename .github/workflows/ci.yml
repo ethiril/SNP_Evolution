@@ -1,0 +1,35 @@
+# Build with warnings as errors, check formatting, then run the fast tests (golden runs included) and the slow ones.
+# Linux has no Metal GPU and the runner has no Uppaal or norse, so those tests skip; iverilog is installed.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SNP_Evolution
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Build
+        run: dotnet build SNP_Evolution.slnx
+
+      - name: Check formatting
+        run: dotnet format SNP_Evolution.slnx --verify-no-changes --no-restore
+
+      - name: Fast tests
+        run: dotnet test SNP_Evolution.slnx --no-build --filter "Speed!=slow"
+
+      - name: Slow tests
+        run: dotnet test SNP_Evolution.slnx --no-build --filter "Speed=slow"

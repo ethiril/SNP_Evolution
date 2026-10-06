@@ -8,18 +8,17 @@ namespace SnpEvolution.Tests.Cli
 {
     public class VerifyCommandTests
     {
-        private static string Repository => Path.GetDirectoryName(Settings.DefaultPartLibraryFolder())!;
-
         private static string Folder() => Path.Combine(Path.GetTempPath(), "snp-verify-" + Guid.NewGuid().ToString("N"));
 
         [Fact]
+        [Slow]
         public void VerifyRecordsTheProvenBoundInEachPartFile()
         {
             string folder = Folder();
             Directory.CreateDirectory(folder);
             try
             {
-                File.Copy(Path.Combine(Repository, "parts", "delay-2.json"), Path.Combine(folder, "delay-2.json"));
+                File.Copy(RepositoryFiles.PartFile("parts", "delay-2.json"), Path.Combine(folder, "delay-2.json"));
 
                 int exit = CommandLine.Run(new[] { "verify", "--library", folder, "--seconds", "10" });
 
@@ -34,6 +33,7 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        [Slow]
         public void OnlyVerifiesThePartsWhoseContractNamesMatch()
         {
             string folder = Folder();
@@ -42,7 +42,7 @@ namespace SnpEvolution.Tests.Cli
             {
                 foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
                 {
-                    LibraryPart unproven = PartLibraryFiles.Read(File.ReadAllText(Path.Combine(Repository, "parts", file)), file) with { Proven = null };
+                    LibraryPart unproven = RepositoryFiles.ReadPart("parts", file) with { Proven = null };
                     File.WriteAllText(Path.Combine(folder, file), PartLibraryFiles.ToJson(unproven));
                 }
 

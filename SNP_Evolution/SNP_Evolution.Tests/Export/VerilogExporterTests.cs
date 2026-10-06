@@ -12,7 +12,7 @@ namespace SnpEvolution.Tests.Export
     public class VerilogExporterTests
     {
         private static LibraryPart LibraryDelay() =>
-            PartLibraryFiles.Read(File.ReadAllText(Path.Combine(Settings.DefaultPartLibraryFolder(), "delay-2.json")), "delay-2.json");
+            RepositoryFiles.ReadPart("parts", "delay-2.json");
 
         // Runs every case of the part under iverilog and returns what it printed and what our engine says it should.
         private static (string Simulated, string Expected) CoSimulate(Part part)

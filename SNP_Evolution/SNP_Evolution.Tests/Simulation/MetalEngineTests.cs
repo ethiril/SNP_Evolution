@@ -1,11 +1,13 @@
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using Xunit.Sdk;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
-    // Skipped on machines without a Metal GPU.
-    public sealed class MetalFactAttribute : FactAttribute
+    // Skipped on machines without a Metal GPU, and slow (see SlowAttribute) since it runs on the GPU.
+    [TraitDiscoverer(SpeedDiscoverer.TypeName, SpeedDiscoverer.AssemblyName)]
+    public sealed class MetalFactAttribute : FactAttribute, ITraitAttribute
     {
         public MetalFactAttribute()
         {

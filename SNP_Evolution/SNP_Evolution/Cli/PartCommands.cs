@@ -10,8 +10,8 @@ using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
-using static SnpEvolution.Cli.CommandOptions;
 using static SnpEvolution.Cli.CommandLine;
+using static SnpEvolution.Cli.CommandOptions;
 
 namespace SnpEvolution.Cli
 {

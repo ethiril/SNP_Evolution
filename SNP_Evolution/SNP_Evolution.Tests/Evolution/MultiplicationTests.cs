@@ -29,6 +29,7 @@ namespace SnpEvolution.Tests.Evolution
         private static AlgorithmChoice MapElites => AlgorithmCatalog.All.Single(choice => AlgorithmCatalog.IsComposition(choice.Name) && choice.Name.Contains("MAP-Elites"));
 
         [Fact]
+        [Slow]
         public void CompositionSearchSolvesMultiplicationByReusingThePromotedAddLoop()
         {
             RunOutcome outcome = Benchmark.RunOnce(MapElites, Multiply, seed: 3, budget: 3_000, Settings(HandBuiltMachines.Library()));

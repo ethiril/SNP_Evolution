@@ -1,0 +1,292 @@
+$ snp-evolution export-verilog --part parts/delay-2.json --out export --check off
+exit 0
+--- stdout
+Wrote delay_2.v, delay_2_tb.v and delay_2_expected.txt to export: 2-bit counters, 1 case(s).
+--- stderr
+--- file export/delay_2.v
+// delay 2: 2 neurons, exported from SNP_Evolution. One clock is one step of the SN P system.
+// Each step every neuron applies its one applicable rule, if any, then the spikes sent this step are delivered
+// to every open target along with the environment's spikes; a closed neuron loses what is sent to it.
+
+module delay_2 (
+    input  wire clk,
+    input  wire rst,    // synchronous: loads every neuron's initial spikes
+    input  wire [1:0] start,    // spikes arriving at n1 this step
+    output wire [2:0] done,    // spikes n2 sends this step
+    output wire overflow    // set once a counter would need more bits than it has
+);
+    wire [2:0] sent_1;
+    wire [2:0] sent_2;
+    wire [1:0] overflows;
+
+    wire [1:0] incoming_1 = start;
+    delay_2_n1 n1 (.clk(clk), .rst(rst), .incoming(incoming_1), .sent(sent_1), .count(), .overflow(overflows[0]));
+    wire [2:0] incoming_2 = sent_1;
+    delay_2_n2 n2 (.clk(clk), .rst(rst), .incoming(incoming_2), .sent(sent_2), .count(), .overflow(overflows[1]));
+
+    assign done = sent_2;
+    assign overflow = |overflows;
+endmodule
+
+// n1: a*/a -> aa; sends to n2
+module delay_2_n1 (
+    input  wire clk,
+    input  wire rst,
+    input  wire [1:0] incoming,
+    output reg  [2:0] sent,
+    output reg  [1:0] count,
+    output reg  overflow
+);
+    localparam INITIAL = 0;
+    localparam [2:0] MOST = 3;
+    // Rule 1, a*/a -> aa: bit i of ACCEPTS says whether lasso position i matches,
+    // and a count past the tail of 1 goes round the period of 1.
+    localparam R1_TAIL = 1;
+    localparam R1_PERIOD = 1;
+    localparam [1:0] R1_ACCEPTS = 2'b10;
+
+    reg [1:0] next_count;
+    reg [2:0] own;
+    reg [2:0] total;
+    wire r1 = count >= 1 && ((count < R1_TAIL) ? R1_ACCEPTS[count] : R1_ACCEPTS[R1_TAIL + (count - R1_TAIL) % R1_PERIOD]);
+
+    always @* begin
+        next_count = count;
+        own = 0;
+        if (r1) begin
+            own = 2;
+            next_count = count - 1;
+        end
+        sent = own;
+        total = next_count + incoming;
+    end
+
+    always @(posedge clk) begin
+        if (rst) begin
+            count <= INITIAL;
+            overflow <= 0;
+        end else begin
+            count <= total[1:0];
+            overflow <= overflow || total > MOST;
+        end
+    end
+endmodule
+
+// n2: a*/aa -> a;1; sends to nothing
+module delay_2_n2 (
+    input  wire clk,
+    input  wire rst,
+    input  wire [2:0] incoming,
+    output reg  [2:0] sent,
+    output reg  [1:0] count,
+    output reg  overflow
+);
+    localparam INITIAL = 0;
+    localparam [3:0] MOST = 3;
+    // Rule 1, a*/aa -> a;1: bit i of ACCEPTS says whether lasso position i matches,
+    // and a count past the tail of 1 goes round the period of 1.
+    localparam R1_TAIL = 1;
+    localparam R1_PERIOD = 1;
+    localparam [1:0] R1_ACCEPTS = 2'b10;
+
+    reg [0:0] closed_for, next_closed_for; // a delayed standard rule has consumed; the neuron is closed
+    reg [2:0] pending_spikes, next_pending_spikes; // and sends these when it reopens
+    reg closed;
+    reg [1:0] next_count;
+    reg [2:0] own;
+    reg [3:0] total;
+    wire r1 = !(closed_for != 0) && count >= 2 && ((count < R1_TAIL) ? R1_ACCEPTS[count] : R1_ACCEPTS[R1_TAIL + (count - R1_TAIL) % R1_PERIOD]);
+
+    always @* begin
+        next_count = count;
+        next_closed_for = closed_for;
+        next_pending_spikes = pending_spikes;
+        own = 0;
+        closed = 0;
+        if (closed_for != 0) begin
+            next_closed_for = closed_for - 1;
+            if (closed_for != 1) begin
+                closed = 1;
+            end else begin
+                own = pending_spikes;
+                next_pending_spikes = 0;
+            end
+        end else if (r1) begin
+            next_count = count - 2;
+            next_closed_for = 1;
+            next_pending_spikes = 1;
+            closed = 1;
+        end
+        sent = own;
+        total = next_count + (closed ? 0 : incoming);
+    end
+
+    always @(posedge clk) begin
+        if (rst) begin
+            count <= INITIAL;
+            overflow <= 0;
+            closed_for <= 0;
+            pending_spikes <= 0;
+        end else begin
+            count <= total[1:0];
+            overflow <= overflow || total > MOST;
+            closed_for <= next_closed_for;
+            pending_spikes <= next_pending_spikes;
+        end
+    end
+endmodule
+--- file export/delay_2_expected.txt
+case 1
+0 1 0 0
+0 2 0 0
+1 1 0 0
+1 2 0 0
+2 1 0 1
+2 2 0 0
+3 1 2 0
+3 2 0 2
+4 1 0 0
+4 2 0 0
+5 1 0 0
+5 2 1 0
+6 1 0 0
+6 2 0 0
+7 1 0 0
+7 2 0 0
+overflow 0
+--- file export/delay_2_tb.v
+`timescale 1ns/1ns
+module delay_2_tb;
+    reg clk = 0;
+    reg rst = 1;
+    integer t;
+    reg [1:0] start = 0;
+    wire [2:0] done;
+    wire overflow;
+    reg [2:0] sent_1;
+    reg [2:0] sent_2;
+    delay_2 dut (.clk(clk), .rst(rst), .start(start), .done(done), .overflow(overflow));
+
+    task tick;
+        begin
+            #1 clk = 1;
+            #1 clk = 0;
+        end
+    endtask
+
+    // What each neuron sends is read before the clock, what it holds after it.
+    task step;
+        begin
+            #1;
+            sent_1 = dut.n1.sent;
+            sent_2 = dut.n2.sent;
+            tick;
+            $display("%0d 1 %0d %0d", t, sent_1, dut.n1.count);
+            $display("%0d 2 %0d %0d", t, sent_2, dut.n2.count);
+        end
+    endtask
+
+    initial begin
+        $display("case 1");
+        start = 0; rst = 1;
+        tick;
+        rst = 0;
+        for (t = 0; t < 8; t = t + 1) begin
+            start = (t == 2);
+            step;
+        end
+        $display("overflow %0d", overflow);
+        $finish;
+    end
+endmodule
+--- file parts/delay-2.json
+{
+  "Contract": {
+    "Name": "delay 2",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 2,
+    "MinLatency": 2,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 2
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 2,
+    "Synapses": 1,
+    "DistinctRules": 2,
+    "Rules": 2,
+    "RegisterWidth": 2,
+    "LassoTable": 4
+  },
+  "Latency": 2,
+  "Origin": {
+    "Seed": 426451231,
+    "Run": "evolve-parts --seed 1 --budget 50000",
+    "Evaluations": 12743
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

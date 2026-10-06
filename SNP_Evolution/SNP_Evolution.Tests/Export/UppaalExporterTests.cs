@@ -10,9 +10,7 @@ namespace SnpEvolution.Tests.Export
 {
     public class UppaalExporterTests
     {
-        private static string Repository => Path.GetDirectoryName(SnpEvolution.Cli.Settings.DefaultPartLibraryFolder())!;
-
-        private static Part LibraryPart(string folder, string file) => PartLibraryFiles.Read(File.ReadAllText(Path.Combine(Repository, folder, file)), file).Part;
+        private static Part LibraryPart(string folder, string file) => RepositoryFiles.ReadPart(folder, file).Part;
 
         private static string Folder() => Path.Combine(Path.GetTempPath(), "snp-uppaal-" + Guid.NewGuid().ToString("N"));
 

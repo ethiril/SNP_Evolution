@@ -161,6 +161,7 @@ namespace SnpEvolution.Tests.Compilation
         }
 
         [Fact]
+        [Slow]
         public void ShrinkingKeepsTheNetworkCorrectAndNeverGrowsIt()
         {
             int[] values = { 1, 2, 4, 8, 16, 32 };

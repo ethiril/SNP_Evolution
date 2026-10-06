@@ -120,17 +120,20 @@ namespace SnpEvolution.Cli
         public Settings Copy() => (Settings)MemberwiseClone();
 
         // parts/ at the root of the repository the program runs in, or in the working directory outside one.
-        public static string DefaultPartLibraryFolder()
+        public static string DefaultPartLibraryFolder() => System.IO.Path.Combine(WorkingRoot(), "parts");
+
+        // The root of the repository the program runs in, or the working directory outside one.
+        public static string WorkingRoot()
         {
             string start = System.IO.Directory.GetCurrentDirectory();
             for (string? folder = start; folder != null; folder = System.IO.Path.GetDirectoryName(folder))
             {
                 if (System.IO.Directory.Exists(System.IO.Path.Combine(folder, ".git")))
                 {
-                    return System.IO.Path.Combine(folder, "parts");
+                    return folder;
                 }
             }
-            return System.IO.Path.Combine(start, "parts");
+            return start;
         }
 
         public static Settings Defaults() => new Settings

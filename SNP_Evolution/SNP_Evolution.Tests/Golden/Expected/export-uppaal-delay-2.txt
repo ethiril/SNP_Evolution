@@ -1,0 +1,242 @@
+$ snp-evolution export-uppaal --part parts/delay-2.json --out export --check off
+exit 0
+--- stdout
+Wrote delay-2.xml and delay-2.q to export: 6 queries over 1 case(s).
+--- stderr
+--- file export/delay-2.q
+/* the run ends on every path */
+A<> Clock.End
+/* quiet before start */
+A[] !quietBroken
+/* done once, the right one, with the right outputs */
+A[] (Clock.End imply doneOk)
+/* back to start */
+A[] (Clock.End imply backOk)
+/* on time */
+A[] (Clock.End imply onTimeOk)
+/* every neuron holds what our engine's run holds, on every step */
+A[] !traceBroken
+--- file export/delay-2.xml
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+<declaration>// delay 2: 2 neurons, 1 case(s), runs of at most 8 steps.
+const int NEURONS = 2;
+const int CASES = 1;
+const int HORIZON = 8;
+const int AFTER_DONE = 2;
+const int SLOTS = 1;
+const int MIN_LATENCY = 2;
+const int MAX_LATENCY = 2;
+const int INITIAL[NEURONS] = {0, 0};
+const int START[CASES] = {2};
+const int EXPECTED_DONE[CASES] = {0};
+
+broadcast chan go;
+int caseNo = 0;
+int step = 0;
+int spikes[NEURONS] = {0, 0};
+int emit[NEURONS];
+int closedFor[NEURONS];
+int pending[NEURONS];
+bool closedNow[NEURONS];
+int flight[NEURONS][SLOTS];
+
+// What the contract&apos;s ports did, as the engine&apos;s PortRecorder records it.
+bool quietBroken = false;
+int doneFirings = 0;
+int doneSlot = -1;
+int firstDone = -1;
+bool ended = false;
+bool doneOk = false;
+bool backOk = false;
+bool onTimeOk = false;
+bool traceBroken = false;
+
+// What every neuron holds after each step of our engine&apos;s run of each case.
+const int EXPECT[CASES][HORIZON][NEURONS] = {{{0, 0}, {0, 0}, {1, 0}, {0, 2}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+
+const bool TABLE_1_1[2] = {false, true};
+bool applies_1_1(int k) {
+  if (k &lt; 1) return false;
+  if (k &lt; 1) return TABLE_1_1[k];
+  return TABLE_1_1[1 + (k - 1) % 1];
+}
+bool anyApplies_1(int k) { return applies_1_1(k); }
+const bool TABLE_2_1[2] = {false, true};
+bool applies_2_1(int k) {
+  if (k &lt; 2) return false;
+  if (k &lt; 1) return TABLE_2_1[k];
+  return TABLE_2_1[1 + (k - 1) % 1];
+}
+bool anyApplies_2(int k) { return applies_2_1(k); }
+
+void land(int i) {
+  int arriving = flight[i][step % SLOTS];
+  if (arriving &gt; 0) { flight[i][step % SLOTS] = 0; emit[i] += arriving; }
+}
+void busy(int i) {
+  emit[i] = 0;
+  closedNow[i] = false;
+  closedFor[i]--;
+  if (closedFor[i] &gt; 0) { closedNow[i] = true; }
+  else { emit[i] = pending[i]; pending[i] = 0; }
+  land(i);
+}
+void idle(int i) {
+  emit[i] = 0;
+  closedNow[i] = false;
+  land(i);
+}
+void fireRule(int i, int consume, int produce, int delay, bool axonal) {
+  emit[i] = 0;
+  closedNow[i] = false;
+  if (consume &lt; 0) spikes[i] = 0; else spikes[i] -= consume;
+  if (axonal) { flight[i][(step + delay) % SLOTS] += produce; }
+  else if (delay &gt; 0) { closedFor[i] = delay; pending[i] = produce; closedNow[i] = true; }
+  else { emit[i] = produce; }
+  land(i);
+}
+
+// The verdicts, once the run is over, as ContractTask scores a run.
+void judge() {
+  int i;
+  backOk = true;
+  for (i = 0; i &lt; NEURONS; i++) { if (spikes[i] != INITIAL[i]) backOk = false; }
+  onTimeOk = firstDone &gt;= 0 &amp;&amp; firstDone - (START[caseNo] + 1) &gt;= MIN_LATENCY &amp;&amp; firstDone - (START[caseNo] + 1) &lt;= MAX_LATENCY;
+  doneOk = doneFirings == 1 &amp;&amp; doneSlot == EXPECTED_DONE[caseNo];
+}
+
+void deliver() {
+  int i;
+  if (emit[0] &gt; 0) { if (!closedNow[1]) spikes[1] += emit[0]; }
+  if (caseNo == 0 &amp;&amp; step == 2 &amp;&amp; !closedNow[0]) spikes[0] += 1;
+  if (step &lt;= START[caseNo] &amp;&amp; (emit[1] &gt; 0)) quietBroken = true;
+  if (emit[1] &gt; 0) { doneFirings++; if (doneSlot &lt; 0) doneSlot = 0; if (firstDone &lt; 0) firstDone = step; }
+  for (i = 0; i &lt; NEURONS; i++) { if (spikes[i] != EXPECT[caseNo][step][i]) traceBroken = true; }
+  step++;
+  if ((firstDone &gt;= 0 &amp;&amp; step &gt; firstDone + AFTER_DONE) || step == HORIZON) { ended = true; judge(); }
+}
+</declaration>
+<template>
+<name>Clock</name>
+<declaration>clock x;</declaration>
+<location id="c0"><name>Choose</name><committed/></location>
+<location id="c1"><name>Tick</name><label kind="invariant">x &lt;= 1</label></location>
+<location id="c2"><name>Released</name><committed/></location>
+<location id="c3"><name>End</name></location>
+<init ref="c0"/>
+<transition><source ref="c0"/><target ref="c1"/><label kind="select">c : int[0,0]</label><label kind="assignment">caseNo = c, x = 0</label></transition>
+<transition><source ref="c1"/><target ref="c2"/><label kind="guard">x == 1 &amp;&amp; !ended</label><label kind="synchronisation">go!</label><label kind="assignment">x = 0</label></transition>
+<transition><source ref="c2"/><target ref="c1"/><label kind="assignment">deliver()</label></transition>
+<transition><source ref="c1"/><target ref="c3"/><label kind="guard">ended</label></transition>
+</template>
+<template>
+<name>N1</name>
+<location id="n1"><name>Run</name></location>
+<init ref="n1"/>
+<transition><source ref="n1"/><target ref="n1"/><label kind="guard">closedFor[0] &gt; 0</label><label kind="synchronisation">go?</label><label kind="assignment">busy(0)</label></transition>
+<transition><source ref="n1"/><target ref="n1"/><label kind="guard">closedFor[0] == 0 &amp;&amp; applies_1_1(spikes[0])</label><label kind="synchronisation">go?</label><label kind="assignment">fireRule(0, 1, 2, 0, false)</label></transition>
+<transition><source ref="n1"/><target ref="n1"/><label kind="guard">closedFor[0] == 0 &amp;&amp; !anyApplies_1(spikes[0])</label><label kind="synchronisation">go?</label><label kind="assignment">idle(0)</label></transition>
+</template>
+<template>
+<name>N2</name>
+<location id="n2"><name>Run</name></location>
+<init ref="n2"/>
+<transition><source ref="n2"/><target ref="n2"/><label kind="guard">closedFor[1] &gt; 0</label><label kind="synchronisation">go?</label><label kind="assignment">busy(1)</label></transition>
+<transition><source ref="n2"/><target ref="n2"/><label kind="guard">closedFor[1] == 0 &amp;&amp; applies_2_1(spikes[1])</label><label kind="synchronisation">go?</label><label kind="assignment">fireRule(1, 2, 1, 1, false)</label></transition>
+<transition><source ref="n2"/><target ref="n2"/><label kind="guard">closedFor[1] == 0 &amp;&amp; !anyApplies_2(spikes[1])</label><label kind="synchronisation">go?</label><label kind="assignment">idle(1)</label></transition>
+</template>
+<system>system Clock, N1, N2;</system>
+</nta>
+--- file parts/delay-2.json
+{
+  "Contract": {
+    "Name": "delay 2",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 2,
+    "MinLatency": 2,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 2
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 2,
+    "Synapses": 1,
+    "DistinctRules": 2,
+    "Rules": 2,
+    "RegisterWidth": 2,
+    "LassoTable": 4
+  },
+  "Latency": 2,
+  "Origin": {
+    "Seed": 426451231,
+    "Run": "evolve-parts --seed 1 --budget 50000",
+    "Evaluations": 12743
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

@@ -12,7 +12,11 @@ namespace SnpEvolution.Tests.Cli
 
             CommandOptions.ApplyOptions(settings, new Dictionary<string, string>
             {
-                ["evaluations"] = "5000", ["library"] = "elsewhere", ["max-parts"] = "3", ["glue"] = "12", ["glue-weight"] = "0.5",
+                ["evaluations"] = "5000",
+                ["library"] = "elsewhere",
+                ["max-parts"] = "3",
+                ["glue"] = "12",
+                ["glue-weight"] = "0.5",
             });
 
             Assert.Equal(5000, settings.MaxEvaluations);
@@ -63,6 +67,7 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        [Slow]
         public void HandBuiltLeavesLeaveOutThePromotedAddLoop()
         {
             string missing = Path.Combine(Path.GetTempPath(), "snp-no-parts-" + Guid.NewGuid().ToString("N"));

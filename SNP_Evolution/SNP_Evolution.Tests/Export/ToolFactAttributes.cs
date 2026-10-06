@@ -1,9 +1,11 @@
 using SnpEvolution.Export;
+using Xunit.Sdk;
 
 namespace SnpEvolution.Tests.Export
 {
-    // A test that runs Icarus Verilog, skipped with the reason when it is not installed, as on CI.
-    public sealed class IverilogFactAttribute : FactAttribute
+    // A test that runs Icarus Verilog, skipped with the reason when it is not installed; slow, as every tool test is.
+    [TraitDiscoverer(SpeedDiscoverer.TypeName, SpeedDiscoverer.AssemblyName)]
+    public sealed class IverilogFactAttribute : FactAttribute, ITraitAttribute
     {
         public IverilogFactAttribute()
         {
@@ -14,8 +16,9 @@ namespace SnpEvolution.Tests.Export
         }
     }
 
-    // A test that runs tools/snp_nir.py, skipped with the reason when Python or its packages are missing.
-    public sealed class NirFactAttribute : FactAttribute
+    // A test that runs tools/snp_nir.py, skipped with the reason when Python or its packages are missing; slow.
+    [TraitDiscoverer(SpeedDiscoverer.TypeName, SpeedDiscoverer.AssemblyName)]
+    public sealed class NirFactAttribute : FactAttribute, ITraitAttribute
     {
         public NirFactAttribute()
         {
@@ -26,8 +29,9 @@ namespace SnpEvolution.Tests.Export
         }
     }
 
-    // A test that runs Uppaal's verifyta, skipped with the reason when it is not installed.
-    public sealed class VerifytaFactAttribute : FactAttribute
+    // A test that runs Uppaal's verifyta, skipped with the reason when it is not installed; slow.
+    [TraitDiscoverer(SpeedDiscoverer.TypeName, SpeedDiscoverer.AssemblyName)]
+    public sealed class VerifytaFactAttribute : FactAttribute, ITraitAttribute
     {
         public VerifytaFactAttribute()
         {

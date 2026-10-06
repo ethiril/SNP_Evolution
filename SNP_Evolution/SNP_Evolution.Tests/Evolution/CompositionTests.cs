@@ -34,6 +34,7 @@ namespace SnpEvolution.Tests.Evolution
         private static string Json(Network network) => NetworkFiles.ToJson(network);
 
         [Fact]
+        [Slow]
         public void RandomCompositionsSurviveFlatteningAndRecovery()
         {
             ModuleLibrary library = Library();
@@ -52,6 +53,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void CompositionsStillRoundTripAfterAnyEditTheSearchMakes()
         {
             ModuleLibrary library = Library();
@@ -194,6 +196,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        [Slow]
         public void ABenchmarkRunOfCompositionSearchBuildsFromTheGivenParts()
         {
             ModuleLibrary library = Library();
@@ -207,6 +210,7 @@ namespace SnpEvolution.Tests.Evolution
 
         // Every network a composition run keeps is exactly glue and library parts: no part neuron is ever changed.
         [Theory]
+        [Slow]
         [InlineData("MAP-Elites")]
         [InlineData("tournament")]
         public void ARunInCompositionModeNeverChangesAPartNeuron(string algorithm)
