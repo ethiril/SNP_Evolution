@@ -8,7 +8,19 @@ namespace SnpEvolution.Evolution.Contracts
     public sealed record Part(Contract Contract, Network Network, PortBinding Binding)
     {
         public ContractTask Task() => new ContractTask(Contract, Binding);
+
+        // Every port with the 1-based position of its neuron: the in-ports are the input neurons in contract order (start
+        // first), and the out-ports and done ports are where the binding puts them.
+        public IReadOnlyList<PartPort> Ports()
+        {
+            IEnumerable<int> inputs = Network.Neurons.Select((neuron, index) => (neuron, index)).Where(pair => pair.neuron.IsInput).Select(pair => pair.index + 1);
+            return new[] { Contract.Start }.Concat(Contract.DataIn).Zip(inputs, (port, position) => new PartPort(port, position))
+                .Concat(PortBinding.OutPorts(Contract).Select(port => new PartPort(port, Binding[port.Name])))
+                .ToList();
+        }
     }
+
+    public sealed record PartPort(Port Port, int Position);
 
     // Where a library part came from: the seed its contract was evolved with, the run that found it, and the networks
     // scored to find, shrink and verify it.
@@ -57,6 +69,14 @@ namespace SnpEvolution.Evolution.Contracts
         // Start also feeds a sixth neuron with no rules, which keeps the spike after done.
         public static Part RegisterLeavingASpike(int largest = 8) => RegisterPart(largest, leaveSpike: true);
 
+        // A register whose start spike also goes straight to out, so out carries one spike more than the store drains.
+        // The n input fires on each spike it holds alone, so it takes a count however the spikes are spread before start.
+        public static Part Increment() => IncrementPart(padded: false);
+
+        // The same with a sixth neuron that nothing feeds, so it costs more but behaves the same; it has a rule, as every
+        // neuron evolution edits has.
+        public static Part PaddedIncrement() => IncrementPart(padded: true);
+
         private static Part DelayPart(int k, int startProduces)
         {
             Contract contract = DelayContract(k);
@@ -83,6 +103,25 @@ namespace SnpEvolution.Evolution.Contracts
             if (leaveSpike)
             {
                 neurons.Add(new Neuron(new Rule[0], 0, new int[0], false));
+            }
+            return new Part(contract, new Network(neurons), PortBinding.AfterInputs(contract));
+        }
+
+        private static Part IncrementPart(bool padded)
+        {
+            Contract contract = FirstParts.Named("increment");
+            const int Out = 3, Done = 4, Store = 5;
+            var neurons = new List<Neuron>
+            {
+                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { Out, Store }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { Store }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false),
+                new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false),
+                new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { Out, Done }, false),
+            };
+            if (padded)
+            {
+                neurons.Add(new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false));
             }
             return new Part(contract, new Network(neurons), PortBinding.AfterInputs(contract));
         }

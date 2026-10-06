@@ -17,6 +17,7 @@ namespace SnpEvolution.Evolution.Modules
             Cut = cut;
             Origin = origin;
             Part = part;
+            Versions = part != null ? new[] { part } : Array.Empty<LibraryPart>();
         }
 
         public int Id { get; }
@@ -29,6 +30,10 @@ namespace SnpEvolution.Evolution.Modules
 
         // Null for a module harvested during a run, which has no contract.
         public LibraryPart? Part { get; private set; }
+
+        // Every part this module has held, oldest first, so a copy put into a network before a cheaper part replaced it is
+        // still known by its ports. Replaced whole rather than changed, so it can be read while the library changes.
+        public IReadOnlyList<LibraryPart> Versions { get; private set; }
 
         // Children scored with a new copy of the module in them, and how many of those beat their parent.
         public int Uses { get; private set; }
@@ -49,6 +54,7 @@ namespace SnpEvolution.Evolution.Modules
             Cut = ModuleLibrary.CutOf(part.Part);
             Origin = origin;
             Part = part;
+            Versions = Versions.Append(part).ToList();
         }
     }
 

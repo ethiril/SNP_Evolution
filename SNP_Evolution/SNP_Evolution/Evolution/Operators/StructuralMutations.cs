@@ -297,6 +297,13 @@ namespace SnpEvolution.Evolution.Operators
                 }
                 edits.Add(new WeightedEdit("Insert module", new InsertModule(modules.Library, factory.Space), 0.75));
                 edits.Add(new WeightedEdit("Dissolve module", new DissolveModule(), 0.1));
+                // Only with contract parts, so a run with harvested modules alone draws its edits as before.
+                if (modules.Library.Parts.Count > 0)
+                {
+                    edits.Add(new WeightedEdit("Rewire port", new RewirePort(modules.Library), 0.5));
+                    edits.Add(new WeightedEdit("Add glue neuron", new AddGlueNeuron(modules.Library, factory), 0.25));
+                    edits.Add(new WeightedEdit("Swap part", new SwapPart(modules.Library, factory.Space.MaxNeurons), 0.1));
+                }
             }
             return new WeightedMutation(rate, edits, pressure: pressure, tracker: modules?.Tracker);
         }

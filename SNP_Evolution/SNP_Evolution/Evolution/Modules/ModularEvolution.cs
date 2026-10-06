@@ -237,7 +237,7 @@ namespace SnpEvolution.Evolution.Modules
                 {
                     break;
                 }
-                Network composite = ModuleEdits.Insert(host, chosen, library.NextInstance(), maxNeurons, random);
+                Network composite = ModuleEdits.Insert(host, chosen, library.NextInstance(), maxNeurons, library, random);
                 if (composite != host)
                 {
                     composites.Add(composite);

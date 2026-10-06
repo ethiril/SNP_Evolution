@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Evolution.Tasks;
@@ -147,7 +148,7 @@ namespace SnpEvolution.Tests.Evolution
 
             for (int seed = 0; seed < 20; seed++)
             {
-                Network inserted = ModuleEdits.Insert(PingPong(), module, 7, 10, new Random(seed));
+                Network inserted = ModuleEdits.Insert(PingPong(), module, 7, 10, library, new Random(seed));
 
                 Assert.Equal(4, inserted.Neurons.Count);
                 Assert.Single(inserted.Neurons, neuron => neuron.IsOutput);
@@ -156,7 +157,7 @@ namespace SnpEvolution.Tests.Evolution
                 Assert.Equal(new[] { 4 }, inserted.Neurons[2].Connections);
             }
             Network full = PingPong();
-            Assert.Same(full, ModuleEdits.Insert(full, module, 8, 3, new Random(1)));
+            Assert.Same(full, ModuleEdits.Insert(full, module, 8, 3, library, new Random(1)));
         }
 
         [Fact]
@@ -164,7 +165,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var library = new ModuleLibrary();
             Module module = ModuleOf(library, Chain());
-            Network network = ModuleEdits.Insert(PingPong(), module, 1, 10, new Random(1));
+            Network network = ModuleEdits.Insert(PingPong(), module, 1, 10, library, new Random(1));
             int last = network.Neurons.Count - 1;
 
             Network rewired = network.WithRule(last, 0, network.Neurons[last].Rules[0].WithDelay(2));
@@ -213,7 +214,7 @@ namespace SnpEvolution.Tests.Evolution
             var results = new Dictionary<Network, FitnessResult>();
             IPopulationEvaluator evaluator = tracker.Watch(new DelegateEvaluator(network => results[network]));
             Network parent = PingPong();
-            Network child = ModuleEdits.Insert(parent, module, library.NextInstance(), 10, new Random(1));
+            Network child = ModuleEdits.Insert(parent, module, library.NextInstance(), 10, library, new Random(1));
             Network closer = parent.WithNeuron(1, parent.Neurons[1].WithInitialSpikes(3));
             Network worse = parent.WithNeuron(0, parent.Neurons[0].WithInitialSpikes(3));
             results[parent] = new FitnessResult(0.2f, Array.Empty<int>(), Checks: new[] { 1f, 0f });
@@ -296,7 +297,7 @@ namespace SnpEvolution.Tests.Evolution
 
             for (int seed = 0; seed < 20; seed++)
             {
-                Network inserted = ModuleEdits.Insert(PingPong(), module, 1, 10, new Random(seed));
+                Network inserted = ModuleEdits.Insert(PingPong(), module, 1, 10, library, new Random(seed));
                 int output = inserted.Neurons.ToList().FindIndex(neuron => neuron.IsOutput);
                 if (output >= PingPong().Neurons.Count)
                 {
@@ -365,7 +366,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ModuleTagsSurviveSavingAndAreShownInTheNotation()
         {
             var library = new ModuleLibrary();
-            Network network = ModuleEdits.Insert(PingPong(), ModuleOf(library, Chain()), 3, 10, new Random(1));
+            Network network = ModuleEdits.Insert(PingPong(), ModuleOf(library, Chain()), 3, 10, library, new Random(1));
 
             Network loaded = NetworkFiles.FromJson(NetworkFiles.ToJson(network))!;
 
@@ -385,13 +386,15 @@ namespace SnpEvolution.Tests.Evolution
                 var library = new ModuleLibrary();
                 library.Add(ModuleCuts.Whole(Chain()), "a test");
                 library.Add(ModuleCuts.Cut(Chain(), new[] { 1 }), "a test");
+                Part increment = seed % 2 == 0 ? ReferenceParts.Increment() : ReferenceParts.PaddedIncrement();
+                library.AddPart(LibraryPart.Of(increment, PartEvolution.Measure(increment), new PartOrigin(1, "a test", 0)), "a test");
                 WeightedMutation mutation = WeightedMutation.Structural(1, factory, modules: new ModuleSupport(library));
                 Network network = factory.NewNetwork();
                 for (int step = 0; step < 150; step++)
                 {
                     WeightedEdit edit = mutation.Edits[random.Next(mutation.Edits.Count)];
                     Network next = edit.Edit.Mutate(network, random);
-                    Assert.True(edit.Edit is DissolveModule || ModuleEdits.KeepsModules(network, next), edit.Name);
+                    Assert.True(edit.Edit is DissolveModule or SwapPart || ModuleEdits.KeepsModules(network, next), edit.Name);
                     network = next;
                     Assert.Single(network.Neurons, neuron => neuron.IsOutput);
                     Assert.InRange(network.Neurons.Count, 1, factory.Space.MaxNeurons);

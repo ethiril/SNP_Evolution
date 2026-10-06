@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 
@@ -12,12 +13,13 @@ namespace SnpEvolution.Evolution.Modules
 
     public static class ModuleEdits
     {
-        // Adds a copy of the module to the network: each input port gets a synapse from a random neuron already
-        // there, and each output port sends to a random neuron that is not an input. A module cut from around an
-        // output neuron becomes the network's output half the time, so a part that makes the right output can take
-        // over and the rest of the network can feed it; the old output then sends to the new one, so what the
-        // network already made can still pass through. Unchanged when the network has no room.
-        public static Network Insert(Network network, Module module, int instance, int maxNeurons, Random random)
+        // Adds a copy of the module to the network. A module cut from around an output neuron becomes the network's output
+        // half the time, so a part that makes the right output can take over and the rest of the network can feed it; the
+        // old output then sends to the new one, so what the network already made can still pass through. A module without
+        // a contract has each input port fed by a random neuron already there, and each output port sends to a random
+        // neuron that is not an input; a contract part is wired by port type instead (PartWiring.WirePorts). Unchanged when
+        // the network has no room.
+        public static Network Insert(Network network, Module module, int instance, int maxNeurons, ModuleLibrary library, Random random)
         {
             int offset = network.Neurons.Count;
             if (offset == 0 || offset + module.Body.Neurons.Count > maxNeurons)
@@ -25,15 +27,25 @@ namespace SnpEvolution.Evolution.Modules
                 return network;
             }
             var tag = new ModuleTag(module.Id, instance);
+            IReadOnlyList<PartCopy> copies = module.Part != null ? PartWiring.Copies(network, library) : Array.Empty<PartCopy>();
+            HashSet<int> typed = copies.SelectMany(copy => copy.Positions).ToHashSet();
             bool takesOutput = module.Body.Neurons.Any(neuron => neuron.IsOutput) && random.Next(2) == 0;
             int moduleOutput = offset + module.Body.Neurons.ToList().FindIndex(neuron => neuron.IsOutput) + 1;
+            // An old output that is a part's port keeps its synapses, since one to the new output would join two ports untyped.
             List<Neuron> neurons = network.Neurons
-                .Select(neuron => takesOutput && neuron.IsOutput ? neuron.WithRoles(false, neuron.IsInput).WithConnections(neuron.Connections.Append(moduleOutput)) : neuron)
+                .Select((neuron, index) => takesOutput && neuron.IsOutput
+                    ? neuron.WithRoles(false, neuron.IsInput).WithConnections(typed.Contains(index + 1) ? neuron.Connections : neuron.Connections.Append(moduleOutput))
+                    : neuron)
                 .ToList();
             neurons.AddRange(module.Body.Neurons.Select(neuron => neuron
                 .WithConnections(neuron.Connections.Select(target => target + offset))
                 .WithRoles(takesOutput && neuron.IsOutput, false)
                 .WithModule(tag)));
+            if (module.Part is LibraryPart part)
+            {
+                PartWiring.WirePorts(neurons, copies, new PartCopy(tag, part, Enumerable.Range(offset + 1, module.Body.Neurons.Count).ToList()), offset, random);
+                return new Network(neurons);
+            }
             List<int> receivers = Enumerable.Range(0, offset).Where(index => !network.Neurons[index].IsInput).ToList();
             foreach (int port in module.Cut.Inputs)
             {
@@ -80,7 +92,7 @@ namespace SnpEvolution.Evolution.Modules
                 && Inside(before, instance.Value) == Inside(after, positions));
         }
 
-        private static string Inside(Network network, List<int> positions)
+        internal static string Inside(Network network, IReadOnlyList<int> positions)
         {
             var rank = positions.Select((position, order) => (position, order)).ToDictionary(pair => pair.position, pair => pair.order);
             return string.Join(";", positions.Select(position =>
@@ -104,7 +116,7 @@ namespace SnpEvolution.Evolution.Modules
         }
 
         public Network Mutate(Network network, Random random) =>
-            library.Choose(random) is Module module ? ModuleEdits.Insert(network, module, library.NextInstance(), space.MaxNeurons, random) : network;
+            library.Choose(random) is Module module ? ModuleEdits.Insert(network, module, library.NextInstance(), space.MaxNeurons, library, random) : network;
     }
 
     // Frees one module copy, so its neurons can change like any other from now on.
