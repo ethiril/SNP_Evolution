@@ -124,6 +124,6 @@ namespace SnpEvolution.Evolution.Modules
             $"{RulesText(neuron)}/{neuron.InitialSpikes}/{string.Join(",", neuron.Connections)}/{neuron.IsOutput}";
 
         internal static string RulesText(Neuron neuron) =>
-            string.Join("|", neuron.Rules.Select(rule => $"{rule.Expression}:{rule.Delay}:{rule.Fire}:{rule.Consume}:{rule.Produce}:{rule.Axonal}"));
+            string.Join("|", neuron.Rules.Select(rule => rule.Key));
     }
 }

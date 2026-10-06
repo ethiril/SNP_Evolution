@@ -65,8 +65,7 @@ namespace SnpEvolution.Tests.Export
             for (int network = 0; network < 4; network++)
             {
                 Network made = factory.NewNetwork();
-                var ports = VerilogExporter.PlainPorts(made).Select(port => (port.Name, port.Neuron, port.IsInput)).ToList();
-                NirDescription description = NirExporter.Export(made, $"random {network}", ports, new[] { ("random input", input, 30) });
+                NirDescription description = NirExporter.Export(made, $"random {network}", NetworkPort.Plain(made), new[] { ("random input", input, 30) });
                 firings += description.Cases[0].Applied.Sum(step => step.Count);
                 delays += description.Delays.Count(delay => delay > 0);
                 forgetting += description.Fires.Count(fires => !fires);
@@ -83,7 +82,7 @@ namespace SnpEvolution.Tests.Export
         {
             var network = new Network(new[] { OutputNeuron(0, new Rule("a(aa)*", 0, true)) });
 
-            var refusal = Assert.Throws<ArgumentException>(() => NirExporter.Export(network, "parity", Array.Empty<(string, int, bool)>(), Array.Empty<(string, InputSpikes, int)>()));
+            var refusal = Assert.Throws<ArgumentException>(() => NirExporter.Export(network, "parity", Array.Empty<NetworkPort>(), Array.Empty<(string, InputSpikes, int)>()));
 
             Assert.Contains("Neuron 1, rule 1 (a(aa)* -> a)", refusal.Message);
         }
@@ -99,7 +98,7 @@ namespace SnpEvolution.Tests.Export
             });
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0 } });
 
-            NirDescription description = NirExporter.Export(network, "small", new[] { ("start", 1, true), ("out", 3, false) }, new[] { ("one spike", input, 5) });
+            NirDescription description = NirExporter.Export(network, "small", new[] { new NetworkPort("start", 1, true), new NetworkPort("out", 3, false) }, new[] { ("one spike", input, 5) });
 
             Assert.Equal(new int?[] { 1, 2, 1 }, description.Thresholds);
             Assert.Equal(new[] { true, false, true }, description.Fires);

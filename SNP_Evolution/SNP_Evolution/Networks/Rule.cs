@@ -36,9 +36,7 @@ namespace SnpEvolution.Networks
         // The p of a^p: spikes sent along each synapse when the rule fires. Legacy rules always send one.
         public int Produce { get; }
 
-        // An axonal delay is on the way out, as integrate-and-fire hardware has it: the rule consumes at once, the neuron
-        // stays open and may fire again, and the spikes reach the targets Delay steps later. Without it a delayed legacy
-        // rule holds the neuron and a delayed standard rule closes it (see NetworkSimulation).
+        // A delay on the way out, as integrate-and-fire hardware has it: the rule consumes at once and the neuron stays open while its spikes travel.
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Axonal { get; }
 
@@ -53,6 +51,10 @@ namespace SnpEvolution.Networks
 
         // E/a^c -> λ
         public static Rule Forget(string expression, long consume) => new Rule(expression, 0, false, consume);
+
+        // Every field that changes what the rule does, so rules with equal keys are interchangeable.
+        [JsonIgnore]
+        public string Key => $"{Expression}:{Delay}:{Fire}:{Consume}:{Produce}:{Axonal}";
 
         public bool Matches(long spikes) => Condition.Matches(spikes);
 

@@ -21,6 +21,25 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        public void TheHardwareProfileIsOffUntilAskedForAndCanBeLiftedAgain()
+        {
+            var settings = new Settings();
+            Assert.False(settings.GenomeSpace(1).HardwareProfile);
+
+            CommandOptions.ApplyOptions(settings, new Dictionary<string, string> { ["profile"] = "hardware" });
+            Assert.True(settings.GenomeSpace(1).HardwareProfile);
+
+            CommandOptions.ApplyOptions(settings, new Dictionary<string, string> { ["profile"] = "none" });
+            Assert.False(settings.HardwareProfile);
+        }
+
+        [Fact]
+        public void AnUnknownProfileIsRefused()
+        {
+            Assert.Equal(1, CommandLine.Run(new[] { "evolve-parts", "--profile", "hardwre" }));
+        }
+
+        [Fact]
         public void ANegativeGlueWeightLeavesTheDefault()
         {
             var settings = new Settings();

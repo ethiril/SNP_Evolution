@@ -6,14 +6,7 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution
 {
-    // The rules integrate-and-fire hardware runs exactly: a^{>=k} / a^* -> a, firing once the neuron holds at least k
-    // spikes, consuming all of them and sending one, or the same rule forgetting. A network within the profile is an
-    // integrate-and-fire network with integer threshold k per neuron, reset to zero and unit weights, so it exports to NIR.
-    //   - One rule per neuron, since a neuron has one threshold; two such rules would also overlap and make a choice.
-    //   - A legacy (consume-everything) rule whose condition accepts exactly the counts from some k >= 1 up.
-    //   - No delay, or an axonal one (Rule.Axonal), which NIR and Loihi have as a synaptic delay. Delays that hold or
-    //     close the neuron have no integrate-and-fire counterpart.
-    //   - No initial spikes, as NIR has no initial state for a neuron.
+    // The rules integrate-and-fire hardware runs exactly, a^{>=k} / a^* -> a firing or forgetting, so a network within them exports to NIR.
     public static class HardwareProfile
     {
         private const int ListedCounts = 5;
@@ -47,18 +40,11 @@ namespace SnpEvolution.Evolution
         // The k of a condition that accepts exactly the counts from k up, k >= 1; null for any other condition.
         public static int? Threshold(SpikeCondition condition)
         {
-            // A condition that accepts anything accepts some count below its tail plus one period.
-            int limit = condition.TailLength + condition.Period;
-            int first = 1;
-            while (first <= limit && !condition.Matches(first))
-            {
-                first++;
-            }
-            if (first > limit)
+            if (condition.SmallestAccepted(1) is not long first)
             {
                 return null;
             }
-            return Enumerable.Range(0, Math.Max(first, condition.TailLength) + condition.Period).All(count => condition.Matches(count) == count >= first) ? first : null;
+            return Enumerable.Range(0, (int)Math.Max(first, condition.TailLength) + condition.Period).All(count => condition.Matches(count) == count >= first) ? (int)first : null;
         }
 
         // a^{>=k} / a^* -> a, or forgetting; only a firing rule keeps a delay, and its delay is axonal.
@@ -129,19 +115,7 @@ namespace SnpEvolution.Evolution
         }
 
         // The fewest spikes, at least one, the rule could apply to, or 1 when it applies to none.
-        private static int SmallestAccepted(Rule rule)
-        {
-            long least = Math.Max(1, rule.Consume ?? 1);
-            long limit = least + rule.Condition.TailLength + rule.Condition.Period;
-            for (long count = least; count <= limit; count++)
-            {
-                if (rule.Condition.Matches(count))
-                {
-                    return (int)Math.Min(count, int.MaxValue);
-                }
-            }
-            return 1;
-        }
+        private static int SmallestAccepted(Rule rule) => (int)Math.Min(int.MaxValue, rule.Condition.SmallestAccepted(Math.Max(1, rule.Consume ?? 1)) ?? 1);
     }
 
     // Puts what another operator makes back within the profile, so every child of a profile run fits it.

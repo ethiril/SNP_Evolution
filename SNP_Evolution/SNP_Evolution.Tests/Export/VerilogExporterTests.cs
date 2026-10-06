@@ -24,7 +24,7 @@ namespace SnpEvolution.Tests.Export
             string folder = Path.Combine(Path.GetTempPath(), "snp-verilog-" + Guid.NewGuid().ToString("N"));
             try
             {
-                return (Iverilog.Simulate(design, VerilogExporter.Testbench(design, inputs, steps), folder), VerilogExporter.ExpectedOutput(part.Network, inputs, steps));
+                return (Iverilog.Simulate(design, VerilogTestbench.For(design, inputs, steps), folder), VerilogTestbench.ExpectedOutput(part.Network, inputs, steps));
             }
             finally
             {
@@ -83,12 +83,12 @@ namespace SnpEvolution.Tests.Export
                 delays.UnionWith(network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Delay > 0)
                     .Select(rule => rule.Axonal ? "axonal" : rule.IsStandard ? "closing" : "holding"));
                 long mostHeld = SpikeTrace.Run(network, input, 40).MostHeld;
-                VerilogDesign design = VerilogExporter.Export(network, $"random {attempt}", VerilogExporter.PlainPorts(network), mostHeld);
+                VerilogDesign design = VerilogExporter.Export(network, $"random {attempt}", NetworkPort.Plain(network), mostHeld);
                 string folder = Path.Combine(Path.GetTempPath(), "snp-verilog-" + Guid.NewGuid().ToString("N"));
                 try
                 {
-                    string simulated = Iverilog.Simulate(design, VerilogExporter.Testbench(design, new[] { input }, new[] { 40 }), folder);
-                    string expected = VerilogExporter.ExpectedOutput(network, new[] { input }, new[] { 40 });
+                    string simulated = Iverilog.Simulate(design, VerilogTestbench.For(design, new[] { input }, new[] { 40 }), folder);
+                    string expected = VerilogTestbench.ExpectedOutput(network, new[] { input }, new[] { 40 });
                     Assert.True(expected == simulated, $"{NetworkNotation.Format(network)}\ndiffers first at: {FirstDifference(expected, simulated)}");
                 }
                 finally
@@ -105,7 +105,7 @@ namespace SnpEvolution.Tests.Export
         {
             var network = new Network(new[] { OutputNeuron(3, Standard("a+", 1), Standard("aa(a)*", 2)) });
 
-            var refusal = Assert.Throws<ArgumentException>(() => VerilogExporter.Export(network, "choice", VerilogExporter.PlainPorts(network), 3));
+            var refusal = Assert.Throws<ArgumentException>(() => VerilogExporter.Export(network, "choice", NetworkPort.Plain(network), 3));
 
             Assert.Contains("Neuron 1 could apply rule 1 (a+/a -> a) or rule 2 (aa(a)*/aa -> a) when it holds 2 spike(s)", refusal.Message);
         }

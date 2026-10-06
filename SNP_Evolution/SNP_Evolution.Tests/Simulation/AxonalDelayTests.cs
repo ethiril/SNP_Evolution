@@ -84,6 +84,15 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
+        public void AnAxonalRuleIsADifferentRuleFromTheSameRuleThatHoldsTheNeuron()
+        {
+            var network = new Network(new[] { Neuron(0, new[] { 2 }, Axonal("a+", 2)), Neuron(0, Array.Empty<int>(), new Rule("a+", 2, true)) });
+
+            Assert.NotEqual(network.Neurons[0].Rules[0].Key, network.Neurons[1].Rules[0].Key);
+            Assert.Equal(2, SnpEvolution.Evolution.HardwareCost.Of(network).DistinctRules);
+        }
+
+        [Fact]
         public void SavesTheAxonalFlagOnlyWhenSet()
         {
             var network = new Network(new[] { Neuron(1, new[] { 2 }, Axonal("a+", 2)), OutputNeuron(0, new Rule("a", 1, true)) });

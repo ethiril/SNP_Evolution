@@ -18,8 +18,10 @@ namespace SnpEvolution.Storage
     {
         public const string Extension = ".json";
 
-        public static string FileName(Contract contract) =>
-            string.Concat(contract.Name.ToLowerInvariant().Select(letter => char.IsLetterOrDigit(letter) ? letter : '-')) + Extension;
+        public static string FileName(Contract contract) => Stem(contract.Name) + Extension;
+
+        // "delay 2" becomes delay-2, so files written for a part are named alike.
+        public static string Stem(string name) => string.Concat(name.ToLowerInvariant().Select(letter => char.IsLetterOrDigit(letter) ? letter : '-'));
 
         public static string ToJson(LibraryPart part) => JsonConvert.SerializeObject(PartFile.Of(part), Formatting.Indented) + "\n";
 

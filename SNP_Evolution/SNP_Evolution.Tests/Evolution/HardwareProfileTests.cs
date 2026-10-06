@@ -1,6 +1,8 @@
+using SnpEvolution.Cli;
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Networks;
+using SnpEvolution.Simulation;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Evolution
@@ -9,17 +11,8 @@ namespace SnpEvolution.Tests.Evolution
     {
         private static readonly GenomeSpace ProfileSpace = new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Mixed, MaxNeurons: 8, MaxDelay: 3, DuplicateNeurons: true, HardwareProfile: true);
 
-        // Keeps every network an algorithm asks to have scored, with a fitness that varies so selection has something to do.
-        private sealed class RecordingEvaluator : IPopulationEvaluator
-        {
-            public List<Network> Seen { get; } = new List<Network>();
-
-            public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks)
-            {
-                Seen.AddRange(networks);
-                return networks.Select(network => new FitnessResult(1f / (1 + network.Size % 7), Array.Empty<int>(), Checks: new[] { network.Size % 2f })).ToList();
-            }
-        }
+        // A fitness and checks that vary with size, so selection and lexicase have something to choose by.
+        private static RecordingEvaluator Evaluator() => new RecordingEvaluator(network => 1f / (1 + network.Size % 7), network => new[] { network.Size % 2f });
 
         private static NetworkFactory Factory(int seed)
         {
@@ -45,7 +38,7 @@ namespace SnpEvolution.Tests.Evolution
             foreach (AlgorithmChoice choice in AlgorithmCatalog.All.Where(choice => !AlgorithmCatalog.IsComposition(choice.Name)))
             {
                 NetworkFactory factory = Factory(choice.Name.Length);
-                var evaluator = new RecordingEvaluator();
+                var evaluator = Evaluator();
                 IGeneticAlgorithm algorithm = choice.Create(new EvolutionContext(20, 1f, factory.Random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: true));
 
                 for (int generation = 0; generation < 15; generation++)
@@ -63,7 +56,7 @@ namespace SnpEvolution.Tests.Evolution
         public void EveryStructuralEditIsPutBackWithinTheProfile()
         {
             NetworkFactory factory = Factory(7);
-            var context = new EvolutionContext(10, 1f, factory.Random, factory.NewNetwork, new RecordingEvaluator(), factory, _ => { });
+            var context = new EvolutionContext(10, 1f, factory.Random, factory.NewNetwork, Evaluator(), factory, _ => { });
             foreach (var edit in context.StructuralMutation(1).Edits)
             {
                 var conformed = context.Conformed(edit.Edit);
@@ -73,6 +66,32 @@ namespace SnpEvolution.Tests.Evolution
                     network = conformed.Mutate(network, factory.Random);
                     Assert.True(HardwareProfile.Fits(network), $"{edit.Name}: {string.Join(" ", HardwareProfile.Problems(network))}");
                 }
+            }
+        }
+
+        [Fact]
+        public void PartSearchUnderTheProfileFindsAndShrinksAProfilePart()
+        {
+            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine(), HardwareProfile: true);
+
+            PartOutcome outcome = PartEvolution.Evolve(ReferenceParts.DelayContract(2), 1, settings, _ => { });
+
+            Assert.True(outcome.Solved);
+            Assert.Empty(HardwareProfile.Problems(outcome.Part!.Network));
+        }
+
+        [Fact]
+        public void ShrinkingUnderTheProfileNeverLeavesIt()
+        {
+            var random = new Random(4);
+            var factory = new NetworkFactory(new GenomeSpace(InputCount: 1, MaxDelay: 3, HardwareProfile: true), new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+            (var crossover, var edits) = PartEvolution.ShrinkOperators(factory, hardwareProfile: true);
+            Network network = factory.NewNetwork();
+
+            for (int step = 0; step < 300; step++)
+            {
+                network = edits.Mutate(crossover.Cross(network, factory.NewNetwork(), random), random);
+                Assert.Empty(HardwareProfile.Problems(network));
             }
         }
 

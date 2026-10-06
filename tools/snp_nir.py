@@ -64,7 +64,14 @@ def build_graph(description):
         edges += [("neurons", "delay"), ("delay", "w_rec")]
     else:
         edges += [("neurons", "w_rec")]
-    metadata = {"source": "SNP_Evolution", "name": description["name"], "time_step": 1.0}
+    # NIR's Output carries every neuron, so the metadata says which of them are the part's ports.
+    metadata = {
+        "source": "SNP_Evolution",
+        "name": description["name"],
+        "time_step": 1.0,
+        "inputs": [port["name"] for port in inputs],
+        "outputs": {port["name"]: port["neuron"] for port in description["outputs"]},
+    }
     return nir.NIRGraph(nodes=nodes, edges=edges, metadata=metadata)
 
 

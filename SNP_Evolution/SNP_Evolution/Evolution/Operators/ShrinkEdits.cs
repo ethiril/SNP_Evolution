@@ -66,8 +66,6 @@ namespace SnpEvolution.Evolution.Operators
         }
 
         private static bool SameRules(Neuron first, Neuron second) =>
-            first.Rules.Count == second.Rules.Count && first.Rules.Zip(second.Rules).All(pair =>
-                pair.First.Expression == pair.Second.Expression && pair.First.Delay == pair.Second.Delay && pair.First.Fire == pair.Second.Fire
-                && pair.First.Consume == pair.Second.Consume && pair.First.Produce == pair.Second.Produce && pair.First.Axonal == pair.Second.Axonal);
+            first.Rules.Select(rule => rule.Key).SequenceEqual(second.Rules.Select(rule => rule.Key));
     }
 }

@@ -11,15 +11,14 @@ using static SnpEvolution.Cli.CommandOptions;
 
 namespace SnpEvolution.Cli
 {
-    // export-verilog and export-nir: write a library part (--part FILE) or a saved network (--network FILE) for hardware,
-    // then co-simulate the export against our engine when the tools are installed. A part is checked on every contract
-    // case; a network runs for --steps steps with no input. Exits with 1 for a bad command or a network that cannot be
-    // exported, and 3 when the co-simulation differs.
+    // Exits with 1 for a bad command or a network that cannot be exported, and 3 when the co-simulation differs.
     internal static class ExportCommands
     {
         internal const int Differs = 3;
 
-        private sealed record Source(string Name, Network Network, Part? Part, int Steps);
+        // Cases are a part's contract cases, or one run of --steps steps with no input for a network.
+        private sealed record Source(string Name, Network Network, Part? Part, IReadOnlyList<NetworkPort> Ports,
+            IReadOnlyList<(string Label, InputSpikes Input, int Steps)> Cases);
 
         internal static int Verilog(IReadOnlyDictionary<string, string> options)
         {
@@ -27,43 +26,33 @@ namespace SnpEvolution.Cli
             {
                 return 1;
             }
-            string folder = options.GetValueOrDefault("out", "export");
             VerilogDesign design;
-            List<InputSpikes> inputs;
-            List<int> steps;
             try
             {
-                if (source.Part is Part part)
-                {
-                    design = VerilogExporter.Export(part);
-                    var cases = SpikeTrace.Cases(part.Contract);
-                    inputs = cases.Select(@case => @case.Input).ToList();
-                    steps = cases.Select(@case => @case.Steps).ToList();
-                }
-                else
-                {
-                    inputs = new List<InputSpikes> { InputSpikes.None };
-                    steps = new List<int> { source.Steps };
-                    long mostHeld = SpikeTrace.Run(source.Network, InputSpikes.None, source.Steps).MostHeld;
-                    design = VerilogExporter.Export(source.Network, source.Name, VerilogExporter.PlainPorts(source.Network), mostHeld);
-                }
+                design = source.Part is Part part
+                    ? VerilogExporter.Export(part)
+                    : VerilogExporter.Export(source.Network, source.Name, source.Ports, source.Cases.Max(@case => SpikeTrace.Run(source.Network, @case.Input, @case.Steps).MostHeld));
             }
             catch (ArgumentException refusal)
             {
                 Console.Error.WriteLine(refusal.Message);
                 return 1;
             }
+            string folder = options.GetValueOrDefault("out", "export");
+            List<InputSpikes> inputs = source.Cases.Select(@case => @case.Input).ToList();
+            List<int> steps = source.Cases.Select(@case => @case.Steps).ToList();
+            string testbench = VerilogTestbench.For(design, inputs, steps);
+            string expected = VerilogTestbench.ExpectedOutput(source.Network, inputs, steps);
             Directory.CreateDirectory(folder);
-            string testbench = VerilogExporter.Testbench(design, inputs, steps);
-            string expected = VerilogExporter.ExpectedOutput(source.Network, inputs, steps);
             File.WriteAllText(Path.Combine(folder, design.Name + ".v"), design.Module);
             File.WriteAllText(Path.Combine(folder, design.Name + "_tb.v"), testbench);
             File.WriteAllText(Path.Combine(folder, design.Name + "_expected.txt"), expected);
             Console.WriteLine($"Wrote {design.Name}.v, {design.Name}_tb.v and {design.Name}_expected.txt to {folder}: {design.CounterWidth}-bit counters, {inputs.Count} case(s).");
-            if (!Switch(options, "check", true))
-            {
-                return 0;
-            }
+            return Switch(options, "check", true) ? CoSimulate(design, testbench, expected, folder, inputs.Count) : 0;
+        }
+
+        private static int CoSimulate(VerilogDesign design, string testbench, string expected, string folder, int cases)
+        {
             if (!Iverilog.IsInstalled)
             {
                 Console.WriteLine($"Not co-simulated: {Iverilog.Missing}");
@@ -76,7 +65,7 @@ namespace SnpEvolution.Cli
                 File.WriteAllText(Path.Combine(folder, design.Name + "_simulated.txt"), simulated);
                 return Differs;
             }
-            Console.WriteLine($"iverilog matches our engine on every step of every neuron in all {inputs.Count} case(s).");
+            Console.WriteLine($"iverilog matches our engine on every step of every neuron in all {cases} case(s).");
             return 0;
         }
 
@@ -90,10 +79,7 @@ namespace SnpEvolution.Cli
             NirDescription description;
             try
             {
-                description = source.Part is Part part
-                    ? NirExporter.Export(part)
-                    : NirExporter.Export(source.Network, source.Name, VerilogExporter.PlainPorts(source.Network).Select(port => (port.Name, port.Neuron, port.IsInput)).ToList(),
-                        new[] { ("no input", InputSpikes.None, source.Steps) });
+                description = NirExporter.Export(source.Network, source.Name, source.Ports, source.Cases);
             }
             catch (ArgumentException refusal)
             {
@@ -101,7 +87,7 @@ namespace SnpEvolution.Cli
                 return 1;
             }
             Directory.CreateDirectory(folder);
-            string stem = NirExporter.FileStem(description.Name);
+            string stem = PartLibraryFiles.Stem(description.Name);
             File.WriteAllText(Path.Combine(folder, stem + ".nir.json"), NirExporter.ToJson(description));
             if (NirExporter.Unavailable() is string reason)
             {
@@ -130,13 +116,13 @@ namespace SnpEvolution.Cli
             {
                 if (options.GetValueOrDefault("part") is string partFile)
                 {
-                    LibraryPart part = PartLibraryFiles.Read(File.ReadAllText(partFile), Path.GetFileName(partFile));
-                    return new Source(part.Contract.Name, part.Part.Network, part.Part, steps);
+                    Part part = PartLibraryFiles.Read(File.ReadAllText(partFile), Path.GetFileName(partFile)).Part;
+                    return new Source(part.Contract.Name, part.Network, part, NetworkPort.ForPart(part), SpikeTrace.Cases(part.Contract));
                 }
                 if (options.GetValueOrDefault("network") is string networkFile)
                 {
                     Network network = NetworkFiles.Load(networkFile) ?? throw new InvalidDataException($"{networkFile} holds no network.");
-                    return new Source(Path.GetFileNameWithoutExtension(networkFile), network, null, steps);
+                    return new Source(Path.GetFileNameWithoutExtension(networkFile), network, null, NetworkPort.Plain(network), new[] { ("no input", InputSpikes.None, steps) });
                 }
             }
             catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)

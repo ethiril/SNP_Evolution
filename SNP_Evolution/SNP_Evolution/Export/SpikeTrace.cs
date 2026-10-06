@@ -9,15 +9,13 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Export
 {
-    // One neuron on one step of a deterministic run: the spikes it held when the step began, whether it applied a rule
-    // (NIR's spike), what it sent along every synapse, and what it held once the step's spikes were delivered.
+    // One neuron on one step: what it held at the start, whether it applied a rule, what it sent and what it held after delivery.
     public readonly record struct NeuronStep(long Held, bool Applied, long Sent, long After);
 
     // A deterministic network's run, step by step, as exporters are checked against it. Steps[t][i] is neuron i on step t.
     public sealed record SpikeTrace(IReadOnlyList<IReadOnlyList<NeuronStep>> Steps)
     {
-        // Every pair of rules in one neuron that could both apply to some count of spikes, which hardware would have to
-        // choose between; empty when the network is deterministic.
+        // Pairs of rules in one neuron that could both apply to some spike count; empty when the network is deterministic.
         public static IReadOnlyList<string> Choices(Network network)
         {
             var choices = new List<string>();
@@ -90,8 +88,7 @@ namespace SnpEvolution.Export
         // The most spikes any neuron held on any step, which sizes a hardware counter.
         public long MostHeld => Steps.SelectMany(step => step).Select(row => Math.Max(row.Held, row.After)).DefaultIfEmpty(0).Max();
 
-        // Conditions are eventually periodic, so if two rules share a count they share one below both tails, the larger
-        // consumption and one full cycle of both periods.
+        // Conditions are eventually periodic, so a shared count, if any, lies within both tails, the larger consumption and one common period.
         private static long? SharedCount(Rule first, Rule second)
         {
             long period = Lcm(first.Condition.Period, second.Condition.Period);

@@ -12,6 +12,7 @@ namespace SnpEvolution.Export
         public static string? Find(string program)
         {
             string[] folders = (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+            // Homebrew's folders too, since a run started from an IDE may not have them on PATH.
             return folders.Append("/opt/homebrew/bin").Append("/usr/local/bin").Select(folder => Path.Combine(folder, program)).FirstOrDefault(File.Exists);
         }
 

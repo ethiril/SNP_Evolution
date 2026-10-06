@@ -9,21 +9,6 @@ namespace SnpEvolution.Tests.Evolution
 {
     public class SearchTests
     {
-        private sealed class DelegateEvaluator : IPopulationEvaluator
-        {
-            public DelegateEvaluator(Func<Network, float> fitness) => Fitness = fitness;
-
-            public Func<Network, float> Fitness { get; set; }
-
-            public List<Network> Seen { get; } = new List<Network>();
-
-            public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks)
-            {
-                Seen.AddRange(networks);
-                return networks.Select(network => new FitnessResult(Fitness(network), Array.Empty<int>())).ToList();
-            }
-        }
-
         private static NetworkFactory Factory(Random random) =>
             new NetworkFactory(new GenomeSpace(RuleForm: RuleForm.Standard), new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, 4, random), random);
 
@@ -100,7 +85,7 @@ namespace SnpEvolution.Tests.Evolution
             var random = new Random(2);
             NetworkFactory factory = Factory(random);
             var pressure = new MutationPressure();
-            var evaluator = new DelegateEvaluator(_ => 0.5f);
+            var evaluator = new RecordingEvaluator(_ => 0.5f);
             var recovery = new StagnationRecovery(
                 Generational(8, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(0.5f, factory, pressure)),
                 new StagnationPolicy(Patience: 2, ImmigrantFraction: 0.25, MaxExtraEdits: 2), 8, pressure,
@@ -141,7 +126,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var random = new Random(4);
             NetworkFactory factory = Factory(random);
-            GeneticAlgorithm algorithm = Generational(6, random, factory.NewNetwork, new DelegateEvaluator(network => 1f / network.Neurons.Count), WeightedMutation.Structural(1, factory));
+            GeneticAlgorithm algorithm = Generational(6, random, factory.NewNetwork, new RecordingEvaluator(network => 1f / network.Neurons.Count), WeightedMutation.Structural(1, factory));
             algorithm.NextGeneration();
             Network elite = algorithm.Population[0].Genes;
             Network[] newcomers = { NeverOutputs(), NeverOutputs(), NeverOutputs() };
@@ -158,7 +143,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var random = new Random(5);
             NetworkFactory factory = Factory(random);
-            var evaluator = new DelegateEvaluator(network => 1f / network.Neurons.Count);
+            var evaluator = new RecordingEvaluator(network => 1f / network.Neurons.Count);
             var algorithms = new IGeneticAlgorithm[]
             {
                 new MapElites(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
@@ -183,7 +168,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var random = new Random(6);
             NetworkFactory factory = Factory(random);
-            var evaluator = new DelegateEvaluator(_ => 0.9f);
+            var evaluator = new RecordingEvaluator(_ => 0.9f);
             var elites = new MapElites(8, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory));
             elites.NextGeneration();
             int cells = elites.Population.Count;

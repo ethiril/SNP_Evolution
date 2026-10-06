@@ -108,15 +108,15 @@ namespace SnpEvolution.Evolution.Contracts
 
         // Every cell of the archive starts from the part; each generation the cheapest solving elites are verified, and
         // the cheapest that verifies is kept.
+        // The verifier checks only the contract, so under the profile the shrink edits must keep every network within it themselves.
+        internal static (Operators.ICrossover Crossover, Operators.IMutation Edits) ShrinkOperators(NetworkFactory factory, bool hardwareProfile) =>
+            hardwareProfile
+                ? (new ProfileCrossover(new Operators.NeuronCrossover()), new ProfileMutation(ShrinkRun.Edits(factory)))
+                : (new Operators.NeuronCrossover(), ShrinkRun.Edits(factory));
+
         private static PartMeasurement Shrink(PartMeasurement start, FitnessEvaluator evaluator, Verifier verifier, NetworkFactory factory, PartSearchSettings settings, Random random)
         {
-            Operators.ICrossover crossover = new Operators.NeuronCrossover();
-            Operators.IMutation edits = ShrinkRun.Edits(factory);
-            if (settings.HardwareProfile)
-            {
-                crossover = new ProfileCrossover(crossover);
-                edits = new ProfileMutation(edits);
-            }
+            (Operators.ICrossover crossover, Operators.IMutation edits) = ShrinkOperators(factory, settings.HardwareProfile);
             var archive = new MapElites(settings.Population, random, () => start.Network, evaluator, crossover, edits,
                 cells: HardwareCost.Cell);
             PartMeasurement smallest = start;

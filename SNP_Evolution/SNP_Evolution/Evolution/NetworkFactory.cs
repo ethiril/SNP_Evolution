@@ -42,7 +42,6 @@ namespace SnpEvolution.Evolution
     {
         private const double ExactConditionChance = 0.5;
         private const double FiringRuleChance = 0.8;
-        private const int SmallestAcceptedSearchLimit = 64;
 
         private readonly ExpressionGenerator expressions;
         private readonly Random random;
@@ -132,17 +131,6 @@ namespace SnpEvolution.Evolution
         }
 
         // The smallest positive spike count the expression accepts, or 1 when it accepts none.
-        private static long SmallestAccepted(string expression)
-        {
-            SpikeCondition condition = SpikeCondition.Parse(expression);
-            for (long count = 1; count < SmallestAcceptedSearchLimit; count++)
-            {
-                if (condition.Matches(count))
-                {
-                    return count;
-                }
-            }
-            return 1;
-        }
+        private static long SmallestAccepted(string expression) => SpikeCondition.Parse(expression).SmallestAccepted(1) ?? 1;
     }
 }
