@@ -7,6 +7,10 @@
     "title": "M2: Toward hardware",
     "description": "A hardware rule profile, exporters checked by co-simulation, bounded contract verification, streaming tasks and timing robustness. Spec: 'Use cases and a practical path' in RESEARCH.md."
   },
+  "M2.5": {
+    "title": "M2.5: Restructure for extension",
+    "description": "Guard rails, one semantics for every engine and exporter, specifications as the source of contracts, one verifier, one search framework and budget, an application layer under the menu and command line, and projects that enforce the layers. Structure only: golden runs pin behaviour. Bar: the tighten principles (files under ~300 lines with one job, no duplicated capability, typed results, descriptive names)."
+  },
   "M3": {
     "title": "M3: Toward general synthesis",
     "description": "Parts without hand-building, programs of parts lowered to compositions, proofs that scale with the hierarchy, binary and parameterised parts. Spec: 'Toward general synthesis' in RESEARCH.md."
@@ -14,5 +18,9 @@
   "M4": {
     "title": "M4: Spec to verified circuit",
     "description": "An algorithm spec in, the smallest verified spiking circuit out: specs as targets, superoptimisation with verification steps, a usable spec-file tool with hardware bundles, and arithmetic records against hand designs. Spec: 'Spec to verified circuit' in RESEARCH.md."
+  },
+  "M5": {
+    "title": "M5: A verified spiking library, beyond evolution",
+    "description": "Hardware targets with chip limits and a discrete-time NIR profile, SMT exact synthesis, windowed improvement, proven rewrites and enumeration beside evolution, a published library of verified neuromorphic primitives, and applications built from it. Spec: 'A verified spiking parts library, and search beyond evolution' in RESEARCH.md."
   }
 }

@@ -342,6 +342,105 @@ Sources for this section:
 - **Helmuth, Spector (2015)**, general program synthesis benchmark suite. https://www.cs.hamilton.edu/~thelmuth/Pubs/2015-GECCO-benchmark-suite.pdf ; survey of generalisation in GP. https://arxiv.org/abs/1211.1119
 - **Schkufza, Sharma, Aiken (2013)**, "Stochastic Superoptimization", ASPLOS. *From memory, not checked in this search.*
 
+### A verified spiking parts library, and search beyond evolution
+
+Notes from 2026-10-06, from three literature searches (most sources abstract only). The question was what this project could do that matters to the wider spiking network field, not only to membrane computing.
+
+**The gap.** Spiking algorithm work that is not machine learning builds the same few primitives by hand:
+- delay lines;
+- first-spike detection and winner-take-all;
+- threshold comparators and max;
+- counters and accumulators;
+- successor and predecessor;
+- streaming adders;
+- sorting by spike time.
+
+Sandia's graph algorithms and finite-element solver, ORNL's integer encodings and sorting, and the Loihi 2 adders all do this. Each design is argued correct on paper, and none is claimed minimal.
+
+The tools take a circuit as given:
+- Fugu composes bricks.
+- SpiNeMap, DFSynthesizer and hypergraph partitioners place a network onto cores.
+- Syn2Logic and Spiker+ compile a design to RTL.
+
+Verification work on spiking networks covers trained classifiers (SMT robustness, probabilistic model checking) and biological motifs (Rocq archetypes, Lustre with Kind 2), not algorithm circuits. Abreu and Pedersen (2024) note that shared libraries of neurocomputational primitives "are only starting to be assembled". Nothing found:
+- searches for a spiking circuit that meets a functional spec;
+- minimises its size;
+- or proves it equivalent to the spec.
+
+**The direction.** Be for spiking circuits what logic synthesis plus equivalence checking is for digital design. That means three things:
+- a library of verified parts;
+- a superoptimiser with several search methods, of which evolution is one;
+- exports that carry their proofs.
+
+The pieces already exist: contracts on typed ports, start and done composition, the exhaustive engine, bounded proofs, the hardware profile, and the Verilog and NIR exporters.
+
+**Search beyond evolution.**
+- **SMT exact synthesis with counterexamples (CEGIS).**
+  - The query: does a circuit of k neurons with integer thresholds, weights and delays up to d meet the spec on the counterexample set for T steps? Lower k until the solver says no, which proves the circuit minimal for that bound.
+  - The exhaustive engine and `BoundedCheck` act as the verifier.
+  - Prior work is combinational only:
+    - SAT exact synthesis of majority-gate networks (Haaswijk and Soeken, EPFL; Chu et al. 2019 for majority-of-5);
+    - component-based synthesis (Brahma, Jha et al. 2010);
+    - threshold logic synthesis (Muroga; Chen et al. ASP-DAC 2016).
+  - Nothing found for threshold circuits with state, delays or feedback.
+  - Integrate-and-fire neurons keep the encoding linear, so the hardware profile is the natural fragment.
+- **Windowed local improvement.** Tens of neurons is too many to synthesise whole. Kulikov, Pechenev and Slezkin (MFCS 2022) cut small subcircuits out of a large circuit and ask SAT whether a smaller replacement exists. Part contracts with start and done give exactly the cut boundaries this needs, so a window is one part copy or a few neighbours.
+- **Rewrite rules and e-graphs.**
+  - egg (Willsey et al. 2021) and Enumo (OOPSLA 2023) learn and apply rewrite rules.
+  - ROVER (Coward et al. 2024) rewrites RTL datapaths with e-graphs and picks the cheapest result with ILP.
+  - Rules over SN P networks (merge equivalent neurons, fold delays, combine thresholds), each proven once with the exhaustive engine, would make every rewritten network correct by construction. Nothing found for spiking circuits.
+- **Enumeration with observational equivalence.** This is the cheap baseline that program synthesis reports. Prune candidates that behave the same on the current cases.
+- **Learned and LLM-guided search** (PrefixRL, CircuitVAE, AlphaEvolve) stays an option for the discovery arm. None has been applied to spiking circuits.
+
+**Proofs for every input.** Kind 2 and IC3-style model checkers prove properties for all time by k-induction. One round of a loop of parts in Presburger arithmetic is the encoding RESEARCH already proposes. Nobody has proven SN P arithmetic correct for every input this way. The SMT encoding of one network step serves both this proof and exact synthesis.
+
+**Hardware limits the profile does not yet model.** Real chips constrain:
+- integer synapse weights, with low precision on most chips;
+- fan-in and fan-out per neuron;
+- the longest delay (62 steps on Loihi 2, per Patiño-Saucedo et al. 2024).
+
+NIR is continuous-time by design and leaves the step to the backend. Our dt = 1 mapping fixes integer semantics, and could be written up as a discrete-time NIR profile, with the library's parts as conformance tests every NIR backend must reproduce exactly. Since unary count parts may be out of reach of integrate-and-fire neurons (see "Hardware profile and exporters"), a library meant for chips should be built from timing and binary parts.
+
+**Where it matters in practice**, ranked:
+1. **Delay-and-add pipelines.** Magro (2026) built a fast radio burst detector on SpiNNaker2 from a hand-designed tree of delays and adders, at 10 to 40 times less power than a GPU. Beamformers and filterbanks have the same shape. Smaller circuits mean more channels per board.
+2. **Verified control inside trained networks and robots.** State machines embedded in attractor networks (Cotteret et al. 2024) are approximate and unproven. Sequence generators on SpiNNaker2 (Nourse and Quinn 2026) are tuned by hand.
+3. **Tiny certifiable logic.** Implant spike detectors and Xylo-class audio front ends have fixed threshold, refractory and counting stages under microwatt budgets. Verilog with a proof report fits certification better than a trained network.
+
+Users, in rough order:
+- algorithm designers at Sandia and ORNL, who would swap hand bricks for minimal verified parts and quote certified sizes in advantage arguments;
+- NIR and its platform teams, for reference graphs;
+- Loihi 2, SpiNNaker2 and Pulsar developers working to core budgets;
+- complexity theorists (Kwisthout and Donselaar), for concrete size bounds.
+
+**Risks.**
+- SMT synthesis may not scale past small windows.
+- Rewrite rules only find what the rules can express.
+- No chip access, so results stay at co-simulation.
+- Assembly calculus (Papadimitriou et al.) and connectome motif fitting are paper angles with no users yet.
+
+Planned as milestone M5 in `.github/tickets/m5/`, after a restructuring milestone, M2.5, that gives the engines, searches, verifier and exporters common interfaces first.
+
+Sources for this section:
+- **Abreu, Pedersen (2024)**, "Neuromorphic Programming: Emerging Directions for Brain-Inspired Hardware". https://arxiv.org/abs/2410.22352 — *HTML read.*
+- **Schuman et al. (2022)**, "Opportunities for neuromorphic computing algorithms and applications", *Nature Computational Science* 2:10-19. https://www.nature.com/articles/s43588-021-00184-y — *Abstract.*
+- **Kudithipudi et al. (2025)**, "Neuromorphic computing at scale", *Nature* 637. — *Abstract.*
+- **Haaswijk (2019)**, PhD thesis on SAT-based exact synthesis, EPFL. https://si2.epfl.ch/demichel/graduates/theses/winston.pdf ; **Chu et al. (2019)**, exact synthesis in majority-of-5 — *Abstracts.*
+- **Kulikov, Pechenev, Slezkin (2022)**, "SAT-based Circuit Local Improvement", MFCS. https://arxiv.org/abs/2102.12579 — *Abstract.*
+- **Jha, Gulwani, Seshia, Tiwari (2010)**, "Oracle-guided component-based program synthesis", ICSE. — *From memory.*
+- **Chen, Wang, Chang (2016)**, fast threshold logic network synthesis, ASP-DAC. https://www.aspdac.com/aspdac2016/technical_program/program/5C_abst.html — *Abstract.*
+- **Willsey et al. (2021)**, "egg: fast and extensible equality saturation", POPL; **Pal et al. (2023)**, Enumo, OOPSLA. https://uwplse.org/ruler/ — *Abstracts.*
+- **Coward, Drane, Constantinides (2024)**, ROVER. https://arxiv.org/abs/2406.12421 — *Abstract.*
+- **Roy et al. (2021)**, PrefixRL. https://arxiv.org/abs/2205.07000 ; **Song et al. (2024)**, CircuitVAE. https://arxiv.org/abs/2406.09535 — *Abstracts.*
+- **De Maria, Di Giusto et al. (2022)**, neuronal archetypes in Lustre and Kind 2, *Frontiers of Computer Science* 16(3). https://hal.archives-ouvertes.fr/hal-03053930 ; **Bahrami, Zucchini, De Maria, Felty (2025)**, archetypes in Rocq. https://arxiv.org/abs/2505.05362 — *Abstracts.*
+- **Magro (2026)**, "Spiking Neural Dedispersion: A Neuromorphic Fast Radio Burst Detection Pipeline". https://arxiv.org/abs/2606.15361 — *Abstract.*
+- **Cotteret et al. (2024)**, "Distributed Representations Enable Robust Multi-Timescale Symbolic Computation in Neuromorphic Hardware". https://arxiv.org/abs/2405.01305 — *Abstract.*
+- **Nourse, Quinn (2026)**, "A Spiking Sequence Generator for Polar Trajectories on Neuromorphic Hardware". https://arxiv.org/abs/2607.02753 — *Abstract.*
+- **Bos, Muir (2024)**, "Micro-power spoken keyword spotting on Xylo Audio 2". https://arxiv.org/abs/2406.15112 — *Abstract.*
+- **Patiño-Saucedo et al. (2024)**, synaptic delays on Loihi 2. https://arxiv.org/abs/2404.10597 — *Abstract.*
+- **Date et al. (2022, 2023)**, "Neuromorphic computing is Turing-complete", ICONS, https://arxiv.org/abs/2104.13983 ; virtual-neuron integer encoding — *Abstracts.*
+- **Kwisthout, Donselaar (2020)**, a complexity theory for neuromorphic computing. https://arxiv.org/abs/2001.08439 — *Abstract.*
+- **Dabagia, Papadimitriou, Vempala (2024)**, computation with sequences of assemblies, ALT. https://arxiv.org/abs/2306.03812 — *Abstract.*
+
 ## Next steps
 
 - Read the full text of Dong 2023 and Zeng 2012, which were paywalled when the comparison table was made, and check Zeng's multiplier and divider sizes, which Chen and Guo give two ways.
