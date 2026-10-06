@@ -74,6 +74,23 @@ namespace SnpEvolution.Evolution.Contracts
         // An unfed sixth neuron makes it cost more for the same behaviour; it has a rule because the rule edits assume every neuron does.
         public static Part PaddedIncrement() => IncrementPart(padded: true);
 
+        // A register with a second count in-port feeding the same store, so the sum drains as one count.
+        public static Part Add()
+        {
+            Contract contract = FirstParts.Named("add");
+            const int Sum = 4, Done = 5, Store = 6;
+            var network = new Network(new[]
+            {
+                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { Store }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { Store }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { Store }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false),
+                new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false),
+                new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { Sum, Done }, false),
+            });
+            return new Part(contract, network, PortBinding.AfterInputs(contract));
+        }
+
         private static Part DelayPart(int k, int startProduces)
         {
             Contract contract = DelayContract(k);
