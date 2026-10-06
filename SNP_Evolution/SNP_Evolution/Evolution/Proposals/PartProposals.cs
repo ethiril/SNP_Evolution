@@ -174,13 +174,13 @@ namespace SnpEvolution.Evolution.Proposals
             }
             log($"Proposing a part for {contract.Name} ({reason}).");
             PartOutcome outcome = solve(contract);
-            if (outcome.Part is not Part part || outcome.Measurement is not PartMeasurement measurement)
+            if (outcome.Part is not Part part || outcome.Measurement is not PartMeasurement measurement || BoundedCheck.Admit(part, log) is not ProvenBound proven)
             {
                 Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.NotSolved, outcome.Evaluations, null));
                 return;
             }
             string origin = $"a proposal from {(source == ProposalSource.TargetShape ? "the target's shape" : "failing checks")}";
-            Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, origin, outcome.Evaluations)), origin);
+            Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, origin, outcome.Evaluations)) with { Proven = proven }, origin);
             Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.Solved, outcome.Evaluations, module.Id));
             GiveToBestNetworks(module);
         }

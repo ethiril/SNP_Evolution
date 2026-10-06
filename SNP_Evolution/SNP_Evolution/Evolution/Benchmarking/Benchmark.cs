@@ -75,7 +75,7 @@ namespace SnpEvolution.Evolution.Benchmarking
             while (evaluator.Evaluations < budget)
             {
                 run.NextGeneration();
-                if (run.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && evaluator.IsReliablySolved(best.Genes))
+                if (run.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && evaluator.ConfirmSolved(best))
                 {
                     IReadOnlyList<PartCount>? reuse = Reuse(best);
                     bool promoted = library != null && AlgorithmCatalog.IsComposition(algorithm.Name) && task.Task is ContractTask contractTask

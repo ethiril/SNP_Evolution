@@ -51,7 +51,8 @@ namespace SnpEvolution.Evolution.Modules
                 new GlueNeuron(new[] { relay }, 0),
                 // The accumulator and the copy may both send to the sum on one step.
                 new GlueNeuron(new[] { relay, Rule.Standard("aa", 2, 2) }, 0),
-                new GlueNeuron(new[] { relay }, 0),
+                // Joins the loop's finish with the accumulator's done, since a large a is still draining into the sum when the loop ends.
+                new GlueNeuron(new[] { Rule.Standard("aa", 2) }, 0),
                 new GlueNeuron(new[] { relay }, 0),
                 new GlueNeuron(new[] { Rule.Standard("a", 1, 2) }, 0),
                 // Waits on the zero test's pair, then a third spike from the copy's done tells it which of the two to do.
@@ -76,7 +77,7 @@ namespace SnpEvolution.Evolution.Modules
                 new Link(Port(Test, "nonzero"), Glue(Open)), new Link(Glue(Open), Port(Gate, "open")),
                 new Link(Port(Test, "zero"), Glue(Zero)), new Link(Glue(Zero), Glue(Again)), new Link(Glue(Zero), Glue(Finish)),
                 new Link(Port(Copy, "done"), Glue(Again)), new Link(Port(Copy, "done"), Glue(Finish)),
-                new Link(Glue(Again), Port(Counter, "start")), new Link(Glue(Finish), Glue(Done)),
+                new Link(Glue(Again), Port(Counter, "start")), new Link(Glue(Finish), Glue(Done)), new Link(Port(Accumulator, "done"), Glue(Done)),
             };
             var composition = new Composition(parts, glue, wires, links, new[] { Glue(Start), Glue(A), Glue(B), Glue(N) }, Array.Empty<Endpoint>());
             return (composition, PortBinding.AfterInputs(ArithmeticParts.AddLoop()));

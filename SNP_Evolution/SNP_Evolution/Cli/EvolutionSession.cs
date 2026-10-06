@@ -187,7 +187,7 @@ namespace SnpEvolution.Cli
                     return false;
                 }
                 log("Testing the best fitness for repeated success.");
-                return evaluator.IsReliablySolved(best.Genes);
+                return evaluator.ConfirmSolved(best);
             }, log);
             if (parts != null && task.Task is ContractTask contractTask && IsSolved(run, contractTask) && run.Best is Individual solved)
             {

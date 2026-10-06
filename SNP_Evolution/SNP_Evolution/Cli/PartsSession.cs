@@ -13,7 +13,7 @@ using SnpEvolution.Storage;
 namespace SnpEvolution.Cli
 {
     // evolve-parts: for each first-part contract the library folder has no part for, evolves one from scratch, verifies
-    // it on the exhaustive engine, shrinks it on hardware cost and saves it. Each contract gets a seed of its own from
+    // it on the exhaustive engine, shrinks it on hardware cost, checks it past its cases and saves it. Each contract gets a seed of its own from
     // the run's seed, so the same seed writes the same library whichever contracts are run together.
     internal static class PartsSession
     {
@@ -50,7 +50,12 @@ namespace SnpEvolution.Cli
                 PartOutcome outcome = PartEvolution.Evolve(contract, options.Seed, settings, log);
                 if (outcome.Part is Part part && outcome.Measurement is PartMeasurement measurement)
                 {
-                    Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, run, outcome.Evaluations)), run);
+                    if (BoundedCheck.Admit(part, log) is not ProvenBound proven)
+                    {
+                        rows.Add(new Row(contract.Name, "fails past its cases", outcome.Evaluations, kept?.Part));
+                        continue;
+                    }
+                    Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, run, outcome.Evaluations)) with { Proven = proven }, run);
                     rows.Add(new Row(contract.Name, "solved", outcome.Evaluations, module.Part));
                 }
                 else

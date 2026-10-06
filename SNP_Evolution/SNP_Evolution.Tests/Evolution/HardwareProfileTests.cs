@@ -133,7 +133,7 @@ namespace SnpEvolution.Tests.Evolution
         [InlineData("a{3,}", 3)]
         [InlineData("aaa*", 2)]
         [InlineData("(aa|aaa)a*", 2)]
-        [InlineData("a*", null)]
+        [InlineData("a*", 1)]
         [InlineData("a(aa)*", null)]
         [InlineData("aaa", null)]
         [InlineData("b", null)]

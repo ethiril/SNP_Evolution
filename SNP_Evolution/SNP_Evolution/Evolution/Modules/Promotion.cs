@@ -90,7 +90,8 @@ namespace SnpEvolution.Evolution.Modules
         public IEnumerable<string> Children => Parts.Select(part => part.Contract).Distinct();
     }
 
-    // The target task may test less than the contract, so a solved composition is verified on the contract before it is kept.
+    // The target task may test less than the contract, so a solved composition is verified on the contract, and checked
+    // past its cases with a bounded check, before it is kept.
     public static class Promotion
     {
         // Null, and logged, when the network is not a composition of the library's parts or the part fails its contract.
@@ -127,9 +128,13 @@ namespace SnpEvolution.Evolution.Modules
                 log($"Not promoted to a part for {contract.Name}: it fails the contract ({measurement.Description.Replace(Environment.NewLine, "; ")}).");
                 return null;
             }
-            Module module = library.AddPart(LibraryPart.Of(part, measurement, origin) with { Recipe = recipe }, origin.Run);
+            if (BoundedCheck.Admit(part, log) is not ProvenBound proven)
+            {
+                return null;
+            }
+            Module module = library.AddPart(LibraryPart.Of(part, measurement, origin) with { Recipe = recipe, Proven = proven }, origin.Run);
             string children = string.Join(", ", recipe.Parts.Select(child => child.Contract));
-            log($"Promoted the composition for {contract.Name} to module {module.Id}: {measurement.Cost}, latency {measurement.Latency}, built from {children}.");
+            log($"Promoted the composition for {contract.Name} to module {module.Id}: {measurement.Cost}, latency {measurement.Latency}, {proven}, built from {children}.");
             return module;
         }
     }

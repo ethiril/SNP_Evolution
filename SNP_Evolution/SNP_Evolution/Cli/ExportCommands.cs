@@ -108,6 +108,59 @@ namespace SnpEvolution.Cli
             }
         }
 
+        // Writes NAME.xml and NAME.q, and model-checks them with verifyta when it is installed: exits with 3 when a query fails.
+        internal static int Uppaal(IReadOnlyDictionary<string, string> options)
+        {
+            if (Read(options) is not Source source)
+            {
+                return 1;
+            }
+            if (source.Part is not Part part)
+            {
+                Console.Error.WriteLine("export-uppaal needs --part FILE, since its queries come from the part's contract.");
+                return 1;
+            }
+            UppaalModel model;
+            try
+            {
+                model = UppaalExporter.Export(part);
+            }
+            catch (ArgumentException refusal)
+            {
+                Console.Error.WriteLine(refusal.Message);
+                return 1;
+            }
+            string folder = options.GetValueOrDefault("out", "export");
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, model.Name + ".xml"), model.Model);
+            File.WriteAllText(Path.Combine(folder, model.Name + ".q"), model.Queries);
+            Console.WriteLine($"Wrote {model.Name}.xml and {model.Name}.q to {folder}: {model.QueryNames.Count} queries over {part.Contract.Cases.Count} case(s).");
+            if (!Switch(options, "check", true))
+            {
+                return 0;
+            }
+            if (!Verifyta.IsInstalled)
+            {
+                Console.WriteLine($"Not model-checked: {Verifyta.Missing}");
+                return 0;
+            }
+            IReadOnlyList<bool> verdicts;
+            try
+            {
+                verdicts = Verifyta.Check(model, folder);
+            }
+            catch (InvalidOperationException failure)
+            {
+                Console.Error.WriteLine(failure.Message);
+                return 1;
+            }
+            for (int query = 0; query < verdicts.Count; query++)
+            {
+                Console.WriteLine($"{(verdicts[query] ? "holds" : "FAILS")}: {model.QueryNames[query]}");
+            }
+            return verdicts.All(holds => holds) ? 0 : Differs;
+        }
+
         // The part or network to export, or null with the reason on stderr.
         private static Source? Read(IReadOnlyDictionary<string, string> options)
         {

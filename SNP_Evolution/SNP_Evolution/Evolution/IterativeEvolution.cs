@@ -96,7 +96,7 @@ namespace SnpEvolution.Evolution
                 return;
             }
             algorithm.NextGeneration();
-            if (algorithm.Best is not Individual best || !FitnessEvaluator.IsSolvingFitness(best.Fitness) || !evaluator.Current.IsReliablySolved(best.Genes))
+            if (algorithm.Best is not Individual best || !FitnessEvaluator.IsSolvingFitness(best.Fitness) || !evaluator.Current.ConfirmSolved(best))
             {
                 return;
             }

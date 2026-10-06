@@ -131,6 +131,10 @@ namespace SnpEvolution.Evolution.Tasks
             };
         }
 
+        // The first computation that fails the check, or null when every computation of its case passes it.
+        public PortRun? FailingRun(IReadOnlyList<TrialResult> results, int check) =>
+            results[check / RuleCount].PortRuns.FirstOrDefault(run => ScoreRule((ContractRule)(check % RuleCount), run, check / RuleCount) < 1);
+
         private string CaseLabel(int caseIndex)
         {
             string label = Contract.Cases[caseIndex].Label(Contract.DataIn);
@@ -181,7 +185,8 @@ namespace SnpEvolution.Evolution.Tasks
             }).Average();
         }
 
-        private string Reading(PortRun run, int caseIndex)
+        // What one computation of the case read: the done ports that fired, then each data out-port's value ("?" when it is no value).
+        public string Reading(PortRun run, int caseIndex)
         {
             int start = startSteps[caseIndex];
             List<(string Port, Firing Firing)> dones = Contract.Done
