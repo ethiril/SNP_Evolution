@@ -17,11 +17,13 @@ namespace SnpEvolution.Simulation
         internal readonly long[] initialSpikes;
         internal readonly bool[] isOutput;
         internal readonly int[] ruleStart;
+        internal readonly Rule[] rules;
         internal readonly int[] ruleDelay;
         internal readonly bool[] ruleFires;
         internal readonly long[] ruleConsume;
+        internal readonly long[] ruleLeastHeld;
         internal readonly int[] ruleProduce;
-        internal readonly bool[] ruleAxonal;
+        internal readonly DelayKind[] ruleDelayKind;
         internal readonly int[] acceptStart;
         internal readonly int[] acceptTail;
         internal readonly int[] acceptPeriod;
@@ -50,8 +52,10 @@ namespace SnpEvolution.Simulation
             ruleDelay = new int[ruleCount];
             ruleFires = new bool[ruleCount];
             ruleConsume = new long[ruleCount];
+            ruleLeastHeld = new long[ruleCount];
             ruleProduce = new int[ruleCount];
-            ruleAxonal = new bool[ruleCount];
+            ruleDelayKind = new DelayKind[ruleCount];
+            rules = new Rule[ruleCount];
             acceptStart = new int[ruleCount];
             acceptTail = new int[ruleCount];
             acceptPeriod = new int[ruleCount];
@@ -80,12 +84,14 @@ namespace SnpEvolution.Simulation
                         tableStart[condition] = start;
                         acceptTables.AddRange(condition.Accepts);
                     }
+                    rules[rule] = source;
                     ruleDelay[rule] = source.Delay;
                     ruleFires[rule] = source.Fire;
                     ruleConsume[rule] = source.Consume ?? ConsumesAll;
-                    ruleProduce[rule] = source.Fire ? (source.IsStandard ? source.Produce : 1) : 0;
-                    ruleAxonal[rule] = source.Axonal;
-                    if (ruleAxonal[rule])
+                    ruleLeastHeld[rule] = source.LeastHeld;
+                    ruleProduce[rule] = source.Sends;
+                    ruleDelayKind[rule] = source.DelayKind;
+                    if (source.DelayKind == DelayKind.Axonal)
                     {
                         MaxAxonalDelay = Math.Max(MaxAxonalDelay, source.Delay);
                     }
@@ -131,8 +137,7 @@ namespace SnpEvolution.Simulation
         // Spikes sent along each synapse when the rule is applied; 0 for a forgetting rule.
         public ReadOnlySpan<int> RuleProduce => ruleProduce;
 
-        // Whether the rule's delay is axonal; false for every rule without a delay.
-        public ReadOnlySpan<bool> RuleAxonal => ruleAxonal;
+        public ReadOnlySpan<DelayKind> RuleDelayKind => ruleDelayKind;
 
         public ReadOnlySpan<int> AcceptStart => acceptStart;
 
@@ -153,17 +158,12 @@ namespace SnpEvolution.Simulation
         // Networks are immutable, so each one is compiled once and reused for every run.
         public static CompiledNetwork Of(Network network) => Cache.GetValue(network, created => new CompiledNetwork(created));
 
-        // Mirrors SpikeCondition.Matches over the flattened tables.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool RuleMatches(int rule, long spikes)
-        {
-            int tail = acceptTail[rule];
-            long offset = spikes < tail ? spikes : tail + (spikes - tail) % acceptPeriod[rule];
-            return accepts[acceptStart[rule] + (int)offset];
-        }
+        // The source rule at a flat index, for its semantics.
+        public Rule Rule(int rule) => rules[rule];
 
-        // A standard rule also needs at least the spikes it consumes.
+        // Rule.Applies over the flattened tables, which the step reads faster than it follows each rule's objects.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool RuleApplies(int rule, long spikes) => spikes >= ruleConsume[rule] && RuleMatches(rule, spikes);
+        public bool RuleApplies(int rule, long spikes) =>
+            spikes >= ruleLeastHeld[rule] && accepts[acceptStart[rule] + SpikeCondition.IndexOf(spikes, acceptTail[rule], acceptPeriod[rule])];
     }
 }

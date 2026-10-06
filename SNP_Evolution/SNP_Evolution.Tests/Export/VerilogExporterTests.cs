@@ -71,7 +71,7 @@ namespace SnpEvolution.Tests.Export
             var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0, 1, 1, 4, 9 }, new[] { 2, 3, 7 } });
             int exported = 0;
-            var delays = new HashSet<string>();
+            var delays = new HashSet<DelayKind>();
             for (int attempt = 0; exported < 25 && attempt < 2000; attempt++)
             {
                 Network network = random.Next(3) == 0 ? AxonalCopy(factory.NewNetwork(), random) : factory.NewNetwork();
@@ -80,8 +80,7 @@ namespace SnpEvolution.Tests.Export
                     continue;
                 }
                 exported++;
-                delays.UnionWith(network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Delay > 0)
-                    .Select(rule => rule.Axonal ? "axonal" : rule.IsStandard ? "closing" : "holding"));
+                delays.UnionWith(network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Delay > 0).Select(rule => rule.DelayKind));
                 long mostHeld = SpikeTrace.Run(network, input, 40).MostHeld;
                 VerilogDesign design = VerilogExporter.Export(network, $"random {attempt}", NetworkPort.Plain(network), mostHeld);
                 string folder = Path.Combine(Path.GetTempPath(), "snp-verilog-" + Guid.NewGuid().ToString("N"));
@@ -97,7 +96,7 @@ namespace SnpEvolution.Tests.Export
                 }
             }
             Assert.Equal(25, exported);
-            Assert.Equal(new[] { "axonal", "closing", "holding" }, delays.OrderBy(kind => kind));
+            Assert.Equal(new[] { DelayKind.Closing, DelayKind.Holding, DelayKind.Axonal }, delays.OrderBy(kind => kind));
         }
 
         [Fact]

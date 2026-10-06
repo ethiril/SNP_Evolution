@@ -5,7 +5,8 @@ namespace SnpEvolution.Networks
     // Two rule forms share this class. A legacy rule (Consume is null) fires when the expression matches and empties
     // the neuron, as in the original program. A standard rule E/a^c -> a^p;d fires when the expression matches and the
     // neuron holds at least c spikes, consumes exactly c of them and sends p spikes along every synapse.
-    // Either form can be axonal, which changes only what its delay means: see Axonal.
+    // Either form can be axonal, which changes only what its delay means: see DelayKind.
+    // Every engine and exporter takes a rule's semantics from here: Applies, Sends and DelayKind.
     public sealed class Rule
     {
         public Rule([JsonProperty("RuleExpression")] string expression, int delay, bool fire, long? consume = null, int? produce = null, bool axonal = false)
@@ -18,6 +19,9 @@ namespace SnpEvolution.Networks
             // Only a delay can be axonal, so a rule without one never says it is.
             Axonal = axonal && delay > 0;
             Condition = SpikeCondition.Parse(expression);
+            DelayKind = delay <= 0 ? DelayKind.None : Axonal ? DelayKind.Axonal : consume == null ? DelayKind.Holding : DelayKind.Closing;
+            Sends = fire ? (consume == null ? 1 : Produce) : 0;
+            LeastHeld = consume ?? 0;
         }
 
         // Kept in regex form for display and storage; Condition is what the simulation matches against.
@@ -46,6 +50,17 @@ namespace SnpEvolution.Networks
         [JsonIgnore]
         public SpikeCondition Condition { get; }
 
+        [JsonIgnore]
+        public DelayKind DelayKind { get; }
+
+        // The fewest spikes the rule needs besides its condition: what a standard rule consumes, and 0 for a legacy rule.
+        [JsonIgnore]
+        public long LeastHeld { get; }
+
+        // Spikes sent along each synapse when the rule is applied: 0 for a forgetting rule, and 1 for a legacy rule whatever its Produce.
+        [JsonIgnore]
+        public int Sends { get; }
+
         // E/a^c -> a^p;d
         public static Rule Standard(string expression, long consume, int produce = 1, int delay = 0) => new Rule(expression, delay, true, consume, produce);
 
@@ -56,10 +71,12 @@ namespace SnpEvolution.Networks
         [JsonIgnore]
         public string Key => $"{Expression}:{Delay}:{Fire}:{Consume}:{Produce}:{Axonal}";
 
-        public bool Matches(long spikes) => Condition.Matches(spikes);
+        // Whether the rule may be applied to a neuron holding this many spikes: its condition matches, and a standard rule
+        // also needs the spikes it consumes. CompiledNetwork.RuleApplies is this over flattened tables.
+        public bool Applies(long spikes) => spikes >= LeastHeld && Condition.Matches(spikes);
 
-        // Whether the rule may be applied to a neuron holding this many spikes.
-        public bool Applies(long spikes) => Condition.Matches(spikes) && spikes >= (Consume ?? 0);
+        // What the neuron holds after applying the rule to these spikes, before anything arrives.
+        public long Leaves(long spikes) => Consume is long consume ? spikes - consume : 0;
 
         public Rule WithExpression(string expression) => new Rule(expression, Delay, Fire, Consume, Produce, Axonal);
 

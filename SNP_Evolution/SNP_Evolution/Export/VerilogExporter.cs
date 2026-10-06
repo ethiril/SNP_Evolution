@@ -111,9 +111,9 @@ namespace SnpEvolution.Export
                     neuron,
                     rules,
                     rules.Select((_, rule) => compiled.RuleProduce[compiled.RuleStart[index] + rule]).ToList(),
-                    rules.Any(rule => rule.Delay > 0 && !rule.Axonal && !rule.IsStandard),
-                    rules.Any(rule => rule.Delay > 0 && !rule.Axonal && rule.IsStandard),
-                    rules.Where(rule => rule.Axonal).Select(rule => rule.Delay).DefaultIfEmpty(0).Max());
+                    rules.Any(rule => rule.DelayKind == DelayKind.Holding),
+                    rules.Any(rule => rule.DelayKind == DelayKind.Closing),
+                    rules.Where(rule => rule.DelayKind == DelayKind.Axonal).Select(rule => rule.Delay).DefaultIfEmpty(0).Max());
             }
 
             // Registers that reset to 0 and load next_NAME each clock.
@@ -291,28 +291,27 @@ namespace SnpEvolution.Export
         private static IEnumerable<string> RuleAction(Rule rule, int produce)
         {
             string consumed = rule.Consume is long consume ? $"count - {consume}" : "0";
-            if (rule.Axonal)
+            switch (rule.DelayKind)
             {
-                yield return $"next_count = {consumed};";
-                yield return $"next_flight_{rule.Delay - 1} = next_flight_{rule.Delay - 1} + {produce};";
-            }
-            else if (rule.Delay > 0 && !rule.IsStandard)
-            {
-                yield return $"own = {produce};";
-                yield return $"next_hold_for = {rule.Delay};";
-                yield return "next_pending = 1;";
-            }
-            else if (rule.Delay > 0)
-            {
-                yield return $"next_count = {consumed};";
-                yield return $"next_closed_for = {rule.Delay};";
-                yield return $"next_pending_spikes = {produce};";
-                yield return "closed = 1;";
-            }
-            else
-            {
-                yield return $"own = {produce};";
-                yield return $"next_count = {consumed};";
+                case DelayKind.Axonal:
+                    yield return $"next_count = {consumed};";
+                    yield return $"next_flight_{rule.Delay - 1} = next_flight_{rule.Delay - 1} + {produce};";
+                    break;
+                case DelayKind.Holding:
+                    yield return $"own = {produce};";
+                    yield return $"next_hold_for = {rule.Delay};";
+                    yield return "next_pending = 1;";
+                    break;
+                case DelayKind.Closing:
+                    yield return $"next_count = {consumed};";
+                    yield return $"next_closed_for = {rule.Delay};";
+                    yield return $"next_pending_spikes = {produce};";
+                    yield return "closed = 1;";
+                    break;
+                default:
+                    yield return $"own = {produce};";
+                    yield return $"next_count = {consumed};";
+                    break;
             }
         }
 

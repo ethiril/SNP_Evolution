@@ -92,7 +92,7 @@ namespace SnpEvolution.Export
         private static long? SharedCount(Rule first, Rule second)
         {
             long period = Lcm(first.Condition.Period, second.Condition.Period);
-            long limit = Math.Max(first.Condition.TailLength, second.Condition.TailLength) + Math.Max(first.Consume ?? 0, second.Consume ?? 0) + period;
+            long limit = Math.Max(first.Condition.TailLength, second.Condition.TailLength) + Math.Max(first.LeastHeld, second.LeastHeld) + period;
             for (long count = 0; count <= limit; count++)
             {
                 if (first.Applies(count) && second.Applies(count))

@@ -12,7 +12,7 @@ namespace SnpEvolution.Tests.Networks
         [InlineData("a(aa)+", 4, false)]
         public void ExpressionMustMatchTheWholeSpikeCount(string expression, long spikes, bool matches)
         {
-            Assert.Equal(matches, new Rule(expression, 0, true).Matches(spikes));
+            Assert.Equal(matches, new Rule(expression, 0, true).Applies(spikes));
         }
     }
 }

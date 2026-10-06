@@ -37,7 +37,7 @@ namespace SnpEvolution.Export
             Network network = part.Network;
             List<Port> dataOut = contract.DataOut.ToList();
             List<Port> done = contract.Done.ToList();
-            int slots = network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Axonal).Select(rule => rule.Delay).DefaultIfEmpty(0).Max() + 1;
+            int slots = network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.DelayKind == DelayKind.Axonal).Select(rule => rule.Delay).DefaultIfEmpty(0).Max() + 1;
             var text = new StringBuilder();
             text.AppendLine($"// {contract.Name}: {network.Neurons.Count} neurons, {task.Cases.Count} case(s), runs of at most {task.StepsNeeded} steps.");
             text.AppendLine($"const int NEURONS = {network.Neurons.Count};");
@@ -122,7 +122,7 @@ namespace SnpEvolution.Export
                     string table = $"TABLE_{neuron + 1}_{index + 1}";
                     text.AppendLine($"const bool {table}[{condition.Accepts.Length}] = {{{string.Join(", ", condition.Accepts.ToArray().Select(accepted => accepted ? "true" : "false"))}}};");
                     text.AppendLine($"bool applies_{neuron + 1}_{index + 1}(int k) {{");
-                    text.AppendLine($"  if (k < {rules[index].Consume ?? 0}) return false;");
+                    text.AppendLine($"  if (k < {rules[index].LeastHeld}) return false;");
                     text.AppendLine($"  if (k < {condition.TailLength}) return {table}[k];");
                     text.AppendLine($"  return {table}[{condition.TailLength} + (k - {condition.TailLength}) % {condition.Period}];");
                     text.AppendLine("}");
