@@ -1,0 +1,9 @@
+# For tools/snp_nir.py: writing NIR files and co-simulating them in norse. Set up with
+#   python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements.txt
+# snnTorch is not used: its NIR import reads nir.IF as a leaky neuron (beta 0.9), so its traces would not be exact.
+nir==1.0.8
+nirtorch==2.6
+norse==1.1.0
+torch==2.14.1
+numpy==2.5.3
+h5py==3.16.0

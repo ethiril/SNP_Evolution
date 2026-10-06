@@ -193,7 +193,8 @@ namespace SnpEvolution.Cli
             {
                 return;
             }
-            var options = new PartsSession.Options(seed, settings.PartBudget, FirstParts.Contracts, settings.PartLibraryFolder, () => new ExhaustiveCpuEngine(), Redo: false);
+            var options = new PartsSession.Options(seed, settings.PartBudget, FirstParts.Contracts, settings.PartLibraryFolder, () => new ExhaustiveCpuEngine(), Redo: false,
+                HardwareProfile: settings.HardwareProfile);
             PartsSession.Run(options, Console.WriteLine);
             ConsoleUi.WaitForEnter("Press enter to continue.");
         }

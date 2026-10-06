@@ -167,7 +167,7 @@ namespace SnpEvolution.Cli
             }
             PartOutcome ProposedPart(Contract contract)
             {
-                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), PartsSession.SearchSettings(settings.ProposalBudget, () => new ExhaustiveCpuEngine()), log);
+                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), PartsSession.SearchSettings(settings.ProposalBudget, () => new ExhaustiveCpuEngine()) with { HardwareProfile = settings.HardwareProfile }, log);
                 evaluations.Add(EvaluationSource.Proposals, outcome.Evaluations);
                 return outcome;
             }

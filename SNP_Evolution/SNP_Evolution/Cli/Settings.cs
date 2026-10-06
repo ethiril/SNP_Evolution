@@ -32,6 +32,9 @@ namespace SnpEvolution.Cli
         public int MaxInitialSpikes { get; set; } = MaxSpikeGroupSize;
         public bool DuplicateNeurons { get; set; }
 
+        // Keep every rule to threshold-and-reset forms, so evolved networks export to NIR (see Evolution.HardwareProfile).
+        public bool HardwareProfile { get; set; }
+
         // Evolve sequences and binary words a few values at a time. Zero start length or step means automatic.
         public bool IterativeEvolution { get; set; } = true;
         public int IterativeStartLength { get; set; }
@@ -89,7 +92,7 @@ namespace SnpEvolution.Cli
 
         public GenomeSpace GenomeSpace(int inputCount) =>
             new GenomeSpace(InputCount: inputCount, RuleForm: RuleForm, MaxNeurons: MaxNeurons, MaxDelay: MaxDelay, MaxInitialSpikes: MaxInitialSpikes, MaxProduce: MaxProduce,
-                DuplicateNeurons: DuplicateNeurons);
+                DuplicateNeurons: DuplicateNeurons, HardwareProfile: HardwareProfile);
 
         // The stages for an iterative run, automatic unless a start length or step has been set.
         public CurriculumPlan CurriculumFor(IPrefixTask task)

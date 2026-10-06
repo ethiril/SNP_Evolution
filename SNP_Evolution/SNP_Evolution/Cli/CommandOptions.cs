@@ -25,6 +25,7 @@ namespace SnpEvolution.Cli
             settings.StagnationPatience = (int)Number(options, "patience", settings.StagnationPatience);
             settings.IterativeEvolution = Switch(options, "iterative", settings.IterativeEvolution);
             settings.Lexicase = Switch(options, "lexicase", settings.Lexicase);
+            settings.HardwareProfile = HardwareProfileOption(options, settings.HardwareProfile);
             settings.Modules = Switch(options, "modules", settings.Modules);
             settings.FreezeModules = Switch(options, "freeze", settings.FreezeModules);
             settings.TriggeredModules = Switch(options, "triggered", settings.TriggeredModules);
@@ -68,6 +69,10 @@ namespace SnpEvolution.Cli
         // --hand-built leaves leaves out the promoted add loop, as a control.
         internal static bool LeavesOnly(IReadOnlyDictionary<string, string> options) =>
             string.Equals(options.GetValueOrDefault("hand-built"), "leaves", StringComparison.OrdinalIgnoreCase);
+
+        // --profile hardware keeps rules to threshold-and-reset forms; --profile none lifts it.
+        internal static bool HardwareProfileOption(IReadOnlyDictionary<string, string> options, bool fallback) =>
+            options.GetValueOrDefault("profile") is string profile ? string.Equals(profile, "hardware", StringComparison.OrdinalIgnoreCase) : fallback;
 
         internal static bool Switch(IReadOnlyDictionary<string, string> options, string name, bool fallback) =>
             options.ContainsKey(name) ? IsOn(options, name) : fallback;

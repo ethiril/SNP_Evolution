@@ -21,6 +21,7 @@ namespace SnpEvolution.Simulation
         internal readonly bool[] ruleFires;
         internal readonly long[] ruleConsume;
         internal readonly int[] ruleProduce;
+        internal readonly bool[] ruleAxonal;
         internal readonly int[] acceptStart;
         internal readonly int[] acceptTail;
         internal readonly int[] acceptPeriod;
@@ -50,6 +51,7 @@ namespace SnpEvolution.Simulation
             ruleFires = new bool[ruleCount];
             ruleConsume = new long[ruleCount];
             ruleProduce = new int[ruleCount];
+            ruleAxonal = new bool[ruleCount];
             acceptStart = new int[ruleCount];
             acceptTail = new int[ruleCount];
             acceptPeriod = new int[ruleCount];
@@ -82,6 +84,11 @@ namespace SnpEvolution.Simulation
                     ruleFires[rule] = source.Fire;
                     ruleConsume[rule] = source.Consume ?? ConsumesAll;
                     ruleProduce[rule] = source.Fire ? (source.IsStandard ? source.Produce : 1) : 0;
+                    ruleAxonal[rule] = source.Axonal;
+                    if (ruleAxonal[rule])
+                    {
+                        MaxAxonalDelay = Math.Max(MaxAxonalDelay, source.Delay);
+                    }
                     acceptStart[rule] = start;
                     acceptTail[rule] = condition.TailLength;
                     acceptPeriod[rule] = condition.Period;
@@ -106,6 +113,9 @@ namespace SnpEvolution.Simulation
 
         public int MaxRulesPerNeuron { get; }
 
+        // The longest axonal delay, which is how many steps ahead a neuron's spikes may be in flight; 0 when no rule has one.
+        public int MaxAxonalDelay { get; }
+
         public ReadOnlySpan<long> InitialSpikes => initialSpikes;
 
         public ReadOnlySpan<bool> IsOutput => isOutput;
@@ -120,6 +130,9 @@ namespace SnpEvolution.Simulation
 
         // Spikes sent along each synapse when the rule is applied; 0 for a forgetting rule.
         public ReadOnlySpan<int> RuleProduce => ruleProduce;
+
+        // Whether the rule's delay is axonal; false for every rule without a delay.
+        public ReadOnlySpan<bool> RuleAxonal => ruleAxonal;
 
         public ReadOnlySpan<int> AcceptStart => acceptStart;
 

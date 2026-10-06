@@ -44,6 +44,7 @@ namespace SnpEvolution.Tests.Storage
         {
             Assert.Equal("delay-3.json", PartLibraryFiles.FileName(FirstParts.Named("delay 3")));
             Assert.Equal("count-to-interval.json", PartLibraryFiles.FileName(FirstParts.Named("count to interval")));
+            Assert.Equal("delay-2", PartLibraryFiles.Stem("Delay 2"));
         }
 
         [Fact]

@@ -20,7 +20,7 @@ namespace SnpEvolution.Evolution
         public static HardwareCost Of(Network network) => new HardwareCost(
             network.Neurons.Count,
             network.SynapseCount,
-            network.Neurons.SelectMany(neuron => neuron.Rules).Select(RuleKey).Distinct().Count(),
+            network.Neurons.SelectMany(neuron => neuron.Rules).Select(rule => rule.Key).Distinct().Count(),
             network.RuleCount,
             network.Neurons.Select(neuron => neuron.InitialSpikes).DefaultIfEmpty(0).Max(),
             network.Neurons.SelectMany(neuron => neuron.Rules).Sum(rule => rule.Condition.TailLength + rule.Condition.Period));
@@ -52,7 +52,5 @@ namespace SnpEvolution.Evolution
 
         public override string ToString() =>
             $"{Neurons} neurons, {Synapses} synapses, {Rules} rules ({DistinctRules} distinct), register width {RegisterWidth}, lasso table {LassoTable}";
-
-        private static string RuleKey(Rule rule) => $"{rule.Expression}:{rule.Delay}:{rule.Fire}:{rule.Consume}:{rule.Produce}";
     }
 }

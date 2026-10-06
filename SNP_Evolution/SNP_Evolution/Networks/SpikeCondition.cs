@@ -35,6 +35,19 @@ namespace SnpEvolution.Networks
 
         public bool Matches(long spikes) => spikes >= 0 && accepts[IndexOf(spikes)];
 
+        // A tail and one period past from settle it, since every count after that repeats one before.
+        public long? SmallestAccepted(long from = 0)
+        {
+            for (long count = Math.Max(0, from); count <= Math.Max(from, TailLength) + Period; count++)
+            {
+                if (Matches(count))
+                {
+                    return count;
+                }
+            }
+            return null;
+        }
+
         private int IndexOf(long spikes) =>
             spikes < TailLength ? (int)spikes : TailLength + (int)((spikes - TailLength) % Period);
 
