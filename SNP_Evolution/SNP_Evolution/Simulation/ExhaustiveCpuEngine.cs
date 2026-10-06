@@ -11,9 +11,8 @@ namespace SnpEvolution.Simulation
     // spent, a configuration seen on any earlier step is dropped too, as its future has already been explored with
     // more steps to spare; a network that cycles without halting is then settled in a few steps. A trial whose
     // configurations outgrow maxConfigurations falls back to sampling, and its result says it is not exact. Spike train
-    // readouts are always sampled, as merging configurations would lose the trains that led to them. A Ports readout
-    // keeps what it has recorded in the merge key, so only computations with the same record so far are merged; each
-    // distinct computation is reported once.
+    // and Ports readouts keep what they have recorded in the merge key, so only computations with the same record so far
+    // are merged; each distinct computation is reported once. A deterministic network then costs one configuration a step.
     public sealed class ExhaustiveCpuEngine : ISimulationEngine
     {
         public const int DefaultMaxConfigurations = 2_000;
@@ -25,8 +24,13 @@ namespace SnpEvolution.Simulation
             this.maxConfigurations = maxConfigurations;
         }
 
+        // Refuses jitter: a delay choice for every spike on every synapse would multiply the computations past following.
         public IReadOnlyList<TrialResult> Run(IReadOnlyList<Trial> trials, SimulationOptions options, Random random)
         {
+            if (options.Jitter > 0)
+            {
+                throw new ArgumentException("The exhaustive engine cannot follow jitter; sample jittered runs instead.", nameof(options));
+            }
             int[] seeds = ParallelCpuEngine.Seeds(trials.Count, random);
             var results = new TrialResult[trials.Count];
             Parallel.For(0, trials.Count, index =>
@@ -37,15 +41,17 @@ namespace SnpEvolution.Simulation
         // Null when the computation tree is too wide to follow.
         public TrialResult? Explore(Trial trial, SimulationOptions options)
         {
-            if (trial.Readout == Readout.SpikeTrain)
+            if (options.Jitter > 0)
             {
-                return null;
+                throw new ArgumentException("The exhaustive engine cannot follow jitter; sample jittered runs instead.", nameof(options));
             }
             var outputs = new SortedSet<int>();
             var portRuns = new Dictionary<long[], PortRun>(StateComparer.Instance);
+            var spikeTrains = new Dictionary<long[], IReadOnlyList<int>>(StateComparer.Instance);
+            bool recordSpikeTrain = trial.Readout == Readout.SpikeTrain;
             bool canHalt = false;
             PortWatch? watch = NetworkRunner.WatchOf(trial);
-            var frontier = new List<NetworkSimulation> { new NetworkSimulation(CompiledNetwork.Of(trial.Network), null, trial.Input, options.Timing, watch: watch) };
+            var frontier = new List<NetworkSimulation> { new NetworkSimulation(CompiledNetwork.Of(trial.Network), null, trial.Input, options.Timing, recordSpikeTrain, watch) };
             HashSet<long[]>? seen = trial.Readout == Readout.Halting ? new HashSet<long[]>(StateComparer.Instance) : null;
             for (int step = 0; step < options.MaxSteps && frontier.Count > 0; step++)
             {
@@ -60,10 +66,7 @@ namespace SnpEvolution.Simulation
                             return new TrialResult(Array.Empty<int>(), true, Exact: true);
                         }
                         canHalt = true;
-                        if (watch != null)
-                        {
-                            AddPortRun(portRuns, configuration);
-                        }
+                        Finish(configuration);
                         continue;
                     }
                     if (watch != null && configuration.PortRunOver)
@@ -79,11 +82,25 @@ namespace SnpEvolution.Simulation
                 frontier = next.Values.ToList();
             }
             canHalt |= frontier.Any(configuration => configuration.IsHalted);
-            if (watch != null)
+            frontier.ForEach(Finish);
+            return new TrialResult(outputs.ToList(), canHalt, Exact: true, spikeTrains.Values.ToList(), portRuns.Values.ToList());
+
+            // Records a computation that has run its course, once for each distinct record.
+            void Finish(NetworkSimulation configuration)
             {
-                frontier.ForEach(configuration => AddPortRun(portRuns, configuration));
+                if (watch != null)
+                {
+                    AddPortRun(portRuns, configuration);
+                }
+                if (recordSpikeTrain)
+                {
+                    spikeTrains.TryAdd(configuration.OutputSpikeSteps.Select(step => (long)step).ToArray(), configuration.OutputSpikeSteps);
+                    if (configuration.Output is int output)
+                    {
+                        outputs.Add(output);
+                    }
+                }
             }
-            return new TrialResult(outputs.ToList(), canHalt, Exact: true, PortRuns: portRuns.Values.ToList());
         }
 
         private static void AddPortRun(Dictionary<long[], PortRun> portRuns, NetworkSimulation configuration) =>

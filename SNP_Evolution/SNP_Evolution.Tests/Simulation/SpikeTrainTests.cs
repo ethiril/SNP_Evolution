@@ -45,12 +45,26 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
-        public void ExhaustiveEngineSamplesSpikeTrains()
+        public void ExhaustiveEngineReportsADeterministicTrainOnce()
         {
             TrialResult result = new ExhaustiveCpuEngine().Run(new[] { SpikeTrainOf(PingPong()) }, Options, new Random(0))[0];
 
-            Assert.False(result.Exact);
-            Assert.Equal(3, result.SpikeTrains.Count);
+            Assert.True(result.Exact);
+            Assert.Equal(new[] { 1, 3, 5, 7, 9 }, Assert.Single(result.SpikeTrains));
+            Assert.Equal(new[] { 2 }, result.Outputs);
+        }
+
+        // The output either fires at once or waits a step and fires, so there are two trains, each reported once.
+        [Fact]
+        public void ExhaustiveEngineReportsEachDistinctTrain()
+        {
+            var network = new Network(new[] { OutputNeuron(1, new Rule("a", 0, true), new Rule("a", 1, true)) });
+
+            TrialResult result = new ExhaustiveCpuEngine().Run(new[] { SpikeTrainOf(network) }, Options, new Random(0))[0];
+
+            Assert.True(result.Exact);
+            Assert.Equal(2, result.SpikeTrains.Count);
+            Assert.Contains(result.SpikeTrains, train => train.SequenceEqual(new[] { 0 }));
         }
 
         [Fact]

@@ -42,7 +42,8 @@ namespace SnpEvolution.Cli
                 Engine(options),
                 IsOn(options, "redo"),
                 engine,
-                HardwareProfileOption(options, false));
+                HardwareProfileOption(options, false),
+                (int)Number(options, "robust", 0));
             return PartsSession.Run(parts, Console.WriteLine);
         }
 

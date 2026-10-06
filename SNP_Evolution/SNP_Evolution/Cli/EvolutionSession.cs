@@ -33,10 +33,6 @@ namespace SnpEvolution.Cli
             }
             if (task.Task.Cases.Any(@case => @case.Readout == Readout.SpikeTrain))
             {
-                if (settings.Engine.Name.StartsWith("Exhaustive"))
-                {
-                    notes.Add("Spike trains are always sampled, so the exhaustive engine samples this task too.");
-                }
                 notes.Add("Only a network that gives this output on every run solves the task.");
             }
             if (IsIterative(settings, task, out IPrefixTask? prefixTask))

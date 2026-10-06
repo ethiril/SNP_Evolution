@@ -25,6 +25,9 @@ namespace SnpEvolution.Simulation
         public static InputSpikes Numbers(params int[] numbers) =>
             new InputSpikes(numbers.Select(number => (IReadOnlyList<int>)new[] { 0, number }).ToArray());
 
+        // One spike on each given step, all to the first input, as a sensor would send them.
+        public static InputSpikes Train(IEnumerable<int> steps) => new InputSpikes(new[] { (IReadOnlyList<int>)steps.ToArray() });
+
         public int SpikesArriving(int input, int step)
         {
             IReadOnlyList<int> steps = StepsPerInput[input];

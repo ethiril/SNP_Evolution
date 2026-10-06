@@ -10,5 +10,9 @@
   "M3": {
     "title": "M3: Toward general synthesis",
     "description": "Parts without hand-building, programs of parts lowered to compositions, proofs that scale with the hierarchy, binary and parameterised parts. Spec: 'Toward general synthesis' in RESEARCH.md."
+  },
+  "M4": {
+    "title": "M4: Spec to verified circuit",
+    "description": "An algorithm spec in, the smallest verified spiking circuit out: specs as targets, superoptimisation with verification steps, a usable spec-file tool with hardware bundles, and arithmetic records against hand designs. Spec: 'Spec to verified circuit' in RESEARCH.md."
   }
 }

@@ -1,0 +1,7 @@
+Neuron     Spikes   Rules                                                Sends to
+n1         a        a -> forget;1                                        n6
+n2         a        a* -> a                                              n3, n4, n5
+n3         aa       aa(aaa)* -> a  |  a(aaa)? -> a  |  a(a)* -> forget   n1, n2
+n4 (out)   aa       aa -> a  |  a? -> a  |  a(a)* -> forget              n2, n3
+n5         -        a -> a                                               n2
+n6         a        aa -> forget                                         n2

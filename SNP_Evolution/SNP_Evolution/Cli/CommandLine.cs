@@ -26,8 +26,9 @@ namespace SnpEvolution.Cli
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
     //   compile --target VALUES [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--population N] [--seed N]:
     //          compiles a recurrence (sequence) or register program (set, evolved unless --program gives one), then shrinks it
-    //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware]:
-    //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for
+    //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware] [--robust J]:
+    //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for, and reports robustness
+    //          to jitter; --robust J shrinks towards the most robust part at jitter J rather than the smallest
     //   reach --target VALUES --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [any evolve option]:
     //          runs each setup on seeds 1..N with the same budget and compares how far into the target they get
     //   compose --task NAME [--library DIR] [--hand-built on|leaves] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N]
@@ -59,7 +60,7 @@ namespace SnpEvolution.Cli
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
             "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]\n" +
             "       snp-evolution reach --target \"1,1,2,3,5,8,13\" --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [evolve options]\n" +
-            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware]\n" +
+            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on] [--profile hardware] [--robust J]\n" +
             "       snp-evolution compose --task \"Contract multiply\" [--library DIR] [--hand-built on] [--propose on|off] [--proposal-budget N] [--algorithm NAME] [--seed N] [--evaluations N]\n" +
             "       snp-evolution export-verilog --part parts/delay-2.json | --network FILE [--steps N] [--out DIR] [--check on|off]\n" +
             "       snp-evolution export-nir --part FILE | --network FILE [--steps N] [--out DIR]\n" +

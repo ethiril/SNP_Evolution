@@ -1,0 +1,28 @@
+Neuron     Spikes   Rules                                               Sends to
+n1         aaa      aaa(a)+/aaa -> a                                    n2, n4, n6
+n2         aa       aa(aaa)?/aa -> aaa;1                                n3, n8
+n3 (out)   a        aaaa*/aaa -> aa  |  a?/a -> aa  |  aa -> forget;3   n6, n7
+n4         -        aaa/a -> a;2                                        n3, n6, n9, n11
+n5         aaa      a(a)*/aaa -> aaa                                    n1, n3
+n6         aaa      a(a)+/a -> a;3                                      n1, n3, n8, n17
+n7         aaa      aa(aa)*/a -> a;3  |  aaa?/a -> forget;2             n1, n3, n8, n18
+n8         -        aaa(aa)+/aaaa -> aaa                                n2, n7
+n9         -        aa(aa)?/a -> a;2                                    n8, n10, n22
+n10        a        aaa -> aa;3                                         n3, n8
+n11        -        a(aa)+/aaa -> aaa;3                                 n8, n12
+n12        a        aaaaa*/aaa -> a;1                                   n1, n3, n6
+n13        -        a+/aa -> a;3                                        n5, n14, n15
+n14        aa       a(aa)*/a -> a;3                                     n15
+n15        aa       aaa*/aa -> a;2                                      n13, n16
+n16        aaa      a(aa)?/aa -> a;3                                    n14, n15
+n17        -        aaa+/aaaa -> aa;1                                   n3, n19
+n18        a        a(aaa)+/aaaaaa -> aaa                               n17
+n19        a        a(aaa)+/a -> aa;3                                   n8
+n20        aa       aaaaa?/aa -> a;1  |  aaa/a -> forget;2              n23
+n21        aaa      aaa+/aaa -> aaa;1                                   n22
+n22        aaaaaa   a -> aaa;2  |  aaa*/a -> forget;3                   n20, n21
+n23        aaa      aaa?/aaa -> aaa;2  |  aa -> a;3                     n9, n24, n25
+n24        a        a?/a -> aaa;3                                       n7, n27
+n25        a        a*/aaa -> aa;2                                      n26
+n26        aa       a(aaa)+/aa -> aaa;3                                 n22, n25
+n27        -        aaa(aa)+/aa -> a;1                                  n19

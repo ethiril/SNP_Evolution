@@ -9,7 +9,7 @@ namespace SnpEvolution.Simulation
     // choices come from a hash of the run's seed, the step and the neuron rather than from System.Random, so results
     // differ from the CPU engines' run for run but follow the same distribution, and the same seed repeats them.
     // Batches too small to repay a GPU round trip run on the CPU instead, as do networks beyond the kernel's limits
-    // and Ports readouts.
+    // and Ports readouts, and jittered batches.
     public sealed class MetalEngine : ISimulationEngine
     {
         // In neuron-steps: every trial's neurons times MaxSteps times Repetitions.
@@ -32,7 +32,8 @@ namespace SnpEvolution.Simulation
         public IReadOnlyList<TrialResult> Run(IReadOnlyList<Trial> trials, SimulationOptions options, Random random)
         {
             long work = trials.Sum(trial => (long)CompiledNetwork.Of(trial.Network).NeuronCount) * options.MaxSteps * options.Repetitions;
-            if (work < gpuThreshold)
+            // The kernel has no jitter.
+            if (work < gpuThreshold || options.Jitter > 0)
             {
                 return cpu.Run(trials, options, random);
             }

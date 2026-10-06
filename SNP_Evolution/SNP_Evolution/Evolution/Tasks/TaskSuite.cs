@@ -38,9 +38,16 @@ namespace SnpEvolution.Evolution.Tasks
             Standard(AcceptorTask.Of("Accept multiples of 3", n => n % 3 == 0, Enumerable.Range(1, 12))),
         };
 
+        // Controllers: a sensor train in, the output judged window by window, with no start or done.
+        public static IReadOnlyList<BenchmarkTask> Streaming { get; } = new[]
+        {
+            Standard(StreamingTask.Debouncer(spikes: 2, within: 3)),
+            Standard(StreamingTask.RateDetector(spikes: 3, within: 6)),
+        };
+
         public static IReadOnlyList<BenchmarkTask> Contracts { get; } = ArithmeticParts.Contracts.Select(contract => Standard(new ContractTask(contract))).ToList();
 
-        public static IReadOnlyList<BenchmarkTask> All { get; } = Generators.Concat(Functions).Concat(Acceptors).Concat(Contracts).ToList();
+        public static IReadOnlyList<BenchmarkTask> All { get; } = Generators.Concat(Functions).Concat(Acceptors).Concat(Streaming).Concat(Contracts).ToList();
 
         private static BenchmarkTask Generator(string name, IEnumerable<int> expected)
         {

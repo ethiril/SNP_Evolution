@@ -28,7 +28,7 @@ namespace SnpEvolution.Simulation
             bool halted = false;
             for (int run = 0; run < runs; run++)
             {
-                var simulation = new NetworkSimulation(network, random, trial.Input, options.Timing, recordSpikeTrain, watch);
+                var simulation = new NetworkSimulation(network, random, trial.Input, options.Timing, recordSpikeTrain, watch, options.Jitter);
                 RunOnce(simulation, trial.Readout, options.MaxSteps);
                 if (watch != null)
                 {

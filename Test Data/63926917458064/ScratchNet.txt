@@ -1,0 +1,51 @@
+Neuron            Spikes      Rules                                                                 Sends to
+n1                aaaaa       aa(a)*/aaa -> a;3                                                     n5
+n2                aaa         aaa(aaaa)?/aaa -> a;2                                                 n5
+n3                aaaa        aa+/aaaa -> a;1                                                       n2, n5, n13
+n4                a           a*/a -> aaa                                                           n5
+n5 (out)          aa          aa(a)?/aa -> aaa                                                      n3
+n6                aaaaa       aaaa*/aa -> a;3                                                       n7, n8, n9
+n7                aaa         a(aa)*/a -> aa;2                                                      n3
+n8                -           aa(aaaa)*/a -> aa;2                                                   n6
+n9                -           a -> aa;3  |  aaa(aa)?/aa -> forget;1                                 n8
+n10               aaaaa       aa/a -> forget;1  |  aaa+/a -> aaa;3  |  a -> aaa                     n9, n34
+n11               a           a -> aaa;2                                                            n9
+n12               aaaa        a(aaa)*/aaa -> aa                                                     n9
+n13               aaa         aa(aaaa)?/a -> aaa;1                                                  n10
+n14               aa          a*/aa -> a                                                            n15
+n15               -           a -> aaa;2                                                            n16
+n16               aaaaaaa     aaaa(a)+/aaa -> a;3                                                   n15, n17
+n17               aaaa        aaa(a)?/aaa -> a;3                                                    n18
+n18               a           aaa(aa)*/aaa -> aaa                                                   n6, n41
+n19               aaa         aaa+/a -> aaa;1                                                       n14
+n20               aaaaa       aaa*/aaaa -> aa;3                                                     n21
+n21               aa          a(aa)?/a -> a;2  |  aa(aaaa)?/a -> forget;1                           n23, n26
+n22               a           a -> aaa;2                                                            n20, n23, n26
+n23               aaa         aaaa/aaa -> forget;1  |  aa -> aa;3  |  aaaa(a)+/a -> a               n25, n27
+n24               -           aaa+/aa -> aaa;3                                                      n19, n25
+n25               a           aa(aa)?/a -> forget  |  aaa(aa)*/a -> aa;3                            n24
+n26               aaaaaaaaa   a+/aaaa -> a                                                          n22
+n27               -           a -> a;1                                                              n26, n48
+n28               aaaa        a*/aaaa -> aa;3                                                       n29
+n29               aa          a -> a;2  |  aa(aaaa)?/a -> forget;2                                  n28, n36
+n30               a           a(aa)*/a -> aaa;2  |  aa -> aa  |  aaa?/a -> aa;2                     n28, n34
+n31               aaa         aaaa/aaa -> forget;1  |  aa -> aa;3  |  aaaa(a)+/a -> a               n30, n33
+n32               -           aaa(a)+/aa -> aaa;3                                                   n2, n8, n25, n44
+n33               aa          aa(aa)*/a -> forget  |  aaa(aa)*/a -> aa;2  |  aaa(aa)+/aa -> aaa;2   n26, n32
+n34               -           aa*/a -> aa;2                                                         n31, n35
+n35               a           aa(a)+/a -> a                                                         n28
+n36               -           a -> a                                                                n31, n43
+n37               aaaaaaa     aaaaa/aa -> a;2                                                       n39
+n38               aaaaaa      aa/aaa -> aaa;3                                                       n42, n49
+n39               aaaaaa      aaa(aa)+/aa -> aa  |  a -> forget;1                                   n38, n44, n49
+n40               aaaaaa      aa(a)?/a -> aa;1  |  a -> aa;1                                        n39, n42, n43, n44, n45
+n41               aa          aaaa/aaa -> forget;1                                                  n4, n38, n40, n48, n50
+n42               aaa         a -> aa;3  |  a*/aaa -> aa                                            n40, n43
+n43               -           a -> forget;2  |  aa/a -> a;1                                         n39, n41, n42, n44, n47, n49
+n44               aaaaaa      aa/a -> forget                                                        n25, n37, n38, n40, n43
+n45               a           aaa/aa -> aaa;1  |  aa/a -> aaa                                       n36, n37, n42, n48
+n46               aaa         aa*/a -> forget;3  |  aaa/aa -> a;2                                   n29, n37, n41, n42, n43, n48, n49
+n47               -           aaa/aa -> aa  |  aa -> aa;2                                           n39, n41, n43, n48, n49
+n48               aaaaaaa     aaa -> aaa                                                            n25, n38, n47
+n49               -           a -> aaa;3  |  aaa/a -> aa;2                                          n37, n38, n39, n41, n46
+n50 [module 12]   aaaaaaa     a(a)?/a -> forget;1  |  aaa -> aa;1                                   n28

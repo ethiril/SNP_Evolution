@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Simulation
@@ -21,6 +22,10 @@ namespace SnpEvolution.Simulation
     // neuron for d steps, still receiving spikes, before emptying it. A delayed standard rule consumes at once and
     // closes the neuron for d steps: spikes sent to it are lost, and it emits when it reopens on step t + d. An axonal
     // rule consumes at once and leaves the neuron open, and its spikes leave on step t + d, as if the axon held them.
+    //
+    // With jitter j, what a neuron sends along each synapse arrives 0 to j steps late, drawn at random per synapse per
+    // step, as on asynchronous hardware; a late arrival is lost if its receiver is closed when it lands. Input from the
+    // environment is never late. Jitter needs a random, so the exhaustive engine cannot follow it.
     public sealed class NetworkSimulation
     {
         public const int NoRule = -1;
@@ -44,6 +49,10 @@ namespace SnpEvolution.Simulation
         // Spikes on their way down each neuron's axon, in a ring of flightSlots per neuron indexed by step; null without axonal rules.
         private readonly long[]? inFlight;
         private readonly int flightSlots;
+
+        // Spikes held back by jitter, in a ring of jitter + 1 slots per receiving neuron indexed by arrival step; null without jitter.
+        private readonly long[]? late;
+        private readonly int jitter;
         private int outputCounter;
         private bool outputEngaged;
         private int emitterCount;
@@ -55,8 +64,12 @@ namespace SnpEvolution.Simulation
 
         // recordSpikeTrain keeps every step the output neuron fires on, for OutputSpikeSteps, and watch the firings PortRun reports.
         public NetworkSimulation(CompiledNetwork network, Random? random, InputSpikes input, OutputTiming timing, bool recordSpikeTrain = false,
-            PortWatch? watch = null)
+            PortWatch? watch = null, int jitter = 0)
         {
+            if (jitter < 0 || jitter > 0 && random == null)
+            {
+                throw new ArgumentException("Jitter must be at least 0, and needs a random to draw the delays from.", nameof(jitter));
+            }
             this.network = network;
             this.random = random;
             this.input = input;
@@ -75,6 +88,8 @@ namespace SnpEvolution.Simulation
             portRecorder = watch == null ? null : new PortRecorder(watch, count);
             flightSlots = network.MaxAxonalDelay + 1;
             inFlight = network.MaxAxonalDelay > 0 ? new long[count * flightSlots] : null;
+            this.jitter = jitter;
+            late = jitter > 0 ? new long[count * (jitter + 1)] : null;
         }
 
         private NetworkSimulation(NetworkSimulation other)
@@ -117,8 +132,19 @@ namespace SnpEvolution.Simulation
         public bool PortRunOver => portRecorder?.IsOver(StepCount) ?? false;
 
         // What a Ports readout reads from this computation so far.
+        // Spikes still held back by jitter count as their receivers' own, so a part is not back to start while any are on their way.
         public PortRun PortRun() =>
-            (portRecorder ?? throw new InvalidOperationException("This simulation watches no ports.")).Run((long[])spikes.Clone(), network.initialSpikes);
+            (portRecorder ?? throw new InvalidOperationException("This simulation watches no ports.")).Run(SpikesWithLateArrivals(), network.initialSpikes);
+
+        private long[] SpikesWithLateArrivals()
+        {
+            long[] held = (long[])spikes.Clone();
+            for (int slot = 0; slot < (late?.Length ?? 0); slot++)
+            {
+                held[slot / (jitter + 1)] += late![slot];
+            }
+            return held;
+        }
 
         public int NeuronCount => network.NeuronCount;
 
@@ -140,12 +166,13 @@ namespace SnpEvolution.Simulation
                         return false;
                     }
                 }
-                return inFlight == null || Array.TrueForAll(inFlight, spikes => spikes == 0);
+                return (inFlight == null || Array.TrueForAll(inFlight, spikes => spikes == 0)) && (late == null || Array.TrueForAll(late, spikes => spikes == 0));
             }
         }
 
         // A copy that the caller steps with Apply; it has no random of its own.
-        public NetworkSimulation Clone() => new NetworkSimulation(this);
+        public NetworkSimulation Clone() =>
+            jitter == 0 ? new NetworkSimulation(this) : throw new InvalidOperationException("A jittered simulation draws its delays at random and cannot be cloned.");
 
         public void Step()
         {
@@ -228,10 +255,17 @@ namespace SnpEvolution.Simulation
                 }
                 state = [.. state, .. flight];
             }
+            if (outputSpikeSteps != null)
+            {
+                // The train so far, so computations that fired on different steps are never merged.
+                state = [.. state, -1, .. outputSpikeSteps.Select(step => (long)step)];
+            }
             return portRecorder == null ? state : [.. state, .. portRecorder.History()];
         }
 
         private int FlightSlot(int neuron, int step) => neuron * flightSlots + step % flightSlots;
+
+        private int LateSlot(int neuron, int step) => neuron * (jitter + 1) + step % (jitter + 1);
 
         // Everything a Ports readout has recorded, flattened, so computations with different records are never merged.
         public long[] PortHistory() => portRecorder?.History() ?? Array.Empty<long>();
@@ -278,10 +312,27 @@ namespace SnpEvolution.Simulation
                 for (int target = targetStart[neuron], end = targetStart[neuron + 1]; target < end; target++)
                 {
                     int receiver = targets[target];
-                    if (!closed[receiver])
+                    int lateBy = jitter > 0 ? random!.Next(jitter + 1) : 0;
+                    if (lateBy > 0)
+                    {
+                        late![LateSlot(receiver, StepCount + lateBy)] += sent;
+                    }
+                    else if (!closed[receiver])
                     {
                         spikes[receiver] += sent;
                     }
+                }
+            }
+            if (late != null)
+            {
+                for (int receiver = 0; receiver < network.NeuronCount; receiver++)
+                {
+                    int slot = LateSlot(receiver, StepCount);
+                    if (!closed[receiver])
+                    {
+                        spikes[receiver] += late[slot];
+                    }
+                    late[slot] = 0;
                 }
             }
             ReadOnlySpan<int> inputNeurons = network.InputNeurons;
