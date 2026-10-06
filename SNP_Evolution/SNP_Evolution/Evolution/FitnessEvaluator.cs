@@ -34,11 +34,18 @@ namespace SnpEvolution.Evolution
         private readonly SimulationOptions options;
         private readonly int solvedRetestCount;
         private readonly Random random;
+        private readonly EvaluationCounter? counter;
+        private readonly EvaluationSource source;
         private long evaluations;
 
-        public FitnessEvaluator(ISimulationEngine engine, ITask task, SimulationOptions options, int solvedRetestCount, Random random)
+        // Evaluations also go to the counter when there is one, as the source given, except retests that check a
+        // network solves the task, which count as verification.
+        public FitnessEvaluator(ISimulationEngine engine, ITask task, SimulationOptions options, int solvedRetestCount, Random random,
+            EvaluationCounter? counter = null, EvaluationSource source = EvaluationSource.Main)
         {
             this.engine = engine;
+            this.counter = counter;
+            this.source = source;
             Task = task;
             this.options = options with { MaxSteps = Math.Max(options.MaxSteps, task.StepsNeeded) };
             this.solvedRetestCount = solvedRetestCount;
@@ -57,9 +64,12 @@ namespace SnpEvolution.Evolution
 
         public static bool IsSolvingFitness(float fitness) => fitness >= SolvedThreshold && fitness <= 1;
 
-        public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks)
+        public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) => EvaluateAll(networks, source);
+
+        private IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks, EvaluationSource spentOn)
         {
             Interlocked.Add(ref evaluations, networks.Count);
+            counter?.Add(spentOn, networks.Count);
             IReadOnlyList<TaskCase> cases = Task.Cases;
             var trials = networks.SelectMany(network => cases.Select(@case => new Trial(network, @case.Input, @case.Readout, @case.Watch))).ToList();
             IReadOnlyList<TrialResult> results = engine.Run(trials, options, random);
@@ -75,12 +85,13 @@ namespace SnpEvolution.Evolution
         // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is.
         public bool IsReliablySolved(Network network)
         {
-            FitnessResult first = Evaluate(network);
+            FitnessResult Retest() => EvaluateAll(new[] { network }, EvaluationSource.Verification)[0];
+            FitnessResult first = Retest();
             if (!IsSolvingFitness(first.Fitness))
             {
                 return false;
             }
-            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => IsSolvingFitness(Evaluate(network).Fitness));
+            return first.Exact || Enumerable.Range(1, Math.Max(0, solvedRetestCount - 1)).All(_ => IsSolvingFitness(Retest().Fitness));
         }
     }
 }

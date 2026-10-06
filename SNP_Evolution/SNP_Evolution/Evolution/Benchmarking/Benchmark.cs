@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -23,7 +25,8 @@ namespace SnpEvolution.Evolution.Benchmarking
         GenomeSpace Space,
         IReadOnlyList<string> Templates,
         int MaxSpikeGroupSize,
-        Func<ISimulationEngine> CreateEngine)
+        Func<ISimulationEngine> CreateEngine,
+        IReadOnlyList<LibraryPart>? Parts = null)
     {
         public static BenchmarkSettings Default { get; } = new BenchmarkSettings(
             Seeds: 5,
@@ -56,8 +59,10 @@ namespace SnpEvolution.Evolution.Benchmarking
             var factory = new NetworkFactory(space, new ExpressionGenerator(settings.Templates, settings.MaxSpikeGroupSize, random), random);
             var evaluator = new FitnessEvaluator(
                 settings.CreateEngine(), task.Task, new SimulationOptions(settings.MaxSteps, settings.Repetitions, task.Timing), solvedRetestCount: 5, random);
+            // Each run gets a library of its own, since copies and credit are counted in it.
             IGeneticAlgorithm run = algorithm.Create(new EvolutionContext(
-                settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { }));
+                settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { },
+                Parts: settings.Parts is { Count: > 0 } parts ? ModuleLibrary.Of(parts) : null));
             while (evaluator.Evaluations < budget)
             {
                 run.NextGeneration();

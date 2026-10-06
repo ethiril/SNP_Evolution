@@ -17,6 +17,9 @@ namespace SnpEvolution.Cli
         public int PopulationSize { get; set; } = 50;
         public float MutationRate { get; set; } = 0.1f;
         public int MaxGenerations { get; set; } = 125;
+
+        // Network evaluations a run may spend in all, side runs and retests included; 0 for no limit but the generations.
+        public long MaxEvaluations { get; set; }
         public int SolvedRetestCount { get; set; } = 5;
         public OutputTarget Target { get; set; } = OutputTarget.Set(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         public bool ExperimentalRules { get; set; } = true;
@@ -54,6 +57,9 @@ namespace SnpEvolution.Cli
         // searching for each part.
         public string PartLibraryFolder { get; set; } = DefaultPartLibraryFolder();
         public long PartBudget { get; set; } = 50_000;
+
+        // How composition search mixes its edits, and how many part copies a network may hold.
+        public CompositionMix Composition { get; set; } = new CompositionMix();
 
         public int BenchmarkSeeds { get; set; } = 5;
         public long EvaluationBudget { get; set; } = 5_000;

@@ -145,6 +145,17 @@ namespace SnpEvolution.Evolution.Modules
             }
         }
 
+        // A library holding just the parts, as a run that builds from a saved part library starts with.
+        public static ModuleLibrary Of(IEnumerable<LibraryPart> parts, Action<string>? log = null)
+        {
+            var library = new ModuleLibrary(log: log);
+            foreach (LibraryPart part in parts)
+            {
+                library.AddPart(part, part.Origin.Run);
+            }
+            return library;
+        }
+
         // The contract parts kept, in the order they were first added.
         public IReadOnlyList<Module> Parts => Modules.Where(module => module.Part != null).ToList();
 

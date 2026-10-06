@@ -58,6 +58,9 @@ namespace SnpEvolution.Evolution
 
         public string NextExpression() => expressions.Next();
 
+        // The same rules and randomness within other bounds.
+        public NetworkFactory WithSpace(GenomeSpace space) => new NetworkFactory(space, expressions, random);
+
         public Rule NewRule()
         {
             bool standard = Space.RuleForm == RuleForm.Standard || (Space.RuleForm == RuleForm.Mixed && random.Next(2) == 0);
