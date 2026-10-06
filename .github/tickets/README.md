@@ -52,5 +52,11 @@ key carries structure, and ordering lives in the epic); every ticket keeps
 The spec documents:
 - Claude Doc "Composing SN P Modules into Machines":
   https://claude.ai/code/artifact/c5af0396-5e34-46aa-a59d-798e552e681b
-- `RESEARCH.md`, sections "Composing modules into machines" and "Use cases and
-  a practical path"
+- `RESEARCH.md`, sections "Composing modules into machines", "Use cases and
+  a practical path", "Toward general synthesis", "Spec to verified circuit" and
+  "A verified spiking parts library, and search beyond evolution"
+
+Milestones run in the order M2, M2.5, M3, M4, M5. M2.5 is structure only:
+every ticket in it keeps the golden runs unchanged, and is held to the tighten
+principles (files under ~300 lines with one job, no duplicated capability,
+typed results over bool and null, descriptive names, one-sentence why comments).

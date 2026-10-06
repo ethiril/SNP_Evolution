@@ -16,6 +16,7 @@ Its responsibilities are:
 
 Correctness should be a hard constraint, not a weighted term, because a smaller network that is wrong on one held-out case is not an improvement, and weighting would trade them.
 Cost should be `HardwareCost` under the hardware profile, because results that only hold for regex rules do not transfer to integrate-and-fire chips.
+The superoptimiser should take its search through the search interface from M2.5, with evolution as the first method, because exact synthesis, windowed improvement and rewrites in M5 are further methods for the same command.
 
 Order: after the counterexample loop in M3 Part 3 and the compiled parts in M3 Part 1; verification steps; superoptimiser; synthesis comparison.
 

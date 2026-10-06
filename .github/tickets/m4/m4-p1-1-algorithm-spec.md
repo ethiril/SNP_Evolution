@@ -17,6 +17,7 @@ Its responsibilities are:
 * Turning a spec into a `Contract` and its `Specification`, so `ContractTask`, `BoundedCheck` and the part searches take it unchanged
 * Specs for the arithmetic contracts already in `FirstParts` and `ArithmeticParts`
 
+The spec should extend the `Specification` that M2.5 made the source of each contract, not sit beside it, because two definitions of one function is the duplication M2.5 removed.
 Held-out cases should be drawn from larger inputs than any training case, because generality is about inputs the search never saw, and a random split inside one range does not test that.
 Case generation should be seeded and deterministic, because two runs of one spec must score the same networks the same way.
 A spec built for a catalogue contract should agree with that contract's cases and its `Specification`, checked with `Specifications.Disagreements`, because the catalogue is what existing parts were verified against.

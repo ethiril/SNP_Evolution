@@ -46,5 +46,17 @@
   "state: needs-decision": {
     "color": "BF3989",
     "description": "Surfaced something the owner must decide before code proceeds"
+  },
+  "area: search": {
+    "color": "0969DA",
+    "description": "Search methods beyond evolution: SMT, rewrites, enumeration"
+  },
+  "area: build": {
+    "color": "0969DA",
+    "description": "Build settings, CI, test infrastructure, project layout"
+  },
+  "kind: refactor": {
+    "color": "8250DF",
+    "description": "Changes structure only; golden runs must not change"
   }
 }

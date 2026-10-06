@@ -13,6 +13,7 @@ We want a binary add contract (two k-bit in-ports, a (k+1)-bit out-port, least s
 
 The contract should come in widths 1 to 4, because a 1-bit adder with carry is the step evolution can find, and a part that only works at one width is a lookup table.
 The comparison should give neurons, synapses and steps against Aimone et al.'s 4 neurons and 9 synapses (as cited by von Seeler et al. 2025), because that is the baseline in our table.
+The contract should be a family over width, because the binary primitives of the verified library in M5 are built on it.
 If the profile run also solves it, the part should be exported to NIR and checked by co-simulation, because a bit-serial adder is the part that fits integrate-and-fire hardware.
 
 Where: `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Contracts/PortEncoding.cs`, `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`; the published-circuit table in RESEARCH.md.

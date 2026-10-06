@@ -18,6 +18,7 @@ Its responsibilities are:
 
 Extra cases should be kept beside the contract, not written into it, because loading refuses a file whose contract differs from the catalogue's.
 The loop should stop after a set number of counterexamples (8 by default) and report it, because a part that keeps failing at larger values is not converging.
+The counterexample should be the structured one the M2.5 verifier returns, because a counterexample as text cannot be scored.
 A counterexample should be added as a full case from the specification, so lexicase sees it as one more case, because a special penalty would be one more scoring rule to tune.
 
 Where: `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs` (`Admit`), `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`, `SNP_Evolution/Evolution/Tasks/ContractTask.cs`, `SNP_Evolution/Evolution/Proposals/PartProposals.cs`, `SNP_Evolution/Evolution/Modules/Promotion.cs`, `SNP_Evolution/Storage/PartLibraryFiles.cs`.
