@@ -4,6 +4,7 @@ using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
+using static SnpEvolution.Tests.Evolution.ModuleFixtures;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Evolution
@@ -11,13 +12,6 @@ namespace SnpEvolution.Tests.Evolution
     public class PartWiringTests
     {
         private const int MaxNeurons = 24;
-
-        private static LibraryPart Verified(Part part)
-        {
-            PartMeasurement measurement = PartEvolution.Measure(part);
-            Assert.True(measurement.MeetsContract, measurement.Description);
-            return LibraryPart.Of(part, measurement, new PartOrigin(1, "a test", 0));
-        }
 
         // n + 2 on the same values the increment is checked on, with room for two increments in a row.
         private static Contract PlusTwo() => new Contract(

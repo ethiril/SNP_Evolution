@@ -120,6 +120,29 @@ With the count encoding, addition costs nothing: two synapses into one neuron ad
 
 Fibonacci in these terms (a hand derivation, used as a test and not as a seed): keep registers A = F(k-1) and B = F(k). Each round, B is drained one unit per step. Each unit sends one spike to the output, one to a new A' and one to a new B'. A is drained into B' at the same time, and finishes first because A ≤ B. The output gap is then B, A' = B and B' = A + B, and the next round swaps the old and new registers. This is a short register-machine program, so contributions 7 and 8 meet here. Building it by hand from verified parts would show whether the composition genome can express the answer at all, and its size gives MAP-Elites a target to beat.
 
+**Round timing (answered 2026-10-06).** A round cannot last exactly B steps. Between the done that starts a round and the done that ends it, the trigger passes through the part's start neuron, the step the store empties, and its done neuron. So a round that drains y spikes from the hand-built register or add part lasts y + 3 steps. The swap cannot overlap the drain, because no port says the drain is 3 steps from its end. The output timer cannot absorb the lag either, because it grows by 3 every round. What works is option 2, storing values lower: the banks hold A − 2 and B − 3. The done that starts a round also reaches, through one relay, the three count ports of the bank being loaded, which puts back the 1 spike A' lacks and the 2 that B' lacks. Then x' = y + 1 and y' = x + y + 2 hold A − 2 and B − 3 again for the next pair, and the round of y = B − 3 lasts exactly B steps. The first gaps 1, 1, 2 are shorter than any round, so a glue neuron preloaded like a register store fires them and then starts the first round with both banks empty. That round's gap is 3.
+
+Trace of the round with gap 3 (steps 4 to 8) and the round with gap 5 (steps 8 to 13), from `FibonacciCompositionTests.TraceTheRoundsOfGapThreeAndFive`. Bank 1 is register X1 and add part Y1, bank 2 is X2 and Y2. G starts the first round, O is the output, and R1 and R2 are the relays that put the missing spikes into banks 1 and 2. Cells show the spikes a neuron holds at the start of the step, and * marks a neuron that fires. A store holds each unit as two spikes.
+
+| step | G | O | Y1.start | Y1.store | Y1.done | R2 | X2.store | Y2.store | Y2.sum | Y2.done | R1 | X1.n | X1.store |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 4 | 2* | 2 |  |  |  |  |  |  |  |  |  |  |  |
+| 5 |  | 1* | 1* |  |  | 1* |  |  |  |  |  |  |  |
+| 6 |  |  |  | 1* |  |  |  |  |  |  |  |  | 1* |
+| 7 |  |  |  |  | 2* |  | 2 | 4 |  |  |  |  |  |
+| 8 |  | 1* |  |  |  |  | 2 | 4 |  |  | 1* |  |  |
+| 9 |  |  |  |  |  |  | 3* | 5* |  |  |  | 1* |  |
+| 10 |  |  |  | 4 |  |  | 1* | 3* | 1* | 1 |  |  | 2 |
+| 11 |  |  |  | 4 |  |  |  | 1* | 1* | 1 |  | 1* | 2 |
+| 12 |  |  |  | 8 |  |  |  |  | 2 | 2* |  | 1* | 4 |
+| 13 |  | 1* | 1* | 10 |  | 1* |  |  |  |  |  |  | 6 |
+
+O fires on steps 5, 8 and 13, so the gaps are 3 and 5. G fires on step 4, which starts bank 1 with both parts empty. Y1's done (step 7) ends that round in 3 steps. Through R2, G also put one spike into each of X2.n, Y2.a and Y2.b, so on step 8 bank 2 holds 1 (2 spikes) and 2 (4 spikes): A − 2 and B − 3 for A = 3, B = 5. Y2 then drains 2 units on steps 9 and 10, X2 drains 1, and Y2's done on step 12 starts bank 1 again on step 13. In that time bank 1 is loaded to 3 and 5 (6 and 10 spikes), which is A − 2 and B − 3 for the next pair (5, 8).
+
+**Fibonacci by hand from library parts (done 2026-10-06).** `FibonacciCompositionTests` builds the network from 4 part copies, 2 registers and 2 add parts, joined by 10 typed wires (done to start, count out to count in), plus 5 glue neurons: the output, the preamble, the first-round trigger and the two relays. `PartWiring.Copies` and `PartWiring.Wires` recognise every copy and wire, so the build is in the composition genome's terms. The register is the hand-built one checked against the catalogue's register contract, and the add part is a hand-built register with a second count in-port (`ReferenceParts.Add`). Both pass their first-part contracts on the exhaustive engine. The evolved library has neither: no part with count ports was solved by `evolve-parts`. The network gives the 16-value Fibonacci `SequenceTask` exactly on the exhaustive engine (fitness 1) and keeps going to 2584, which is 17 gaps.
+
+Size target for composition search and MAP-Elites: **27 neurons, 44 synapses, 42 rules** (6 distinct), from 22 neurons in parts and 5 glue neurons. For comparison, the recurrence compiler makes 15 neurons and shrinking reaches 10. The 12-neuron difference from the compiler is the price of start and done: each part spends a start neuron and a done neuron, and the register's out neuron filters the store's last pair.
+
 A generic set of first parts, which are arithmetic and not specific to Fibonacci, so the default of automatic discovery still holds:
 - delay and identity, and fan-out (copy a number to two ports);
 - n+1, 2n and n1+n2, in both the interval and the count encoding;

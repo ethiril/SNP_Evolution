@@ -74,6 +74,14 @@ namespace SnpEvolution.Evolution.Contracts
         // An unfed sixth neuron makes it cost more for the same behaviour; it has a rule because the rule edits assume every neuron does.
         public static Part PaddedIncrement() => IncrementPart(padded: true);
 
+        // A register with a second count in-port feeding the same store, so the sum drains as one count.
+        public static Part Add()
+        {
+            Contract contract = FirstParts.Named("add");
+            const int Store = 6;
+            return new Part(contract, new Network(DrainingStore(countInputs: 2, startTargets: new[] { Store })), PortBinding.AfterInputs(contract));
+        }
+
         private static Part DelayPart(int k, int startProduces)
         {
             Contract contract = DelayContract(k);
@@ -88,15 +96,8 @@ namespace SnpEvolution.Evolution.Contracts
         private static Part RegisterPart(int largest, bool leaveSpike)
         {
             Contract contract = RegisterContract(largest);
-            const int Out = 3, Done = 4, Store = 5, Sink = 6;
-            var neurons = new List<Neuron>
-            {
-                new Neuron(new[] { Rule.Standard("a", 1) }, 0, leaveSpike ? new[] { Store, Sink } : new[] { Store }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { Store }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false),
-                new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false),
-                new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { Out, Done }, false),
-            };
+            const int Store = 5, Sink = 6;
+            List<Neuron> neurons = DrainingStore(countInputs: 1, startTargets: leaveSpike ? new[] { Store, Sink } : new[] { Store });
             if (leaveSpike)
             {
                 neurons.Add(new Neuron(new Rule[0], 0, new int[0], false));
@@ -107,20 +108,25 @@ namespace SnpEvolution.Evolution.Contracts
         private static Part IncrementPart(bool padded)
         {
             Contract contract = FirstParts.Named("increment");
-            const int Out = 3, Done = 4, Store = 5;
-            var neurons = new List<Neuron>
-            {
-                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { Out, Store }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { Store }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false),
-                new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false),
-                new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { Out, Done }, false),
-            };
+            const int Out = 3, Store = 5;
+            List<Neuron> neurons = DrainingStore(countInputs: 1, startTargets: new[] { Out, Store });
             if (padded)
             {
                 neurons.Add(new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false));
             }
             return new Part(contract, new Network(neurons), PortBinding.AfterInputs(contract));
+        }
+
+        // The positions callers bind ports to: start, then the count in-ports, out, done and the store.
+        private static List<Neuron> DrainingStore(int countInputs, int[] startTargets)
+        {
+            int outPosition = countInputs + 2, donePosition = countInputs + 3, storePosition = countInputs + 4;
+            var neurons = new List<Neuron> { new Neuron(new[] { Rule.Standard("a", 1) }, 0, startTargets, false, isInput: true) };
+            neurons.AddRange(Enumerable.Range(0, countInputs).Select(_ => new Neuron(new[] { Rule.Standard("a", 1, 2) }, 0, new[] { storePosition }, false, isInput: true)));
+            neurons.Add(new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false));
+            neurons.Add(new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new int[0], false));
+            neurons.Add(new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 0, new[] { outPosition, donePosition }, false));
+            return neurons;
         }
     }
 }

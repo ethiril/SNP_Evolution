@@ -27,6 +27,14 @@ namespace SnpEvolution.Tests.Evolution
             OutputNeuron(0, Standard("a", 1)),
         });
 
+        // A part checked against its contract on the exhaustive engine and recorded as a library part would be.
+        internal static LibraryPart Verified(Part part)
+        {
+            PartMeasurement measurement = PartEvolution.Measure(part);
+            Assert.True(measurement.MeetsContract, measurement.Description);
+            return LibraryPart.Of(part, measurement, new PartOrigin(1, "a test", 0));
+        }
+
         internal static Module ModuleOf(ModuleLibrary library, Network network) => library.Add(ModuleCuts.Whole(network), "a test")!;
 
         // The input passes the trigger on, n2 waits a step, and the output and n4 then pass a spike back and forth.

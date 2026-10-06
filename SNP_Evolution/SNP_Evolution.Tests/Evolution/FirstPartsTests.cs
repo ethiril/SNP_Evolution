@@ -97,6 +97,16 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal("meets the contract", result.Description);
         }
 
+        [Fact]
+        public void TheHandBuiltAddMeetsItsFirstPartContract()
+        {
+            Part add = ReferenceParts.Add();
+            FitnessResult result = Verify(add.Task(), add.Network);
+
+            Assert.True(result.Exact);
+            Assert.Equal("meets the contract", result.Description);
+        }
+
         // start -> t1 -> t2 -> done, a relay chain; listed the other way round, t2 fires first.
         private static Network SequencerChain(bool swapped) => new Network(new[]
         {
