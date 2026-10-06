@@ -9,8 +9,7 @@ namespace SnpEvolution.Evolution.Contracts
     {
         public ContractTask Task() => new ContractTask(Contract, Binding);
 
-        // Every port with the 1-based position of its neuron: the in-ports are the input neurons in contract order (start
-        // first), and the out-ports and done ports are where the binding puts them.
+        // In-ports are the input neurons in contract order, start first, since the binding only places out-ports.
         public IReadOnlyList<PartPort> Ports()
         {
             IEnumerable<int> inputs = Network.Neurons.Select((neuron, index) => (neuron, index)).Where(pair => pair.neuron.IsInput).Select(pair => pair.index + 1);
@@ -70,11 +69,9 @@ namespace SnpEvolution.Evolution.Contracts
         public static Part RegisterLeavingASpike(int largest = 8) => RegisterPart(largest, leaveSpike: true);
 
         // A register whose start spike also goes straight to out, so out carries one spike more than the store drains.
-        // The n input fires on each spike it holds alone, so it takes a count however the spikes are spread before start.
         public static Part Increment() => IncrementPart(padded: false);
 
-        // The same with a sixth neuron that nothing feeds, so it costs more but behaves the same; it has a rule, as every
-        // neuron evolution edits has.
+        // An unfed sixth neuron makes it cost more for the same behaviour; it has a rule because the rule edits assume every neuron does.
         public static Part PaddedIncrement() => IncrementPart(padded: true);
 
         private static Part DelayPart(int k, int startProduces)

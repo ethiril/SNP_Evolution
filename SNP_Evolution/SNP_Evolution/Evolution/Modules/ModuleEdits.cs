@@ -13,12 +13,7 @@ namespace SnpEvolution.Evolution.Modules
 
     public static class ModuleEdits
     {
-        // Adds a copy of the module to the network. A module cut from around an output neuron becomes the network's output
-        // half the time, so a part that makes the right output can take over and the rest of the network can feed it; the
-        // old output then sends to the new one, so what the network already made can still pass through. A module without
-        // a contract has each input port fed by a random neuron already there, and each output port sends to a random
-        // neuron that is not an input; a contract part is wired by port type instead (PartWiring.WirePorts). Unchanged when
-        // the network has no room.
+        // A module cut from around an output takes the output half the time, so a part that makes the right output can take over.
         public static Network Insert(Network network, Module module, int instance, int maxNeurons, ModuleLibrary library, Random random)
         {
             int offset = network.Neurons.Count;
@@ -31,7 +26,7 @@ namespace SnpEvolution.Evolution.Modules
             HashSet<int> typed = copies.SelectMany(copy => copy.Positions).ToHashSet();
             bool takesOutput = module.Body.Neurons.Any(neuron => neuron.IsOutput) && random.Next(2) == 0;
             int moduleOutput = offset + module.Body.Neurons.ToList().FindIndex(neuron => neuron.IsOutput) + 1;
-            // An old output that is a part's port keeps its synapses, since one to the new output would join two ports untyped.
+            // An old output inside a part copy keeps its synapses, since one to the new output would join two ports untyped.
             List<Neuron> neurons = network.Neurons
                 .Select((neuron, index) => takesOutput && neuron.IsOutput
                     ? neuron.WithRoles(false, neuron.IsInput).WithConnections(typed.Contains(index + 1) ? neuron.Connections : neuron.Connections.Append(moduleOutput))

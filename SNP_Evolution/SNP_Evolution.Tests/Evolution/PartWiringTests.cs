@@ -1,6 +1,7 @@
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using static SnpEvolution.Tests.TestNetworks;
@@ -27,9 +28,12 @@ namespace SnpEvolution.Tests.Evolution
             FirstParts.Values.Select(n => new ContractCase(new Dictionary<string, int> { ["n"] = n }, new Dictionary<string, int> { ["out"] = n + 2 }, "done")).ToList(),
             FirstParts.LatencyFor(2 * (FirstParts.Larger + 2)));
 
-        // A copy of the module with its in-ports as the network's inputs, and a second copy put in after it.
-        private static Network Chained(ModuleLibrary library, Module module, int seed) =>
-            ModuleEdits.Insert(PartWiring.AsCopy(module, 1), module, 2, MaxNeurons, library, new Random(seed));
+        // The first copy is the part's own network, so its in-ports are the network's inputs.
+        private static Network Chained(ModuleLibrary library, Module module, int seed)
+        {
+            var first = new Network(module.Part!.Part.Network.Neurons.Select(neuron => neuron.WithModule(new ModuleTag(module.Id, 1))).ToList());
+            return ModuleEdits.Insert(first, module, 2, MaxNeurons, library, new Random(seed));
+        }
 
         // The plus-two contract read from the out and done ports of the copy put in last.
         private static PartMeasurement MeasurePlusTwo(Network network, ModuleLibrary library)
@@ -37,6 +41,17 @@ namespace SnpEvolution.Tests.Evolution
             PartCopy last = PartWiring.Copies(network, library).OrderBy(copy => copy.Tag.Instance).Last();
             var binding = new PortBinding(new Dictionary<string, int> { ["out"] = last["out"], ["done"] = last["done"] });
             return PartEvolution.Measure(network, new ContractTask(PlusTwo(), binding));
+        }
+
+        private static NetworkFactory Factory(int maxNeurons, Random random) =>
+            new NetworkFactory(new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Standard, MaxNeurons: maxNeurons),
+                new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+
+        // Evolved parts carry the output role on a port, which the reference increment does not.
+        private static Part IncrementWithOutput()
+        {
+            Part increment = ReferenceParts.Increment();
+            return increment with { Network = increment.Network.WithNeuron(2, increment.Network.Neurons[2].WithRoles(true, false)) };
         }
 
         private static string WireText(Wire wire) => $"{wire.From.Copy.Tag.Instance}.{wire.From.Port.Name}>{wire.To.Copy.Tag.Instance}.{wire.To.Port.Name}";
@@ -81,6 +96,22 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void AThirdCopyIsFedByAnEarlierOneButNeverDoublesUpAnInPort()
+        {
+            var library = new ModuleLibrary();
+            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+
+            for (int seed = 0; seed < 10; seed++)
+            {
+                Network network = ModuleEdits.Insert(Chained(library, increment, seed), increment, 3, MaxNeurons, library, new Random(seed));
+
+                IReadOnlyList<Wire> wires = PartWiring.Wires(network, library);
+                Assert.Equal(new[] { "n", "start" }, wires.Where(wire => wire.To.Copy.Tag.Instance == 3).Select(wire => wire.To.Port.Name).Order());
+                Assert.All(wires.GroupBy(wire => wire.To.Position), group => Assert.Single(group));
+            }
+        }
+
+        [Fact]
         public void APartInANetworkWithNoOtherPartIsWiredToUntypedNeurons()
         {
             var library = new ModuleLibrary();
@@ -108,7 +139,7 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
-        public void RewiringOnlyEverJoinsFittingPorts()
+        public void RewiringOnlyEverJoinsFittingPortsAndNeverFeedsAnInput()
         {
             var library = new ModuleLibrary();
             Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
@@ -131,6 +162,7 @@ namespace SnpEvolution.Tests.Evolution
                         Assert.True(PartWiring.Fits(from.Port, ports[target].Port), $"{from.Port.Name} > {ports[target].Port.Name}");
                     }
                 }
+                Assert.All(rewired.Neurons, neuron => Assert.DoesNotContain(neuron.Connections, target => rewired.Neurons[target - 1].IsInput));
                 seen.Add(string.Join(" ", PartWiring.Wires(rewired, library).Select(WireText)));
             }
             Assert.True(seen.Count > 1);
@@ -143,16 +175,15 @@ namespace SnpEvolution.Tests.Evolution
             Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
             Network network = Chained(library, increment, 1);
             var random = new Random(1);
-            var factory = new NetworkFactory(new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Standard, MaxNeurons: MaxNeurons),
-                new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
 
-            Network glued = new AddGlueNeuron(library, factory).Mutate(network, random);
+            Network glued = new AddGlueNeuron(library, Factory(MaxNeurons, random)).Mutate(network, random);
 
             Assert.Equal(network.Neurons.Count + 1, glued.Neurons.Count);
             Assert.Single(PartWiring.Wires(glued, library));
             Assert.Null(glued.Neurons[^1].Module);
             PartMeasurement measurement = MeasurePlusTwo(glued, library);
             Assert.True(measurement.MeetsContract, measurement.Description);
+            Assert.Same(network, new AddGlueNeuron(library, Factory(network.Neurons.Count, random)).Mutate(network, random));
         }
 
         [Fact]
@@ -162,7 +193,7 @@ namespace SnpEvolution.Tests.Evolution
             Module increment = library.AddPart(Verified(ReferenceParts.PaddedIncrement()), "a test");
             Network padded = Chained(library, increment, 1);
             library.AddPart(Verified(ReferenceParts.Increment()), "a cheaper test");
-            var swap = new SwapPart(library, MaxNeurons);
+            var swap = new SwapPart(library);
 
             Network once = swap.Mutate(padded, new Random(1));
             Network twice = swap.Mutate(once, new Random(1));
@@ -173,6 +204,53 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(new[] { true, true }, twice.Neurons.Take(2).Select(neuron => neuron.IsInput));
             PartMeasurement measurement = MeasurePlusTwo(twice, library);
             Assert.True(measurement.MeetsContract, measurement.Description);
+            // A role on a neuron with no port of the same name would be lost, so that copy is not swapped.
+            Network outputOnPadding = padded.WithNeuron(11, padded.Neurons[11].WithRoles(true, false));
+            Assert.All(Enumerable.Range(0, 10), seed => Assert.Single(swap.Mutate(outputOnPadding, new Random(seed)).Neurons, neuron => neuron.IsOutput));
+        }
+
+        [Fact]
+        public void APortThatTakesTheOutputSendsNowhereAndAnOldOutputInACopyFeedsNoOtherPort()
+        {
+            var library = new ModuleLibrary();
+            Module increment = library.AddPart(Verified(IncrementWithOutput()), "a test");
+            int takeovers = 0;
+
+            for (int seed = 0; seed < 20; seed++)
+            {
+                Network chained = Chained(library, increment, seed);
+                Network hosted = ModuleEdits.Insert(PingPong(), increment, 1, MaxNeurons, library, new Random(seed));
+
+                PartCopy first = PartWiring.Copies(chained, library).Single(copy => copy.Tag.Instance == 1);
+                PartCopy second = PartWiring.Copies(chained, library).Single(copy => copy.Tag.Instance == 2);
+                PartCopy guest = PartWiring.Copies(hosted, library).Single();
+                if (chained.Neurons[second["out"] - 1].IsOutput)
+                {
+                    takeovers++;
+                    Assert.DoesNotContain(second["out"], chained.Neurons[first["out"] - 1].Connections);
+                }
+                if (hosted.Neurons[guest["out"] - 1].IsOutput)
+                {
+                    Assert.Empty(hosted.Neurons[guest["out"] - 1].Connections);
+                }
+            }
+            Assert.InRange(takeovers, 1, 19);
+        }
+
+        [Fact]
+        public void PartEditsAreOnlyOfferedWhenTheLibraryHoldsParts()
+        {
+            var harvested = new ModuleLibrary();
+            harvested.Add(ModuleCuts.Whole(PingPong()), "a test");
+            var withParts = new ModuleLibrary();
+            withParts.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            NetworkFactory factory = Factory(MaxNeurons, new Random(1));
+
+            IEnumerable<WeightedEdit> PartEdits(ModuleLibrary library) =>
+                WeightedMutation.Structural(1, factory, modules: new ModuleSupport(library)).Edits.Where(edit => edit.Edit is RewirePort or AddGlueNeuron or SwapPart);
+
+            Assert.Empty(PartEdits(harvested));
+            Assert.Equal(3, PartEdits(withParts).Count());
         }
     }
 }
