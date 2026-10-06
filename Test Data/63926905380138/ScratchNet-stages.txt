@@ -1,0 +1,2 @@
+Stage  Values  Generations  Best fitness
+    1       3         1350  1.000

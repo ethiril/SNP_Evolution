@@ -1,0 +1,3 @@
+Neurons  Rules  Fitness
+      2      2  0.333   intervals [1] / [1,1,2]
+      2      4  1.000   intervals [1,1,2,1,2] / [1,1,2] (varies between runs)

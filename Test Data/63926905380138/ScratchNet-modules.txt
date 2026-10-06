@@ -1,0 +1,27 @@
+3 side run(s), 1499 generation(s) on the side in all.
+4 module(s) found, 4 kept. Uses are children scored with a new copy; wins beat their parent.
+
+Module 1: 2 neuron(s), inputs none, outputs n2, 66/1681 wins, from a change that raised fitness from 0.000 to 0.750
+Neuron     Spikes   Rules                        Sends to
+n1         a        aa -> a                      n2
+n2 (out)   aaaaa    aa -> forget;3  |  a* -> a   -
+
+Module 2: 2 neuron(s), inputs none, outputs n2, 57/1473 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 2-3, fitness 0.625
+Neuron     Spikes   Rules                        Sends to
+n1         a        aa -> a;1                    n2
+n2 (out)   aaaa     aa -> forget;3  |  a* -> a   -
+
+Module 4: 2 neuron(s), inputs none, outputs n2, 38/1079 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 2-3, fitness 1.000
+Neuron     Spikes   Rules            Sends to
+n1         a        a(aaa)* -> a;1   n2
+n2 (out)   aaaaa    aa* -> a         -
+
+Module 3: 7 neuron(s), inputs n2, n6, n7, outputs n4, n6, 3/421 wins, from a side run for Spike intervals 1,1,2,3,5,8,13,21,34,55,89,..., gaps 3-3 after a trigger, fitness 1.000
+Neuron     Spikes    Rules                                          Sends to
+n1         a         aaa -> a;1                                     n3, n5
+n2         aaaaaaa   a -> a                                         n1
+n3         aaaa      aaa -> forget  |  aaa -> a;3                   n5
+n4 (out)   aaa       aa -> a  |  aa -> a;1  |  aaa -> a;2           n1, n5
+n5         aaaaaaa   aa -> forget;1                                 n2, n3, n4
+n6         aa        a -> forget;2  |  aa -> forget  |  aa -> a;3   n5, n7
+n7         aaaa      a -> a;3  |  aaa -> forget                     n6
