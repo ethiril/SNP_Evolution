@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
@@ -71,7 +75,7 @@ namespace SnpEvolution.Evolution.Modules
             {
                 return childChecks.Count == 0;
             }
-            return Enumerable.Range(0, childChecks.Count).Any(check => childChecks[check] >= CheckDiagnosis.SolvedCheck && parentChecks[check] < CheckDiagnosis.SolvedCheck);
+            return Enumerable.Range(0, childChecks.Count).Any(check => childChecks[check] >= Solved.Check && parentChecks[check] < Solved.Check);
         }
 
         private sealed class Watcher : IPopulationEvaluator

@@ -1,5 +1,9 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -32,7 +36,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheHandBuiltRegisterMeetsItsContractForZeroToEight()
         {
-            FitnessResult result = Verify(ReferenceParts.Register(largest: 8));
+            FitnessResult result = Verify(PartFixtures.Register(8));
 
             Assert.True(result.Exact);
             Assert.Equal(9 * ContractTask.RuleCount, result.Checks!.Count);
@@ -43,7 +47,7 @@ namespace SnpEvolution.Tests.Evolution
         [MemberData(nameof(Delays))]
         public void ADelayFiringDoneTwiceFailsOnlyDoneOnce(int k)
         {
-            FitnessResult result = Verify(ReferenceParts.DelayFiringDoneTwice(k));
+            FitnessResult result = Verify(PartFixtures.DelayFiringDoneTwice(k));
 
             Assert.True(result.Exact);
             Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.Equal(0f, score));
@@ -53,7 +57,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ARegisterLeavingASpikeFailsOnlyBackToStart()
         {
-            FitnessResult result = Verify(ReferenceParts.RegisterLeavingASpike(largest: 8));
+            FitnessResult result = Verify(PartFixtures.RegisterLeavingASpike(8));
 
             Assert.True(result.Exact);
             Assert.All(RuleChecks(result, ContractRule.BackToStart), score => Assert.True(score < 1));
@@ -63,7 +67,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ADelayThatIsTooQuickFailsOnlyOnTime()
         {
-            FitnessResult result = Verify(new ContractTask(ReferenceParts.DelayContract(3)), ReferenceParts.Delay(2).Network);
+            FitnessResult result = Verify(new ContractTask(PartFixtures.DelayContract(3)), ReferenceParts.Delay(2).Network);
 
             Assert.Equal(new[] { 1f, 1f, 1f, 0f }, result.Checks);
         }
@@ -79,7 +83,7 @@ namespace SnpEvolution.Tests.Evolution
                 new Neuron(Array.Empty<Rule>(), 0, Array.Empty<int>(), false),
             });
 
-            FitnessResult result = Verify(ReferenceParts.Register(largest: 3).Task(), silent);
+            FitnessResult result = Verify(PartFixtures.Register(3).Task(), silent);
 
             Assert.All(RuleChecks(result, ContractRule.QuietBeforeStart), score => Assert.Equal(1f, score));
             Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.Equal(0f, score));
@@ -90,7 +94,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ACountThatIsCloseEarnsPartialCredit()
         {
-            Part register = ReferenceParts.Register(largest: 3);
+            Part register = PartFixtures.Register(3);
             Contract offByOne = register.Contract with
             {
                 Cases = register.Contract.Cases
@@ -117,7 +121,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Firing[] At(int[] steps) => steps.Select(step => new Firing(step, 1)).ToArray();
             var run = new PortRun(new[] { At(gap), At(flag), At(word), At(new[] { 10 }) }, new long[5], new long[5]);
-            return new ContractTask(IntervalTriggerAndWord).Checks(new[] { new TrialResult(Array.Empty<int>(), false, true, PortRuns: new[] { run }) });
+            return new ContractTask(IntervalTriggerAndWord).Checks(new[] { new TrialResult(Array.Empty<int>(), false, TrialCoverage.Exact, PortRuns: new[] { run }) });
         }
 
         [Fact]
@@ -144,7 +148,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ChecksAreNamedByCaseAndRule()
         {
-            ContractTask task = ReferenceParts.Register().Task();
+            ContractTask task = PartFixtures.Register().Task();
 
             Assert.Equal("n=0: quiet before start", task.CheckName(0));
             Assert.Equal("n=3: done once", task.CheckName(ContractTask.CheckIndex(3, ContractRule.DoneOnce)));
@@ -155,7 +159,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void DescribeListsEachFailingCheckOnItsOwnLine()
         {
-            FitnessResult result = Verify(ReferenceParts.DelayFiringDoneTwice(2));
+            FitnessResult result = Verify(PartFixtures.DelayFiringDoneTwice(2));
 
             Assert.Equal("case 1: done once 0", result.Description);
         }
@@ -163,7 +167,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheNicheIsSizeByLatency()
         {
-            FitnessResult result = Verify(ReferenceParts.Register(largest: 4));
+            FitnessResult result = Verify(PartFixtures.Register(4));
 
             Assert.Equal((5, 6), result.Niche);
         }
@@ -171,7 +175,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void InputsAreStartThenEachDataInPortAndOutputsFollowTheInputs()
         {
-            ContractTask task = ReferenceParts.Register().Task();
+            ContractTask task = PartFixtures.Register().Task();
 
             Assert.Equal(2, task.InputCount);
             Assert.Equal(3, task.Binding["out"]);
@@ -183,7 +187,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ABindingMustGiveEveryOutPortItsOwnNeuron()
         {
-            Contract register = ReferenceParts.RegisterContract();
+            Contract register = PartFixtures.RegisterContract();
             var shared = new PortBinding(new Dictionary<string, int> { ["out"] = 3, ["done"] = 3 });
             var missing = new PortBinding(new Dictionary<string, int> { ["out"] = 3 });
             var zero = new PortBinding(new Dictionary<string, int> { ["out"] = 0, ["done"] = 4 });

@@ -1,4 +1,5 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -46,7 +47,7 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.Contains(windows, window => window.Target == WindowTarget.Once);
             Assert.Contains(windows, window => window.Target == WindowTarget.Silent);
-            Assert.Equal(windows.Count, Debouncer.Checks(Debouncer.Cases.Select(_ => new TrialResult(Array.Empty<int>(), false, false)).ToList()).Count);
+            Assert.Equal(windows.Count, Debouncer.Checks(Debouncer.Cases.Select(_ => new TrialResult(Array.Empty<int>(), false, TrialCoverage.Sampled)).ToList()).Count);
         }
 
         [Fact]

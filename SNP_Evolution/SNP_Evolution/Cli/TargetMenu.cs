@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Simulation;
 using static SnpEvolution.Cli.MenuPrompts;
 
 namespace SnpEvolution.Cli

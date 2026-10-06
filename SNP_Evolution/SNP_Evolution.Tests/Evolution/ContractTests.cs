@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Evolution
 {
@@ -33,7 +34,7 @@ namespace SnpEvolution.Tests.Evolution
             new[] { new ContractCase(Values(("a", 3), ("b", 9)), Values(("sum", 12)), "done") },
             MaxLatency: 6);
 
-        public static TheoryData<Contract> WellFormed => new TheoryData<Contract> { ReferenceParts.DelayContract(3), Increment(), ZeroTest(), BinaryAdd() };
+        public static TheoryData<Contract> WellFormed => new TheoryData<Contract> { PartFixtures.DelayContract(3), Increment(), ZeroTest(), BinaryAdd() };
 
         [Theory]
         [MemberData(nameof(WellFormed))]
@@ -43,10 +44,10 @@ namespace SnpEvolution.Tests.Evolution
         [MemberData(nameof(WellFormed))]
         public void RoundTripsThroughJsonUnchanged(Contract contract)
         {
-            string json = contract.ToJson();
-            Contract read = Contract.FromJson(json);
+            string json = Json.Write(contract);
+            Contract read = Json.Read<Contract>(json)!;
 
-            Assert.Equal(json, read.ToJson());
+            Assert.Equal(json, Json.Write(read));
             Assert.Equal(contract.Start, read.Start);
             Assert.Equal(contract.Done, read.Done);
             Assert.Equal(contract.Data, read.Data);
@@ -60,7 +61,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void JsonNamesKindsAndDirections()
         {
-            string json = Increment().ToJson();
+            string json = Json.Write(Increment());
 
             Assert.Contains("\"Count\"", json);
             Assert.Contains("\"Out\"", json);

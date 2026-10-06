@@ -64,7 +64,7 @@ namespace SnpEvolution.Tests.Simulation
         [Fact]
         public void StartWaitsForTheQuietSteps()
         {
-            Contract delay = ReferenceParts.DelayContract(2);
+            Contract delay = PartFixtures.DelayContract(2);
 
             EncodedCase encoded = PortEncoding.ForCase(delay, delay.Cases[0], quietSteps: 2);
 

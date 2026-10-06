@@ -1,11 +1,7 @@
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Operators;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Evolution
@@ -30,9 +26,9 @@ namespace SnpEvolution.Tests.Evolution
         // A part checked against its contract on the exhaustive engine and recorded as a library part would be.
         internal static LibraryPart Verified(Part part)
         {
-            PartMeasurement measurement = PartEvolution.Measure(part);
-            Assert.True(measurement.MeetsContract, measurement.Description);
-            return LibraryPart.Of(part, measurement, new PartOrigin(1, "a test", 0));
+            PartMeasurement measurement = Verifier.Measure(part);
+            Assert.True(measurement.Verdict is Verdict.Passed, measurement.Description);
+            return measurement.ToLibraryPart(part, new PartOrigin(1, "a test", 0));
         }
 
         internal static Module ModuleOf(ModuleLibrary library, Network network) => library.Add(ModuleCuts.Whole(network), "a test")!;

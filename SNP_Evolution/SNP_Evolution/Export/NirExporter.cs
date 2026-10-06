@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
@@ -62,7 +63,7 @@ namespace SnpEvolution.Export
                 cases.Select(@case => Case(network, @case.Label, @case.Input, @case.Steps)).ToList());
         }
 
-        public static string ToJson(NirDescription description) => JsonConvert.SerializeObject(description, Formatting.Indented) + "\n";
+        public static string ToJson(NirDescription description) => Json.Write(description) + "\n";
 
         // The repository's tools/snp_nir.py, found from the working directory up.
         public static string? Script()

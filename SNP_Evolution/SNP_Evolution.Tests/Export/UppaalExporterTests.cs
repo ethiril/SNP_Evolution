@@ -1,9 +1,9 @@
 using System.Xml;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Export;
 using SnpEvolution.Networks;
-using SnpEvolution.Storage;
 using SnpEvolution.Tests.Evolution;
 
 namespace SnpEvolution.Tests.Export
@@ -108,7 +108,7 @@ namespace SnpEvolution.Tests.Export
         [VerifytaFact]
         public void UppaalFindsADelayThatFiresDoneTwice()
         {
-            Part twice = ReferenceParts.DelayFiringDoneTwice(2);
+            Part twice = PartFixtures.DelayFiringDoneTwice(2);
 
             Assert.False(Holds(twice, "done once, the right one, with the right outputs"));
             Assert.True(Holds(twice, "every neuron holds what our engine's run holds, on every step"));
@@ -124,7 +124,7 @@ namespace SnpEvolution.Tests.Export
         public void UppaalAgreesWithTheBoundedCheckOnARegisterFailingAtTwenty()
         {
             Part broken = BoundedCheckTests.RegisterFailingAtTwenty();
-            Contract upToTwenty = broken.Contract with { Cases = Enumerable.Range(0, 21).Select(n => Specifications.For(broken.Contract)!.Expected(new Dictionary<string, int> { ["n"] = n })).ToList(), MaxLatency = FirstParts.LatencyFor(20) };
+            Contract upToTwenty = broken.Contract with { Cases = Enumerable.Range(0, 21).Select(n => Specification.For(broken.Contract)!.Expected(new Dictionary<string, int> { ["n"] = n })).ToList(), MaxLatency = Specifications.LatencyFor(20) };
 
             Assert.False(Holds(broken with { Contract = upToTwenty }, "done once, the right one, with the right outputs"));
         }

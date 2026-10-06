@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Operators

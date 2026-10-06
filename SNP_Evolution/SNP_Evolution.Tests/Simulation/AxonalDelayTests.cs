@@ -1,6 +1,5 @@
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
-using SnpEvolution.Simulation.Metal;
 using SnpEvolution.Storage;
 using static SnpEvolution.Tests.TestNetworks;
 
@@ -69,7 +68,7 @@ namespace SnpEvolution.Tests.Simulation
             second.Step();
 
             Assert.Equal(first.Spikes, second.Spikes);
-            Assert.NotEqual(first.State(), second.State());
+            Assert.NotEqual(first.Current.State(), second.Current.State());
         }
 
         [Fact]
@@ -79,8 +78,9 @@ namespace SnpEvolution.Tests.Simulation
             var delayed = new Network(new[] { OutputNeuron(1, Axonal("a", 1)) });
 
             Assert.False(plain.Neurons[0].Rules[0].Axonal);
-            Assert.True(GpuNetwork.Of(CompiledNetwork.Of(plain)).IsSupported);
-            Assert.False(GpuNetwork.Of(CompiledNetwork.Of(delayed)).IsSupported);
+            EngineSupport gpu = new EngineSupport(Jitter: false, AxonalDelay: false, Ports: false, EveryComputation: false);
+            Assert.True(gpu.Runs(Trial.Generate(plain), new SimulationOptions(10, 1)));
+            Assert.False(gpu.Runs(Trial.Generate(delayed), new SimulationOptions(10, 1)));
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[] { Neuron(0, new[] { 2 }, Axonal("a+", 2)), Neuron(0, Array.Empty<int>(), new Rule("a+", 2, true)) });
 
             Assert.NotEqual(network.Neurons[0].Rules[0].Key, network.Neurons[1].Rules[0].Key);
-            Assert.Equal(2, SnpEvolution.Evolution.HardwareCost.Of(network).DistinctRules);
+            Assert.Equal(2, SnpEvolution.Evolution.Parts.HardwareCost.Of(network).DistinctRules);
         }
 
         [Fact]

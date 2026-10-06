@@ -1,6 +1,7 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using static SnpEvolution.Tests.TestNetworks;
@@ -74,7 +75,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine(), HardwareProfile: true);
 
-            PartOutcome outcome = PartEvolution.Evolve(ReferenceParts.DelayContract(2), 1, settings, _ => { });
+            PartOutcome outcome = PartEvolution.Evolve(PartFixtures.DelayContract(2), 1, settings, _ => { });
 
             Assert.True(outcome.Solved);
             Assert.Empty(HardwareProfile.Problems(outcome.Part!.Network));

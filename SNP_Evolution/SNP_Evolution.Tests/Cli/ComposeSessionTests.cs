@@ -1,7 +1,11 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -100,7 +104,7 @@ namespace SnpEvolution.Tests.Cli
             var run = new FixedPopulation(individual);
 
             Assert.True(EvolutionSession.IsSolved(run));
-            Assert.False(EvolutionSession.IsSolved(run, new ContractTask(ReferenceParts.RegisterContract())));
+            Assert.False(EvolutionSession.IsSolved(run, new ContractTask(PartFixtures.RegisterContract())));
         }
 
         private sealed class FixedPopulation(Individual best) : IGeneticAlgorithm

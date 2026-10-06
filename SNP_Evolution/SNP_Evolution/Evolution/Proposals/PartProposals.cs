@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Proposals
@@ -174,13 +178,14 @@ namespace SnpEvolution.Evolution.Proposals
             }
             log($"Proposing a part for {contract.Name} ({reason}).");
             PartOutcome outcome = solve(contract);
-            if (outcome.Part is not Part part || outcome.Measurement is not PartMeasurement measurement || BoundedCheck.Admit(part, log) is not ProvenBound proven)
+            BoundedResult? admission = outcome.Part is Part solved && outcome.Measurement != null ? BoundedCheck.Admit(solved, log) : null;
+            if (outcome.Part is not Part part || outcome.Measurement is not PartMeasurement measurement || admission is null or { Verdict: Verdict.Failed })
             {
                 Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.NotSolved, outcome.Evaluations, null));
                 return;
             }
             string origin = $"a proposal from {(source == ProposalSource.TargetShape ? "the target's shape" : "failing checks")}";
-            Module module = library.AddPart(LibraryPart.Of(part, measurement, new PartOrigin(outcome.Seed, origin, outcome.Evaluations)) with { Proven = proven }, origin);
+            Module module = library.AddPart(measurement.ToLibraryPart(part, new PartOrigin(outcome.Seed, origin, outcome.Evaluations)) with { Proven = admission.Proven }, origin);
             Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.Solved, outcome.Evaluations, module.Id));
             GiveToBestNetworks(module);
         }

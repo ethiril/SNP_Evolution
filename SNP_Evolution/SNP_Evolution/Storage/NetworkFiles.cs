@@ -7,14 +7,14 @@ namespace SnpEvolution.Storage
 {
     public static class NetworkFiles
     {
-        public static string ToJson(Network network) => JsonConvert.SerializeObject(network, Formatting.Indented);
+        public static string ToJson(Network network) => Json.Write(network);
 
         // Returns null for malformed JSON or an invalid rule expression, since both come from user-supplied files.
         public static Network? FromJson(string json)
         {
             try
             {
-                return JsonConvert.DeserializeObject<Network>(json);
+                return Json.Read<Network>(json);
             }
             catch (Exception exception) when (exception is JsonException || exception is ArgumentException)
             {

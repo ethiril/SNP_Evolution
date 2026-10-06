@@ -1,5 +1,5 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Search;
 
 namespace SnpEvolution.Evolution.Benchmarking
 {

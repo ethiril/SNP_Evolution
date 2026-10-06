@@ -1,6 +1,6 @@
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -21,7 +21,7 @@ namespace SnpEvolution.Tests.Evolution
         private sealed record Machine(Network Network, ModuleLibrary Library, PartCopy X1, PartCopy Y1, PartCopy X2, PartCopy Y2, int Output, int FirstRound, int Relay1, int Relay2);
 
         // The hand-built register is checked against the catalogue's register contract, as a library part would be.
-        private static Part Register() => ReferenceParts.Register(FirstParts.Larger) with { Contract = FirstParts.Named("register") };
+        private static Part Register() => ReferenceParts.Register();
 
         private static PartCopy Place(List<Neuron> neurons, Module module, int instance)
         {

@@ -1,4 +1,4 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Tests.Evolution

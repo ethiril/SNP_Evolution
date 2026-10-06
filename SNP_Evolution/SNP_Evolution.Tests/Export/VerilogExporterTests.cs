@@ -1,10 +1,10 @@
-using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Export
@@ -37,7 +37,7 @@ namespace SnpEvolution.Tests.Export
         private static Part Named(string name) => name switch
         {
             "library delay 2" => LibraryDelay().Part,
-            "register" => ReferenceParts.Register(),
+            "register" => PartFixtures.Register(),
             "add" => ReferenceParts.Add(),
             _ => ReferenceParts.Increment(),
         };
@@ -46,7 +46,7 @@ namespace SnpEvolution.Tests.Export
         [MemberData(nameof(Parts))]
         public void PartsMeetTheirContractsSoTheirTracesAreWorthMatching(string name)
         {
-            Assert.True(PartEvolution.Measure(Named(name)).MeetsContract);
+            Assert.IsType<Verdict.Passed>(Verifier.Measure(Named(name)).Verdict);
         }
 
         [IverilogFact]
@@ -120,11 +120,11 @@ namespace SnpEvolution.Tests.Export
         [Fact]
         public void SizesCountersFromTheRegisterWidth()
         {
-            Part register = ReferenceParts.Register();
+            Part register = PartFixtures.Register();
 
             VerilogDesign design = VerilogExporter.Export(register);
 
-            long width = PartEvolution.Measure(register).Cost.RegisterWidth;
+            long width = Verifier.Measure(register).Cost.RegisterWidth;
             Assert.Equal(VerilogExporter.BitsFor(width), design.CounterWidth);
             Assert.Contains("module register (", design.Module);
             Assert.Contains("input  wire [", design.Module);

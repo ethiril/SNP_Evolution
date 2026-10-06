@@ -1,5 +1,4 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Cli

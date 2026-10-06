@@ -1,11 +1,9 @@
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
 using static SnpEvolution.Tests.TestNetworks;
 

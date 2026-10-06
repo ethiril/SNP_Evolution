@@ -1,4 +1,5 @@
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 
 namespace SnpEvolution.Tests.Golden
 {

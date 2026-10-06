@@ -1,9 +1,11 @@
 using System.Text;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Export;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Simulation.Metal;
 using SnpEvolution.Tests.Simulation;
 
 namespace SnpEvolution.Tests.Golden
@@ -28,7 +30,7 @@ namespace SnpEvolution.Tests.Golden
         [MetalFact]
         public void TheGpuEngineTracesAsTheParallelEngineDoes()
         {
-            Assert.Equal(Traces(new ParallelCpuEngine()), Traces(new MetalEngine()));
+            Assert.Equal(Traces(new ParallelCpuEngine()), Traces(MetalEngine.OrCpu()));
         }
 
         [Fact]

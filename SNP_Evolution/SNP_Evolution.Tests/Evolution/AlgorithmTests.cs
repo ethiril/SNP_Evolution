@@ -1,9 +1,10 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Operators;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Evolution

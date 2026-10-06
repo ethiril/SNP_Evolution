@@ -1,0 +1,7798 @@
+first part Delay k | none | done fires k steps after start (k = 1..4, one contract each) | delay 1, delay 2, delay 3, delay 4
+first part Fan-out | count in; count out x2 | both outputs carry n | fan-out
+first part Increment | count in; count out | output carries n + 1 | increment
+first part Double | count in; count out | output carries 2n | double
+first part Add | count in x2; count out | output carries n1 + n2 (cases cover pairs up to 6 + 6) | add
+first part Interval to count | interval in; count out | output carries n | interval to count
+first part Count to interval (timer) | count in; interval out | two output spikes n steps apart | count to interval
+first part Register | count in; count out | holds n until started again, then drains it | register
+first part Zero test | count in; done-zero, done-nonzero | the right branch fires, the other never | zero test
+first part Sequencer | done out xk | fires its outputs in order, each one step after the previous (k = 2, 3) | sequencer 2, sequencer 3
+{
+  "Name": "delay 1",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 1,
+  "MinLatency": 1,
+  "OrderedTriggers": false
+}
+{
+  "Name": "delay 2",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 2,
+  "MinLatency": 2,
+  "OrderedTriggers": false
+}
+{
+  "Name": "delay 3",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 3,
+  "MinLatency": 3,
+  "OrderedTriggers": false
+}
+{
+  "Name": "delay 4",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 4,
+  "MinLatency": 4,
+  "OrderedTriggers": false
+}
+{
+  "Name": "fan-out",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "a",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "a": 7,
+        "b": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "a": 8,
+        "b": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "a": 12,
+        "b": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "increment",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 13
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 43,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "double",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 14
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 16
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 24
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 76,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "add",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "sum",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 11
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 11
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 12,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 17
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 12
+      },
+      "Outputs": {
+        "sum": 17
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 55,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "interval to count",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Interval",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "count to interval",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Interval",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "register",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "zero test",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "zero",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "nonzero",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {},
+      "Done": "zero"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "sequencer 2",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "t1",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "t2",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {
+        "t1": 1,
+        "t2": 1
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 3,
+  "MinLatency": 3,
+  "OrderedTriggers": true
+}
+{
+  "Name": "sequencer 3",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "t1",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "t2",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "t3",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {
+        "t1": 1,
+        "t2": 1,
+        "t3": 1
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 4,
+  "MinLatency": 4,
+  "OrderedTriggers": true
+}
+{
+  "Name": "subtract",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "difference",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 4
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 4
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 12,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 7
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "multiply",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "product",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 4
+      },
+      "Outputs": {
+        "product": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {
+        "product": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 4
+      },
+      "Outputs": {
+        "product": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {
+        "product": 16
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 30
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 400,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "divide",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "quotient",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "remainder",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 4,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 5,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 6,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 7,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 7,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 7,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 7,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 7,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 8,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 8,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 8,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 4,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 8,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 8,
+        "b": 4
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 12,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 2
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 400,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "compare",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "less",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "not less",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 12,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 12
+      },
+      "Outputs": {},
+      "Done": "less"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "subtract 4-bit",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "difference",
+      "Direction": "Out",
+      "Kind": "Binary",
+      "Width": 4
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 6
+      },
+      "Outputs": {
+        "difference": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 9
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 0
+      },
+      "Outputs": {
+        "difference": 15
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 1
+      },
+      "Outputs": {
+        "difference": 14
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 2
+      },
+      "Outputs": {
+        "difference": 13
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 3
+      },
+      "Outputs": {
+        "difference": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 5
+      },
+      "Outputs": {
+        "difference": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 6
+      },
+      "Outputs": {
+        "difference": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 9
+      },
+      "Outputs": {
+        "difference": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 15
+      },
+      "Outputs": {
+        "difference": 0
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 28,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "multiply 4-bit",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "product",
+      "Direction": "Out",
+      "Kind": "Binary",
+      "Width": 8
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 15
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 18
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 30
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 15
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 18
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 27
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 45
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 15
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 25
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 30
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 45
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 75
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 18
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 30
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 36
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 54
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 90
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 18
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 27
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 45
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 54
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 81
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 135
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 0
+      },
+      "Outputs": {
+        "product": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 1
+      },
+      "Outputs": {
+        "product": 15
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 2
+      },
+      "Outputs": {
+        "product": 30
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 3
+      },
+      "Outputs": {
+        "product": 45
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 5
+      },
+      "Outputs": {
+        "product": 75
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 6
+      },
+      "Outputs": {
+        "product": 90
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 9
+      },
+      "Outputs": {
+        "product": 135
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 15
+      },
+      "Outputs": {
+        "product": 225
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 28,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "divide 4-bit",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "quotient",
+      "Direction": "Out",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "remainder",
+      "Direction": "Out",
+      "Kind": "Binary",
+      "Width": 4
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 5,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 6,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 9,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 4,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 0,
+        "remainder": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 1
+      },
+      "Outputs": {
+        "quotient": 15,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 2
+      },
+      "Outputs": {
+        "quotient": 7,
+        "remainder": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 3
+      },
+      "Outputs": {
+        "quotient": 5,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 5
+      },
+      "Outputs": {
+        "quotient": 3,
+        "remainder": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 6
+      },
+      "Outputs": {
+        "quotient": 2,
+        "remainder": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 9
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 15
+      },
+      "Outputs": {
+        "quotient": 1,
+        "remainder": 0
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 28,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "compare 4-bit",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "less",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "not less",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Binary",
+      "Width": 4
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 9,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 6
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 9
+      },
+      "Outputs": {},
+      "Done": "not less"
+    },
+    {
+      "Inputs": {
+        "a": 15,
+        "b": 15
+      },
+      "Outputs": {},
+      "Done": "not less"
+    }
+  ],
+  "MaxLatency": 28,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "add 2",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 14
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 88,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "decrement",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 11
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "gate",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "open",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 0,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "add loop",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "sum",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 11
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 14
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4,
+        "n": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4,
+        "n": 1
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4,
+        "n": 2
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4,
+        "n": 3
+      },
+      "Outputs": {
+        "sum": 14
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 16
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4,
+        "n": 4
+      },
+      "Outputs": {
+        "sum": 18
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6,
+        "n": 5
+      },
+      "Outputs": {
+        "sum": 30
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6,
+        "n": 5
+      },
+      "Outputs": {
+        "sum": 32
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 400,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "register",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "add",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "sum",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 11
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 0
+      },
+      "Outputs": {
+        "sum": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 1
+      },
+      "Outputs": {
+        "sum": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 2
+      },
+      "Outputs": {
+        "sum": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 3
+      },
+      "Outputs": {
+        "sum": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 4
+      },
+      "Outputs": {
+        "sum": 10
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 11
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Outputs": {
+        "sum": 12
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 12,
+        "b": 5
+      },
+      "Outputs": {
+        "sum": 17
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 12
+      },
+      "Outputs": {
+        "sum": 17
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 55,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "increment",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 9
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 13
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 43,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "fan-out",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "a",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {
+        "a": 0,
+        "b": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "a": 6,
+        "b": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "a": 7,
+        "b": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "a": 8,
+        "b": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "a": 12,
+        "b": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "zero test",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "zero",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "nonzero",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0
+      },
+      "Outputs": {},
+      "Done": "zero"
+    },
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {},
+      "Done": "nonzero"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "decrement",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 1
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12
+      },
+      "Outputs": {
+        "out": 11
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "gate",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "n",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "open",
+      "Direction": "In",
+      "Kind": "Count",
+      "Width": 0
+    },
+    {
+      "Name": "out",
+      "Direction": "Out",
+      "Kind": "Count",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "n": 0,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 0,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 1,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 1
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 2,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 2
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 3,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 3
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 4,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 4
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 5,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 5
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 6,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 6
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 7,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 7
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 8,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 8
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12,
+        "open": 0
+      },
+      "Outputs": {
+        "out": 0
+      },
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "n": 12,
+        "open": 1
+      },
+      "Outputs": {
+        "out": 12
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 40,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+Compute n: 1->1 2->2 3->3 4->4 5->5 6->6
+Compute n + 1: 1->2 2->3 3->4 4->5 5->6 6->7
+Compute 2n: 1->2 2->4 3->6 4->8 5->10 6->12
+Compute n1 + n2: 1,1->2 1,3->4 2,2->4 3,1->4 2,4->6 4,3->7

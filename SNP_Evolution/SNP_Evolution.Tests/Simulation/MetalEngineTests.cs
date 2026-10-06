@@ -1,5 +1,6 @@
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Simulation.Metal;
 using Xunit.Sdk;
 using static SnpEvolution.Tests.TestNetworks;
 
@@ -51,7 +52,7 @@ namespace SnpEvolution.Tests.Simulation
         private static void AssertSameResults(IReadOnlyList<Trial> trials, SimulationOptions options)
         {
             IReadOnlyList<TrialResult> cpu = new SequentialCpuEngine().Run(trials, options, new Random(1));
-            IReadOnlyList<TrialResult> gpu = new MetalEngine(gpuThreshold: 0).Run(trials, options, new Random(1));
+            IReadOnlyList<TrialResult> gpu = MetalEngine.OrCpu(gpuThreshold: 0).Run(trials, options, new Random(1));
 
             for (int index = 0; index < trials.Count; index++)
             {
@@ -110,7 +111,7 @@ namespace SnpEvolution.Tests.Simulation
             List<Trial> trials = networks.Select(Trial.Generate).ToList();
 
             IReadOnlyList<TrialResult> exact = new ExhaustiveCpuEngine(maxConfigurations: 100_000).Run(trials, options, new Random(0));
-            IReadOnlyList<TrialResult> sampled = new MetalEngine(gpuThreshold: 0).Run(trials, options, new Random(0));
+            IReadOnlyList<TrialResult> sampled = MetalEngine.OrCpu(gpuThreshold: 0).Run(trials, options, new Random(0));
 
             for (int index = 0; index < trials.Count; index++)
             {
@@ -125,7 +126,7 @@ namespace SnpEvolution.Tests.Simulation
         {
             var options = new SimulationOptions(MaxSteps: 50, Repetitions: 50);
             Trial[] trials = { Trial.Generate(ReferenceNetworks.NaturalNumbers()), Trial.Generate(ReferenceNetworks.EvenNumbers()) };
-            var engine = new MetalEngine(gpuThreshold: 0);
+            var engine = MetalEngine.OrCpu(gpuThreshold: 0);
 
             IReadOnlyList<TrialResult> first = engine.Run(trials, options, new Random(9));
             IReadOnlyList<TrialResult> second = engine.Run(trials, options, new Random(9));

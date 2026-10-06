@@ -4,7 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Storage;
 using static SnpEvolution.Cli.CommandOptions;
 
@@ -46,9 +47,9 @@ namespace SnpEvolution.Cli
                 var clock = Stopwatch.StartNew();
                 BoundedResult result = BoundedCheck.Prove(part.Part, limits);
                 Console.WriteLine($"{part.Contract.Name}: {result.Proven} in {clock.Elapsed.TotalSeconds:0.0} s.");
-                if (result.Counterexample is Counterexample counterexample)
+                if (result.Verdict is Verdict.Failed failed)
                 {
-                    Console.WriteLine(counterexample);
+                    Console.WriteLine(CounterexampleText.Of(part.Part, failed.Counterexample));
                     refuted = true;
                 }
                 File.WriteAllText(path, PartLibraryFiles.ToJson(part with { Proven = result.Proven }));

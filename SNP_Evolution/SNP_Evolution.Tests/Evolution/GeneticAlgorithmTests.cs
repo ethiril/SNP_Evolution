@@ -1,4 +1,6 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Operators;
 using SnpEvolution.Networks;
 

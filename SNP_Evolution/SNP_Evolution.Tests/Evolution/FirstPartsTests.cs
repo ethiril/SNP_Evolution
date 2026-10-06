@@ -1,8 +1,10 @@
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Evolution
 {
@@ -45,7 +47,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Contract contract = FirstParts.Named(name);
 
-            Assert.Equal(contract.ToJson(), Contract.FromJson(contract.ToJson()).ToJson());
+            Assert.Equal(Json.Write(contract), Json.Write(Json.Read<Contract>(Json.Write(contract))!));
         }
 
         [Fact]
@@ -90,7 +92,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheHandBuiltRegisterMeetsItsFirstPartContract()
         {
-            Part register = ReferenceParts.Register(largest: FirstParts.Larger);
+            Part register = ReferenceParts.Register();
             FitnessResult result = Verify(new ContractTask(FirstParts.Named("register"), register.Binding), register.Network);
 
             Assert.True(result.Exact);

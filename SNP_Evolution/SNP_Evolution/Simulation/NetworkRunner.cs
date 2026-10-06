@@ -8,8 +8,6 @@ namespace SnpEvolution.Simulation
     // Samples computations of a network with random rule choices.
     public static class NetworkRunner
     {
-        internal const int SilentRunsBeforeGivingUp = 7;
-
         public static int? RunOnce(Network network, int maxSteps, Random random) =>
             RunOnce(new NetworkSimulation(CompiledNetwork.Of(network), random, InputSpikes.None, OutputTiming.Legacy), Readout.Output, maxSteps).Output;
 
@@ -24,7 +22,7 @@ namespace SnpEvolution.Simulation
             var spikeTrains = new List<IReadOnlyList<int>>();
             var portRuns = new List<PortRun>();
             bool recordSpikeTrain = trial.Readout == Readout.SpikeTrain;
-            PortWatch? watch = WatchOf(trial);
+            PortWatch? watch = trial.PortsWatch;
             bool halted = false;
             for (int run = 0; run < runs; run++)
             {
@@ -44,18 +42,15 @@ namespace SnpEvolution.Simulation
                 }
                 halted |= simulation.IsHalted;
             }
-            return new TrialResult(outputs, halted, Exact: false, spikeTrains, portRuns);
+            return new TrialResult(outputs, halted, TrialCoverage.Sampled, spikeTrains, portRuns);
         }
 
-        // The trial's watch for a Ports readout, which watches nothing when it names no neurons, and null for any other.
-        internal static PortWatch? WatchOf(Trial trial) => trial.Readout == Readout.Ports ? trial.Watch ?? PortWatch.None : null;
-
-        // A trial whose first runs read no output at all is given up on, as it is unlikely ever to produce one.
+        // The trial's runs, given up on after the opening ones when they read nothing (see Sampling).
         public static TrialResult Sample(Trial trial, SimulationOptions options, Random random)
         {
-            int opening = Math.Min(options.Repetitions, SilentRunsBeforeGivingUp);
+            int opening = Sampling.Opening(options);
             TrialResult first = SampleRuns(trial, options, opening, random);
-            if (trial.Readout == Readout.Output && first.Outputs.Count == 0)
+            if (Sampling.GivesUp(trial, first.Outputs.Count > 0))
             {
                 return first;
             }
@@ -69,7 +64,7 @@ namespace SnpEvolution.Simulation
             return new TrialResult(
                 all.SelectMany(part => part.Outputs).OrderBy(output => output).ToList(),
                 all.Any(part => part.CanHalt),
-                Exact: false,
+                TrialCoverage.Sampled,
                 all.SelectMany(part => part.SpikeTrains).ToList(),
                 all.SelectMany(part => part.PortRuns).ToList());
         }

@@ -1,5 +1,8 @@
+using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Evolution
 {
@@ -29,7 +32,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Contract contract = ArithmeticParts.Named(name);
 
-            Assert.Equal(contract.ToJson(), Contract.FromJson(contract.ToJson()).ToJson());
+            Assert.Equal(Json.Write(contract), Json.Write(Json.Read<Contract>(Json.Write(contract))!));
         }
 
         [Fact]
@@ -76,9 +79,9 @@ namespace SnpEvolution.Tests.Evolution
         {
             Part part = HandBuiltParts.All()[index];
 
-            PartMeasurement measurement = PartEvolution.Measure(part);
+            PartMeasurement measurement = Verifier.Measure(part);
 
-            Assert.True(measurement.MeetsContract, $"{part.Contract.Name}: {measurement.Description}");
+            Assert.True(measurement.Verdict is Verdict.Passed, $"{part.Contract.Name}: {measurement.Description}");
         }
     }
 }

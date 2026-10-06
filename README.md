@@ -260,9 +260,9 @@ snp-evolution verify --part parts/delay-2.json [--seconds 60] [--bound N]
 snp-evolution verify --library DIR --only "add loop"
 ```
 
-Each contract the code knows has a specification (`Specifications`): the inputs it covers (an interval is at least 1, a divisor at least 1, a subtraction needs a >= b), the outputs and done branch any input should give, and the latency allowed when every input is at most N. Latencies grow with N the way the contracts' own were set, 3N + 4 for most count parts and a round of 4N + 40 steps per unit for loops, and never fall below the contract's. A specification is checked against the contract's cases before it is used, so a contract that only borrows a known name is not proven against the wrong function. Proposed contracts have none and are recorded as not proven.
+Each contract the code knows is built from a specification (`Specifications`) and the values its cases test. A specification says which inputs it covers (an interval is at least 1, a divisor at least 1, a subtraction needs a >= b), the outputs and done branch any input should give, and the latency any input is allowed. Latencies grow with the values, 3n + 4 for most count parts and a round of 4n + 40 steps per unit for loops, never below 400 for a loop. A contract's latency is the most any of its cases is allowed, and bound N allows the most any input at N is allowed, never less than the contract's. A contract finds its specification by everything it says rather than its name, so a contract that only borrows a known name is not proven against the wrong function. A contract with no data in-ports is its own specification. Proposed contracts have none and are recorded as not proven.
 
-Bound N runs every input whose largest value is N on the exhaustive engine, as a contract task with the four usual rules, so every computation is followed. A case too wide to follow exactly ends the check, since sampling is not proof. A failing check stops it with a counterexample: the input, the rule broken, what was expected and read, and, for a deterministic part, a step-by-step table of the spikes each neuron held (by port name) and when it fired. The file gets `"Proven": { "UpTo": N, "AllInputs": ..., "Stopped": ..., "FailsAt": ... }`. `AllInputs` is true when the bound covers every input there is, as for a part with no data in-ports or only binary ones. The command exits with 2 when any part has a counterexample, and a library holding a part with a recorded counterexample no longer loads.
+Bound N runs every input whose largest value is N through the `Verifier`, which runs a network on a contract's cases on the exhaustive engine and gives a verdict: passed, failed with a counterexample, or unknown with the reason. Part search, promotion and the part library check parts through it too. A case too wide to follow exactly ends the check, since sampling is not proof. A failing check stops it with a counterexample: the input, the rule broken, what was expected and read, and, for a deterministic part, a step-by-step table of the spikes each neuron held (by port name) and when it fired. The file gets `"Proven": { "UpTo": N, "AllInputs": ..., "Stopped": ..., "FailsAt": ... }`. `AllInputs` is true when the bound covers every input there is, as for a part with no data in-ports or only binary ones. The command exits with 2 when any part has a counterexample, and a library holding a part with a recorded counterexample no longer loads.
 
 The check also runs before a part enters the library: from `evolve-parts`, from promotion and from proposals, up to twice the largest value its cases test, or for at most 10 seconds (`BoundedCheck.Admit`). A part with a counterexample there is refused and logged. Every part in `parts/` and `parts-profile/` is proven for every input, as none has data in-ports. In 20 seconds each, the hand-built register reaches N = 1662, add 193, gate 801 and zero test 2181. The check found that the hand-built add loop failed at a = 14, b = 0, n = 0, since done fired a step before the accumulator had finished draining a into the sum, and its cases only go up to a = 2. With done joined to the accumulator's done, it is proven up to 30 in two minutes.
 
@@ -300,7 +300,7 @@ The co-simulation tests skip with the reason when iverilog or the Python package
 
 ## Timing robustness
 
-Asynchronous hardware jitters, so a part that works only in lockstep will break there. `SimulationOptions.Jitter` = j makes whatever a neuron sends along each synapse arrive 0 to j steps late, drawn at random per synapse per step; a late arrival is lost if its receiver is closed when it lands, and input from the environment is never late. With j = 0 nothing is drawn, so every run is as before. Only the sampling engines run it: the exhaustive engine refuses it, since a delay choice for every spike would multiply the computations, and the GPU engine hands jittered batches to the CPU.
+Asynchronous hardware jitters, so a part that works only in lockstep will break there. `SimulationOptions.Jitter` = j makes whatever a neuron sends along each synapse arrive 0 to j steps late, drawn at random per synapse per step; a late arrival is lost if its receiver is closed when it lands, and input from the environment is never late. With j = 0 nothing is drawn, so every run is as before. Only the sampling engines run it. Each engine declares what it can run (`EngineSupport`): the exhaustive engine cannot follow jitter, since a delay choice for every spike would multiply the computations, and the GPU kernel has no jitter, axonal delay or Ports readout. Given a trial it cannot run, an engine returns an unsupported result rather than falling back; `RoutedEngine` sends each trial to an engine that supports it, which is how the GPU engine passes such trials, and small batches, to the CPU.
 
 A part's robustness at jitter j (`Robustness`) is the share of 100 sampled runs, each running every case once, in which every case still stays quiet before start, fires the right done once with the right outputs, and returns every neuron to its starting spikes. The latency bound is left out, since jitter moves timing by design; time-free SN P systems ask the same of a result. Runs get 1 + j times the lockstep steps, and spikes still on their way when a run stops count against returning to start.
 
@@ -337,20 +337,24 @@ File Structure (under `SNP_Evolution/SNP_Evolution`):
   - `ReferenceNetworks` holds the hand-built natural and even numbers systems.
 - `Simulation/`: runs networks.
   - `CompiledNetwork` flattens a network into arrays.
-  - `NetworkSimulation` steps one computation of it.
+  - `NetworkStep` steps one computation, with the rules chosen by its caller; `NetworkSimulation` chooses them at random.
   - `InputSpikes` describes what the environment feeds the input neurons.
   - `NetworkRunner` samples runs.
-  - The `ISimulationEngine` implementations run whole batches of trials.
-- `Evolution/`: the search.
-  - The algorithms, with their swappable `Operators/`.
-  - `NetworkFactory` and `GenomeSpace` for random networks.
-  - `Ranking`, the fitness functions and the evaluator.
-  - `Tasks/` holds the tasks and the suite.
-  - `Contracts/` holds contracts, the first parts, the arithmetic contracts and the hand-built parts.
-  - `Modules/` holds the module library and the modular loop: cutting modules out of networks, inserting and freezing them, harvesting the changes that pay off, and side runs on what is missing. It also holds composition search, promotion, reuse counting and the hand-built add loop.
+  - The `ISimulationEngine` implementations run whole batches of trials, and declare what they support; `Metal/` holds the GPU engine.
+- `Evolution/`: specifications, parts and verification, then the search.
+  - `Contracts/` holds contracts, their specifications and the catalogue built from them (the first parts and the arithmetic contracts).
+  - `Tasks/` holds the tasks, their scoring and when a score counts as solved (`Solved`).
+  - `Parts/` holds the part records, hand-built parts, compositions and recipes, and the module library.
+  - `Verification/` holds the `Verifier`, the bounded check and the robustness measure.
+  - `Genome/` makes random networks (`NetworkFactory`, `GenomeSpace`); `Fitness/` scores populations (`FitnessEvaluator`).
+  - `Operators/` holds the swappable mutation, crossover and selection operators; `Algorithms/` the genetic algorithms.
+  - `Modules/` holds the modular loop: inserting and freezing modules, harvesting the changes that pay off, side runs on what is missing, promotion and the hand-built add loop.
+  - `Search/` holds the run setup (`EvolutionContext`, the algorithm catalog), composition search, part evolution and the shrink.
   - `Proposals/` proposes parts when a composition run stalls, from its failing checks or the shape of its target.
-  - `Benchmarking/` holds the benchmark harness and the algorithm selector.
-- `Storage/` saves and loads networks as JSON and fitness history as CSV.
+  - `Benchmarking/` holds the benchmark harness, the task suite and the algorithm selector.
+- `Compilation/` compiles recurrences and register machines into networks.
+- `Export/` writes Verilog, NIR and Uppaal models of networks.
+- `Storage/` saves and loads networks, parts and contracts as JSON, through one set of settings (`Json`), and fitness history as CSV.
 - `Cli/` holds the console menus, settings and command-line mode. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings menu offers. `EvolutionSession` runs and saves one evolution, for both the menu and the `evolve` command.
 
 ## How spikes are stored
@@ -363,7 +367,7 @@ When an evolution finishes, the best network is printed and saved as a `.txt` ta
 
 Each swappable part is an interface plus one line in a catalog, after which it appears in the settings menu:
 
-- **Simulation engine** (`ISimulationEngine`, listed in `Cli/Catalog.cs`): receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
+- **Simulation engine** (`ISimulationEngine`, listed in `Cli/Catalog.cs`): receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out, and declares what it can run in `Support`. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
 - **Fitness function** (`IFitnessFunction`, `Cli/Catalog.cs`): scores a generator's sorted outputs from 0 to 1.
-- **Task** (`ITask`, `Evolution/Tasks/TaskSuite.cs` or `Cli/Catalog.cs`): lists its cases (input spikes and readout), then scores and describes the results.
-- **Algorithm** (`IGeneticAlgorithm`, `Evolution/EvolutionContext.cs`): build it from the `EvolutionContext`, which provides the evaluator, a network factory and structural mutation. Or combine new `IParentSelection`, `ICrossover` or `IMutation` operators with an existing algorithm. A new algorithm is automatically included in the benchmark and the selector.
+- **Task** (`ITask`, `Evolution/Benchmarking/TaskSuite.cs` or `Cli/Catalog.cs`): lists its cases (input spikes and readout), then scores and describes the results.
+- **Algorithm** (`IGeneticAlgorithm`, `Evolution/Search/EvolutionContext.cs`): build it from the `EvolutionContext`, which provides the evaluator, a network factory and structural mutation. Or combine new `IParentSelection`, `ICrossover` or `IMutation` operators with an existing algorithm. A new algorithm is automatically included in the benchmark and the selector.

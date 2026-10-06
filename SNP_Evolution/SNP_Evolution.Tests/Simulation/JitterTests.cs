@@ -56,17 +56,32 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
-        public void TheExhaustiveEngineRefusesJitter()
+        public void TheExhaustiveEngineDeclaresItCannotFollowJitter()
         {
             var trial = new Trial(Identity(), Train, Readout.SpikeTrain);
+            var options = new SimulationOptions(30, 5, OutputTiming.Interval, Jitter: 1);
+            var engine = new ExhaustiveCpuEngine();
 
-            Assert.Throws<ArgumentException>(() => new ExhaustiveCpuEngine().Run(new[] { trial }, new SimulationOptions(30, 5, OutputTiming.Interval, Jitter: 1), new Random(0)));
+            Assert.False(engine.Support.Runs(trial, options));
+            Assert.Equal(TrialCoverage.Unsupported, engine.Run(new[] { trial }, options, new Random(0))[0].Coverage);
         }
 
         [Fact]
-        public void JitterNeedsARandom()
+        public void RoutingSendsJitterToASampler()
         {
-            Assert.Throws<ArgumentException>(() => new NetworkSimulation(CompiledNetwork.Of(Identity()), null, Train, OutputTiming.Interval, jitter: 1));
+            var trial = new Trial(Identity(), Train, Readout.SpikeTrain);
+            var options = new SimulationOptions(30, 5, OutputTiming.Interval, Jitter: 1);
+
+            TrialResult result = new RoutedEngine(new ExhaustiveCpuEngine(), new ParallelCpuEngine()).Run(new[] { trial }, options, new Random(0))[0];
+
+            Assert.Equal(TrialCoverage.Sampled, result.Coverage);
+            Assert.Equal(5, result.SpikeTrains.Count);
+        }
+
+        [Fact]
+        public void JitterCannotBeNegative()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new NetworkSimulation(CompiledNetwork.Of(Identity()), new Random(0), Train, OutputTiming.Interval, jitter: -1));
         }
     }
 }

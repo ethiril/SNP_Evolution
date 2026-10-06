@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 
@@ -114,7 +117,7 @@ namespace SnpEvolution.Evolution.Modules
         // does the whole of the old task and is worth keeping as a part.
         public void Rescore()
         {
-            if (inner.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness))
+            if (inner.Best is Individual best && Solved.Solves(best.Fitness))
             {
                 library.Add(ModuleCuts.Whole(best.Genes), $"the network that solved {currentTask().Name}");
             }
@@ -177,14 +180,14 @@ namespace SnpEvolution.Evolution.Modules
         {
             SideRuns++;
             IGeneticAlgorithm side = createSideRun(part, null);
-            int generation = Evolve(side, policy.SideGenerations, best => FitnessEvaluator.IsSolvingFitness(best.Fitness));
+            int generation = Evolve(side, policy.SideGenerations, best => Solved.Solves(best.Fitness));
             if (side.Best is not Individual best || best.Fitness <= 0)
             {
                 log($"Side run for {part.Name} found nothing in {generation} generations.");
                 return (null, false);
             }
             log($"Side run for {part.Name}: fitness {best.Fitness:0.000} in {generation} generations ({best.Description}).");
-            return (library.Add(ModuleCuts.Whole(best.Genes), $"a side run for {part.Name}, fitness {best.Fitness:0.000}"), FitnessEvaluator.IsSolvingFitness(best.Fitness));
+            return (library.Add(ModuleCuts.Whole(best.Genes), $"a side run for {part.Name}, fitness {best.Fitness:0.000}"), Solved.Solves(best.Fitness));
         }
 
         // Evolves the networks given a module copy apart from the main run, stopping early once one beats the main

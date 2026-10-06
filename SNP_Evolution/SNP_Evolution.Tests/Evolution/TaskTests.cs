@@ -1,4 +1,5 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -13,9 +14,9 @@ namespace SnpEvolution.Tests.Evolution
         private static FitnessResult Evaluate(ITask task, Network network) =>
             new FitnessEvaluator(new ExhaustiveCpuEngine(), task, Options, solvedRetestCount: 3, new Random(0)).Evaluate(network);
 
-        private static TrialResult Outputs(params int[] outputs) => new TrialResult(outputs, false, true);
+        private static TrialResult Outputs(params int[] outputs) => new TrialResult(outputs, false, TrialCoverage.Exact);
 
-        private static TrialResult Halts(bool halts) => new TrialResult(Array.Empty<int>(), halts, true);
+        private static TrialResult Halts(bool halts) => new TrialResult(Array.Empty<int>(), halts, TrialCoverage.Exact);
 
         [Fact]
         public void IdentityNetworkSolvesTheIdentityFunctionExactly()

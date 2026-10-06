@@ -1,4 +1,4 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Tasks;
 
 namespace SnpEvolution.Tests.Evolution
 {

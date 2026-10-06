@@ -1,10 +1,9 @@
-using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
 using static SnpEvolution.Tests.TestNetworks;
 
 namespace SnpEvolution.Tests.Export
@@ -36,7 +35,7 @@ namespace SnpEvolution.Tests.Export
             foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
             {
                 Part part = ProfilePart(file);
-                Assert.True(PartEvolution.Measure(part).MeetsContract, file);
+                Assert.True(Verifier.Measure(part).Verdict is Verdict.Passed, file);
                 Assert.Empty(HardwareProfile.Problems(part.Network));
             }
         }

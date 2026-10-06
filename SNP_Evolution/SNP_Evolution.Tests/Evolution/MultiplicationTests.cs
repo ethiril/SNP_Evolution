@@ -1,7 +1,7 @@
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Simulation;
 using Xunit.Abstractions;
 

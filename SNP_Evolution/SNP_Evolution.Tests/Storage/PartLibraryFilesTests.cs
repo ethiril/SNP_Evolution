@@ -1,5 +1,6 @@
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Storage;
 
@@ -18,11 +19,11 @@ namespace SnpEvolution.Tests.Storage
         }
 
         private static LibraryPart Measured(Part part, int seed = 7) =>
-            LibraryPart.Of(part, PartEvolution.Measure(part), new PartOrigin(seed, "evolve-parts --seed 1", 1234));
+            Verifier.Measure(part).ToLibraryPart(part, new PartOrigin(seed, "evolve-parts --seed 1", 1234));
 
         private static Part FirstPartRegister()
         {
-            Part register = ReferenceParts.Register(largest: FirstParts.Larger);
+            Part register = ReferenceParts.Register();
             return register with { Contract = FirstParts.Named("register") };
         }
 
@@ -37,7 +38,7 @@ namespace SnpEvolution.Tests.Storage
         }
 
         private static string Describe(LibraryPart part) =>
-            $"{part.Contract.ToJson()}\n{NetworkNotation.Format(part.Part.Network)}\n{string.Join(",", part.Part.Binding.Positions)}\n{part.Cost}\n{part.Latency}\n{part.Behaviour}\n{part.Origin}";
+            $"{Json.Write(part.Contract)}\n{NetworkNotation.Format(part.Part.Network)}\n{string.Join(",", part.Part.Binding.Positions)}\n{part.Cost}\n{part.Latency}\n{part.Behaviour}\n{part.Origin}";
 
         [Fact]
         public void FilesAreNamedByContract()

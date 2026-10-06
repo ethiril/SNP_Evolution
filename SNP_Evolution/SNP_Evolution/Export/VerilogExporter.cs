@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 
@@ -17,7 +19,7 @@ namespace SnpEvolution.Export
         private static readonly HashSet<string> Reserved = new HashSet<string> { "clk", "rst", "overflow", "module", "input", "output", "wire", "reg", "begin", "end", "case" };
 
         // The part's ports by contract name, with counters wide enough for the most spikes any neuron held on any case.
-        public static VerilogDesign Export(Part part) => Export(part.Network, part.Contract.Name, NetworkPort.ForPart(part), PartEvolution.Measure(part).Cost.RegisterWidth);
+        public static VerilogDesign Export(Part part) => Export(part.Network, part.Contract.Name, NetworkPort.ForPart(part), Verifier.Measure(part).Cost.RegisterWidth);
 
         // mostHeld sizes the counters; HardwareCost.RegisterWidth gives it for a part. A run that holds more sets overflow.
         public static VerilogDesign Export(Network network, string name, IReadOnlyList<NetworkPort> ports, long mostHeld)

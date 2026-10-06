@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Operators

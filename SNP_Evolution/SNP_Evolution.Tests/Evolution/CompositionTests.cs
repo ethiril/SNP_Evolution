@@ -1,8 +1,12 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -21,7 +25,7 @@ namespace SnpEvolution.Tests.Evolution
             var library = new ModuleLibrary();
             Part increment = ReferenceParts.Increment();
             library.AddPart(Verified(increment with { Network = increment.Network.WithNeuron(2, increment.Network.Neurons[2].WithRoles(true, false)) }), "a test");
-            library.AddPart(Verified(ReferenceParts.Register(FirstParts.Larger) with { Contract = FirstParts.Named("register") }), "a test");
+            library.AddPart(Verified(ReferenceParts.Register()), "a test");
             library.AddPart(Verified(ReferenceParts.Add()), "a test");
             library.AddPart(Verified(ReferenceParts.Delay(2)), "a test");
             return library;
@@ -41,7 +45,7 @@ namespace SnpEvolution.Tests.Evolution
             for (int seed = 0; seed < 200; seed++)
             {
                 var random = new Random(seed);
-                Composition composition = Composition.Random(library, Factory(seed % 3, random), 1 + seed % 4, random);
+                Composition composition = RandomComposition.Of(library, Factory(seed % 3, random), 1 + seed % 4, random);
 
                 Network flat = composition.Flatten(library);
 
@@ -101,7 +105,7 @@ namespace SnpEvolution.Tests.Evolution
         public void FlatteningTagsEveryPartNeuronWithItsInstance()
         {
             ModuleLibrary library = Library();
-            Composition composition = Composition.Random(library, Factory(1, new Random(3)), 3, new Random(3));
+            Composition composition = RandomComposition.Of(library, Factory(1, new Random(3)), 3, new Random(3));
 
             Network flat = composition.Flatten(library);
 
@@ -115,7 +119,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ACopyWhoseInsideChangedIsNotRecovered()
         {
             ModuleLibrary library = Library();
-            Network flat = Composition.Random(library, Factory(0, new Random(2)), 2, new Random(2)).Flatten(library);
+            Network flat = RandomComposition.Of(library, Factory(0, new Random(2)), 2, new Random(2)).Flatten(library);
             int partNeuron = flat.Neurons.ToList().FindIndex(neuron => neuron.Module != null);
 
             Assert.Null(Composition.Recover(flat.WithNeuron(partNeuron, flat.Neurons[partNeuron].WithInitialSpikes(flat.Neurons[partNeuron].InitialSpikes + 1)), library));
@@ -126,7 +130,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ALinkIntoAPartsOutPortDoesNotPassThroughItsPorts()
         {
             ModuleLibrary library = Library();
-            Composition composition = Composition.Random(library, Factory(0, new Random(4)), 1, new Random(4));
+            Composition composition = RandomComposition.Of(library, Factory(0, new Random(4)), 1, new Random(4));
             PartInstance part = composition.Parts[0];
             PartPort outPort = Composition.PartOf(part, library).Part.Ports().First(port => port.Port.Direction == PortDirection.Out);
             Composition bypassing = composition with { Links = composition.Links.Append(new Link(Endpoint.GlueAt(1), new Endpoint(part.Instance, outPort.Position))).ToList() };
@@ -141,7 +145,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             ModuleLibrary library = Library();
             var random = new Random(6);
-            Composition composition = Composition.Random(library, Factory(0, random), 1, random);
+            Composition composition = RandomComposition.Of(library, Factory(0, random), 1, random);
             var space = new CompositionSpace(library, Factory(0, random), new CompositionMix(MaxGlue: composition.Glue.Count), random);
             Composition overGlued = composition with { Glue = composition.Glue.Append(composition.Glue[0]).ToList() };
 
@@ -156,7 +160,7 @@ namespace SnpEvolution.Tests.Evolution
             ModuleLibrary library = Library();
             var random = new Random(8);
             var space = new CompositionSpace(library, Factory(0, random), new CompositionMix(), random);
-            Composition composition = Composition.Random(library, Factory(0, random), 1, random);
+            Composition composition = RandomComposition.Of(library, Factory(0, random), 1, random);
             PartInstance part = composition.Parts[0];
             PartPort outPort = Composition.PartOf(part, library).Part.Ports().First(port => port.Port.Direction == PortDirection.Out);
             var sender = new Endpoint(part.Instance, outPort.Position);
@@ -183,7 +187,7 @@ namespace SnpEvolution.Tests.Evolution
             for (int seed = 0; seed < 20; seed++)
             {
                 var random = new Random(seed);
-                Network network = Composition.Random(library, Factory(0, random), 3, random).Flatten(library);
+                Network network = RandomComposition.Of(library, Factory(0, random), 3, random).Flatten(library);
                 Composition before = Composition.Recover(network, library)!;
 
                 Composition after = Composition.Recover(new RemovePart(library).Mutate(network, random), library)!;

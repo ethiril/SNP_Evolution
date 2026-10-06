@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 
 namespace SnpEvolution.Cli

@@ -1,5 +1,8 @@
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -29,7 +32,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheReferenceRegisterNeedsAStoreTwiceAsWideAsItsLargestCount()
         {
-            Part register = ReferenceParts.Register(largest: FirstParts.Larger);
+            Part register = ReferenceParts.Register();
 
             HardwareCost cost = Measure(new ContractTask(FirstParts.Named("register"), register.Binding), register.Network);
 
@@ -78,7 +81,7 @@ namespace SnpEvolution.Tests.Evolution
             var random = new Random(1);
             var factory = new NetworkFactory(new GenomeSpace(MaxNeurons: 5), new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, 3, random), random);
             var elites = new MapElites(10, random, factory.NewNetwork, new ConstantEvaluator(), new SnpEvolution.Evolution.Operators.NeuronCrossover(),
-                SnpEvolution.Evolution.Operators.WeightedMutation.Structural(1, factory), cells: HardwareCost.Cell);
+                SnpEvolution.Evolution.Search.WeightedMutation.Structural(1, factory), cells: HardwareCost.Cell);
 
             elites.NextGeneration();
             elites.NextGeneration();

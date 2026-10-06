@@ -1,5 +1,6 @@
 using SnpEvolution.Cli;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
 
 namespace SnpEvolution.Tests.Cli
 {

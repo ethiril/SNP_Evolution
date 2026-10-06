@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
@@ -20,7 +22,7 @@ namespace SnpEvolution.Evolution.Modules
         {
             foreach (Part part in HandBuiltParts.All())
             {
-                library.AddPart(LibraryPart.Of(part, PartEvolution.Measure(part), new PartOrigin(0, HandBuiltParts.Origin, 0)), HandBuiltParts.Origin);
+                library.AddPart(Verifier.Measure(part).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0)), HandBuiltParts.Origin);
             }
             if (!addLoop)
             {
@@ -80,7 +82,7 @@ namespace SnpEvolution.Evolution.Modules
                 new Link(Glue(Again), Port(Counter, "start")), new Link(Glue(Finish), Glue(Done)), new Link(Port(Accumulator, "done"), Glue(Done)),
             };
             var composition = new Composition(parts, glue, wires, links, new[] { Glue(Start), Glue(A), Glue(B), Glue(N) }, Array.Empty<Endpoint>());
-            return (composition, PortBinding.AfterInputs(ArithmeticParts.AddLoop()));
+            return (composition, PortLayout.AfterInputs(ArithmeticParts.AddLoop()));
         }
     }
 }

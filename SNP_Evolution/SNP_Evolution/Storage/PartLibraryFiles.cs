@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Storage
@@ -23,7 +23,7 @@ namespace SnpEvolution.Storage
         // "delay 2" becomes delay-2, so files written for a part are named alike.
         public static string Stem(string name) => string.Concat(name.ToLowerInvariant().Select(letter => char.IsLetterOrDigit(letter) ? letter : '-'));
 
-        public static string ToJson(LibraryPart part) => JsonConvert.SerializeObject(PartFile.Of(part), Formatting.Indented) + "\n";
+        public static string ToJson(LibraryPart part) => Json.Write(PartFile.Of(part)) + "\n";
 
         // Writes every contract part in the library, and returns the paths written.
         public static IReadOnlyList<string> Save(ModuleLibrary library, string folder)
@@ -109,7 +109,7 @@ namespace SnpEvolution.Storage
             PartFile? file;
             try
             {
-                file = JsonConvert.DeserializeObject<PartFile>(json);
+                file = Json.Read<PartFile>(json);
             }
             catch (Exception exception) when (exception is JsonException || exception is ArgumentException)
             {
@@ -124,7 +124,7 @@ namespace SnpEvolution.Storage
                 throw new InvalidDataException($"Part file '{name}' has a malformed contract: {string.Join(" ", problems)}");
             }
             Contract? given = ArithmeticParts.Known.FirstOrDefault(contract => contract.Name == file.Contract.Name);
-            if (given != null && given.ToJson() != file.Contract.ToJson())
+            if (given != null && !given.SameAs(file.Contract))
             {
                 throw new InvalidDataException($"Part file '{name}' changes the contract '{given.Name}'.");
             }
@@ -153,13 +153,13 @@ namespace SnpEvolution.Storage
             PartMeasurement measurement;
             try
             {
-                measurement = PartEvolution.Measure(part.Network, part.Task());
+                measurement = new Verifier(part.Task()).Measure(part.Network);
             }
             catch (ArgumentException exception)
             {
                 throw new InvalidDataException($"Part file '{name}' does not fit its contract: {exception.Message}");
             }
-            if (!measurement.MeetsContract)
+            if (measurement.Verdict is not Verdict.Passed)
             {
                 throw new InvalidDataException($"Part file '{name}' fails its contract '{file.Contract.Name}': {measurement.Description.Replace(Environment.NewLine, "; ")}.");
             }
@@ -167,7 +167,7 @@ namespace SnpEvolution.Storage
             {
                 throw new InvalidDataException($"Part file '{name}' fails its contract '{file.Contract.Name}' at {input}, as its bounded check found.");
             }
-            return LibraryPart.Of(part, measurement, file.Origin) with { Recipe = file.Recipe, Proven = file.Proven };
+            return measurement.ToLibraryPart(part, file.Origin) with { Recipe = file.Recipe, Proven = file.Proven };
         }
 
         // Cost and Latency are written for readers of the folder; loading measures them again. Proven is kept as written,

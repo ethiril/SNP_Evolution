@@ -43,9 +43,14 @@ namespace SnpEvolution.Evolution.Contracts
     // Done names the done port that should fire, which for a part with branches (a zero test) says which branch is right.
     public sealed record ContractCase(IReadOnlyDictionary<string, int> Inputs, IReadOnlyDictionary<string, int> Outputs, string Done)
     {
+        public bool SameAs(ContractCase other) => Done == other.Done && Same(Inputs, other.Inputs) && Same(Outputs, other.Outputs);
+
         // Inputs as "n=3" or "a=1,b=2", in the given port order; empty when the part has no data in-ports.
         public string Label(IEnumerable<Port> inPorts) =>
             string.Join(",", inPorts.Where(port => Inputs.ContainsKey(port.Name)).Select(port => $"{port.Name}={Inputs[port.Name]}"));
+
+        private static bool Same(IReadOnlyDictionary<string, int> first, IReadOnlyDictionary<string, int> second) =>
+            first.Count == second.Count && first.All(pair => second.TryGetValue(pair.Key, out int value) && value == pair.Value);
     }
 
     // MinLatency lets a timer such as a delay demand that done fires no sooner than a given step. OrderedTriggers makes the
@@ -66,10 +71,11 @@ namespace SnpEvolution.Evolution.Contracts
         [JsonIgnore]
         public IEnumerable<Port> DataOut => Data.Where(port => port.Direction == PortDirection.Out);
 
-        public static Contract FromJson(string json) =>
-            JsonConvert.DeserializeObject<Contract>(json) ?? throw new FormatException("The JSON holds no contract.");
-
-        public string ToJson() => JsonConvert.SerializeObject(this, Formatting.Indented);
+        // Whether the other contract says the same: name, ports, latencies and every case, in order.
+        public bool SameAs(Contract other) =>
+            Name == other.Name && Start == other.Start && Done.SequenceEqual(other.Done) && Data.SequenceEqual(other.Data)
+            && MaxLatency == other.MaxLatency && MinLatency == other.MinLatency && OrderedTriggers == other.OrderedTriggers
+            && Cases.Count == other.Cases.Count && Cases.Zip(other.Cases).All(pair => pair.First.SameAs(pair.Second));
 
         // A malformed contract would otherwise only show up as a part that never scores, so each problem names the port or case at fault.
         public IReadOnlyList<string> Problems()

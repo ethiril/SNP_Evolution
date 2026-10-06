@@ -1,5 +1,8 @@
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
 using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
@@ -51,7 +54,7 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
 
-            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add)!;
+            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add).Module!;
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);
             LibraryPart addTwo = loaded.PartFor("add 2")!.Part!;
@@ -85,7 +88,7 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 5);
 
-            Module? promoted = Promotion.Promote(chain, ArithmeticParts.AddConstant(5), binding, library, Origin, log.Add);
+            Module? promoted = Promotion.Promote(chain, CatalogueEntry.Of(Specifications.AddConstant(5), FirstParts.Each(FirstParts.Values)).Contract, binding, library, Origin, log.Add).Module;
 
             Assert.NotNull(promoted);
             Assert.True(promoted!.Body.Neurons.Count > ModuleLibrary.MaxModuleNeurons);
@@ -98,9 +101,10 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
 
-            Module? promoted = Promotion.Promote(chain, FirstParts.Named("increment"), binding, library, Origin, log.Add);
+            Promoted promoted = Promotion.Promote(chain, FirstParts.Named("increment"), binding, library, Origin, log.Add);
 
-            Assert.Null(promoted);
+            Assert.Equal(ContractRule.DoneOnce, Assert.IsType<Verdict.Failed>(promoted.Verdict).Counterexample.Rule);
+            Assert.Null(promoted.Module);
             Assert.Single(library.Parts);
             Assert.Contains(log, line => line.Contains("fails the contract"));
         }
@@ -111,9 +115,9 @@ namespace SnpEvolution.Tests.Evolution
         {
             (ModuleLibrary library, Module increment) = Increments();
             (Composition two, PortBinding twoBinding) = Chain(library, increment, 2);
-            Module addTwo = Promotion.Promote(two, ArithmeticParts.AddTwo(), twoBinding, library, Origin, log.Add)!;
+            Module addTwo = Promotion.Promote(two, ArithmeticParts.AddTwo(), twoBinding, library, Origin, log.Add).Module!;
             (Composition four, PortBinding fourBinding) = Chain(library, addTwo, 2);
-            Promotion.Promote(four, ArithmeticParts.AddConstant(4), fourBinding, library, Origin, log.Add);
+            Promotion.Promote(four, CatalogueEntry.Of(Specifications.AddConstant(4), FirstParts.Each(FirstParts.Values)).Contract, fourBinding, library, Origin, log.Add);
 
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);

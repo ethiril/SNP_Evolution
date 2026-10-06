@@ -5,9 +5,12 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli
 {
@@ -41,14 +44,7 @@ namespace SnpEvolution.Cli
         public static readonly SavedRuns Default = new SavedRuns(System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SNP_Evolution", "saved-runs.json"));
 
-        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented,
-            ObjectCreationHandling = ObjectCreationHandling.Replace,
-            ContractResolver = new SettableOnlyResolver(),
-            Converters = { new StringEnumConverter(), new CatalogEntryConverter() },
-        };
-
+        private static readonly JsonSerializerSettings JsonSettings = SavedRunSettings();
         public SavedRuns(string path)
         {
             Path = path;
@@ -101,7 +97,16 @@ namespace SnpEvolution.Cli
         }
 
         // Leaves out the settings worked out from others, such as the selected task or simulation options.
-        private sealed class SettableOnlyResolver : DefaultContractResolver
+        private static JsonSerializerSettings SavedRunSettings()
+        {
+            JsonSerializerSettings settings = Json.Settings(new SettableOnlyResolver());
+            settings.ObjectCreationHandling = ObjectCreationHandling.Replace;
+            settings.Converters.Add(new StringEnumConverter());
+            settings.Converters.Add(new CatalogEntryConverter());
+            return settings;
+        }
+
+        private sealed class SettableOnlyResolver : Json.Resolver
         {
             protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) =>
                 base.CreateProperties(type, memberSerialization).Where(property => property.Writable || type != typeof(Settings)).ToList();

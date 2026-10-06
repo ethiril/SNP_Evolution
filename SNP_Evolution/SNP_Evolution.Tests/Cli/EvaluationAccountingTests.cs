@@ -1,8 +1,11 @@
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
@@ -81,7 +84,7 @@ namespace SnpEvolution.Tests.Cli
             try
             {
                 var library = new ModuleLibrary();
-                library.AddPart(LibraryPart.Of(ReferenceParts.Delay(2), PartEvolution.Measure(ReferenceParts.Delay(2)), new PartOrigin(1, "a test", 1234)), "a test");
+                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2)).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", 1234)), "a test");
                 PartLibraryFiles.Save(library, folder);
                 Settings settings = Stalling(5);
                 settings.Modules = false;

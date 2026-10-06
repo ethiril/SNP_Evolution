@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using SnpEvolution.Evolution;
+using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Fitness;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Proposals;
+using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -179,7 +184,7 @@ namespace SnpEvolution.Cli
             IGeneticAlgorithm run = CreateAlgorithm(evaluator);
             RunGenerations(settings, evaluations, run, best =>
             {
-                if (!FitnessEvaluator.IsSolvingFitness(best.Fitness))
+                if (!Solved.Solves(best.Fitness))
                 {
                     return false;
                 }
@@ -198,7 +203,7 @@ namespace SnpEvolution.Cli
         public static bool IsSolved(IGeneticAlgorithm geneticAlgorithm, ITask? task = null) =>
             geneticAlgorithm is IterativeEvolution iterative
                 ? iterative.IsComplete
-                : geneticAlgorithm.Best is Individual best && FitnessEvaluator.IsSolvingFitness(best.Fitness) && best.Fitness >= (task?.SolvedFitness ?? 0);
+                : geneticAlgorithm.Best is Individual best && Solved.Solves(best.Fitness, task);
 
         // The algorithm doing the work, without the stages, modules and stagnation recovery around it.
         public static IGeneticAlgorithm Unwrap(IGeneticAlgorithm geneticAlgorithm) => geneticAlgorithm switch
@@ -262,7 +267,7 @@ namespace SnpEvolution.Cli
                 log($"Current best fitness: {best.Fitness}");
                 if (isSolved(best))
                 {
-                    log($"Fitness over {FitnessEvaluator.SolvedThreshold}, stopping . . .");
+                    log($"Fitness over {Solved.Sampled}, stopping . . .");
                     return;
                 }
             }

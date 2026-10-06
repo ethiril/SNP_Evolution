@@ -1,10 +1,10 @@
-using SnpEvolution.Evolution;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Operators;
-using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Evolution.Search;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
-using SnpEvolution.Simulation;
 using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Evolution.ModuleFixtures;
 using static SnpEvolution.Tests.TestNetworks;
@@ -106,8 +106,8 @@ namespace SnpEvolution.Tests.Evolution
                 var library = new ModuleLibrary();
                 library.Add(ModuleCuts.Whole(Chain()), "a test");
                 library.Add(ModuleCuts.Cut(Chain(), new[] { 1 }), "a test");
-                Part increment = seed % 2 == 0 ? ReferenceParts.Increment() : ReferenceParts.PaddedIncrement();
-                library.AddPart(LibraryPart.Of(increment, PartEvolution.Measure(increment), new PartOrigin(1, "a test", 0)), "a test");
+                Part increment = seed % 2 == 0 ? ReferenceParts.Increment() : PartFixtures.PaddedIncrement();
+                library.AddPart(Verifier.Measure(increment).ToLibraryPart(increment, new PartOrigin(1, "a test", 0)), "a test");
                 WeightedMutation mutation = WeightedMutation.Structural(1, factory, modules: new ModuleSupport(library));
                 Network network = factory.NewNetwork();
                 for (int step = 0; step < 150; step++)

@@ -68,7 +68,7 @@ namespace SnpEvolution.Tests.Cli
 
                 Assert.Equal(0, exit);
                 var part = SnpEvolution.Storage.PartLibraryFiles.Read(File.ReadAllText(Path.Combine(folder, "delay-1.json")), "delay-1.json");
-                Assert.Empty(SnpEvolution.Evolution.HardwareProfile.Problems(part.Part.Network));
+                Assert.Empty(SnpEvolution.Networks.HardwareProfile.Problems(part.Part.Network));
                 Assert.EndsWith("--profile hardware", part.Origin.Run);
             }
             finally
