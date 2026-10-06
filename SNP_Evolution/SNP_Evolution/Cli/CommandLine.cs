@@ -7,6 +7,7 @@ using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli
 {
@@ -16,14 +17,17 @@ namespace SnpEvolution.Cli
     //   evolve --target VALUES [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]
     //          [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]
     //          [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]
-    //          [--triggered on|off] [--incubate N]
+    //          [--triggered on|off] [--incubate N] [--evaluations N] [--library DIR] [--max-parts N] [--glue N] [--glue-weight X]
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
     //   compile --target VALUES [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--population N] [--seed N]:
     //          compiles a recurrence (sequence) or register program (set, evolved unless --program gives one), then shrinks it
     //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on]:
     //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for
+    //   reach --target VALUES --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [any evolve option]:
+    //          runs each setup on seeds 1..N with the same budget and compares how far into the target they get
     //   tasks | algorithms
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
+    // Composition search builds from the part library in --library DIR, or the settings' part library folder.
     // NAME matches any task or algorithm whose name contains it, ignoring case.
     internal static class CommandLine
     {
@@ -33,9 +37,10 @@ namespace SnpEvolution.Cli
             "       snp-evolution evolve --target \"1,1,2,3,5,8,13\" [--kind set|sequence|binary] [--generations N] [--population N] [--algorithm NAME] [--seed N]\n" +
             "                    [--neurons N] [--iterative on|off] [--patience N] [--advise on] [--pilot on]\n" +
             "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
-            "                    [--triggered on|off] [--incubate N]\n" +
+            "                    [--triggered on|off] [--incubate N] [--evaluations N] [--library DIR] [--max-parts N] [--glue N] [--glue-weight X]\n" +
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
             "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]\n" +
+            "       snp-evolution reach --target \"1,1,2,3,5,8,13\" --evaluations N [--setups flat,modules,composition] [--seeds N] [--charge-parts on|off] [evolve options]\n" +
             "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on]";
 
         public static int Run(string[] args)
@@ -53,8 +58,14 @@ namespace SnpEvolution.Cli
                 PopulationSize = (int)Number(options, "population", settings.BenchmarkPopulationSize),
                 CreateEngine = Engine(options),
             };
-            List<BenchmarkTask> tasks = Matching(TaskSuite.All, task => task.Name, options.GetValueOrDefault("task"));
             List<AlgorithmChoice> algorithms = Matching(AlgorithmCatalog.All, algorithm => algorithm.Name, options.GetValueOrDefault("algorithm"));
+            if (args[0].ToLowerInvariant() is "benchmark" or "select" && algorithms.Any(algorithm => AlgorithmCatalog.IsComposition(algorithm.Name)))
+            {
+                string folder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
+                benchmark = benchmark with { Parts = PartLibraryFiles.Load(folder).Parts.Select(module => module.Part!).ToList() };
+                Console.Error.WriteLine($"Composition search builds from {benchmark.Parts.Count} part(s) in {folder}.");
+            }
+            List<BenchmarkTask> tasks = Matching(TaskSuite.All, task => task.Name, options.GetValueOrDefault("task"));
             switch (args[0].ToLowerInvariant())
             {
                 case "evolve":
@@ -65,6 +76,8 @@ namespace SnpEvolution.Cli
                     return Compile(options);
                 case "evolve-parts":
                     return EvolveParts(options, settings);
+                case "reach":
+                    return Reach(options, args);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;
@@ -117,8 +130,9 @@ namespace SnpEvolution.Cli
             {
                 Console.WriteLine(note);
             }
-            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine);
-            EvolutionSession.Save(geneticAlgorithm, EvolutionSession.NewOutputFolder(), "TargetNet", Console.WriteLine);
+            var evaluations = new EvaluationCounter();
+            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine, evaluations);
+            EvolutionSession.Save(geneticAlgorithm, EvolutionSession.NewOutputFolder(), "TargetNet", Console.WriteLine, evaluations);
             return EvolutionSession.IsSolved(geneticAlgorithm) ? 0 : 2;
         }
 
@@ -164,6 +178,27 @@ namespace SnpEvolution.Cli
             return PartsSession.Run(parts, Console.WriteLine);
         }
 
+        private static int Reach(IReadOnlyDictionary<string, string> options, string[] args)
+        {
+            if (TargetSettings(options) is not Settings settings)
+            {
+                return 1;
+            }
+            IReadOnlyList<ReachSession.Setup> setups = ReachSession.Setups;
+            if (options.GetValueOrDefault("setups") is string named)
+            {
+                string[] names = named.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (names.FirstOrDefault(name => ReachSession.Setups.All(setup => setup.Name != name)) is string unknown)
+                {
+                    Console.Error.WriteLine($"No setup is called '{unknown}'. The setups are: {string.Join(", ", ReachSession.Setups.Select(setup => setup.Name))}.");
+                    return 1;
+                }
+                setups = names.Select(name => ReachSession.Setups.Single(setup => setup.Name == name)).ToList();
+            }
+            string command = "dotnet run -- " + string.Join(" ", args.Select(arg => arg.Contains(' ') || arg.Contains(',') ? $"\"{arg}\"" : arg));
+            return ReachSession.Run(settings, setups, (int)Number(options, "seeds", 10), Switch(options, "charge-parts", true), command, Console.WriteLine);
+        }
+
         private static int Advise(IReadOnlyDictionary<string, string> options)
         {
             if (TargetSettings(options) is not Settings settings)
@@ -188,7 +223,7 @@ namespace SnpEvolution.Cli
             if (kind == null || !options.TryGetValue("target", out string? values) || !OutputTarget.TryParse(kind.Value, values, out OutputTarget target))
             {
                 Console.Error.WriteLine(Usage);
-                Console.Error.WriteLine("evolve, advise and compile need a --target of positive numbers, or of 0s and 1s with --kind binary.");
+                Console.Error.WriteLine("evolve, advise, compile and reach need a --target of positive numbers, or of 0s and 1s with --kind binary.");
                 return null;
             }
             var settings = new Settings { Target = target, Task = Catalog.TargetTask };
@@ -197,7 +232,7 @@ namespace SnpEvolution.Cli
         }
 
         // The evolve options that were given, which also win over the advisor's suggestions.
-        private static void ApplyOptions(Settings settings, IReadOnlyDictionary<string, string> options)
+        internal static void ApplyOptions(Settings settings, IReadOnlyDictionary<string, string> options)
         {
             settings.MaxGenerations = (int)Number(options, "generations", settings.MaxGenerations);
             settings.PopulationSize = (int)Number(options, "population", settings.PopulationSize);
@@ -209,6 +244,16 @@ namespace SnpEvolution.Cli
             settings.FreezeModules = Switch(options, "freeze", settings.FreezeModules);
             settings.TriggeredModules = Switch(options, "triggered", settings.TriggeredModules);
             settings.ModuleIncubation = (int)Number(options, "incubate", settings.ModuleIncubation);
+            settings.MaxEvaluations = Number(options, "evaluations", settings.MaxEvaluations);
+            settings.PartLibraryFolder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
+            settings.Composition = settings.Composition with
+            {
+                MaxParts = (int)Number(options, "max-parts", settings.Composition.MaxParts),
+                MaxGlue = (int)Number(options, "glue", settings.Composition.MaxGlue),
+                GlueEdits = options.TryGetValue("glue-weight", out string? weight) && InputParsing.TryNonNegativeDouble(weight, out double glue)
+                    ? glue
+                    : settings.Composition.GlueEdits,
+            };
             if (options.GetValueOrDefault("module-files") is string files)
             {
                 settings.ModuleFiles = files.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

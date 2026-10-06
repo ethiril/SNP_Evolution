@@ -354,8 +354,9 @@ namespace SnpEvolution.Cli
                 return;
             }
             Settings used = settings.Copy();
-            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, createStartingNetwork, random, Console.WriteLine);
-            EvolutionSession.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine);
+            var evaluations = new EvaluationCounter();
+            IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, createStartingNetwork, random, Console.WriteLine, evaluations);
+            EvolutionSession.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine, evaluations);
             ConsoleUi.WaitForEnter("Press enter to continue.");
             OfferToSave(used, start, fileStem, savedName ?? $"{task.Name} ({DateTime.Now:yyyy-MM-dd HH:mm})", Outcome(geneticAlgorithm));
         }

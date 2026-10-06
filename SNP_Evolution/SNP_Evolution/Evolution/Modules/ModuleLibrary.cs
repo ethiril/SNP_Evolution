@@ -145,8 +145,22 @@ namespace SnpEvolution.Evolution.Modules
             }
         }
 
+        // A library holding just the parts, as a run that builds from a saved part library starts with.
+        public static ModuleLibrary Of(IEnumerable<LibraryPart> parts, Action<string>? log = null)
+        {
+            var library = new ModuleLibrary(log: log);
+            foreach (LibraryPart part in parts)
+            {
+                library.AddPart(part, part.Origin.Run);
+            }
+            return library;
+        }
+
         // The contract parts kept, in the order they were first added.
         public IReadOnlyList<Module> Parts => Modules.Where(module => module.Part != null).ToList();
+
+        // What evolving the parts kept cost, as each part's origin records it.
+        public long PartEvaluations => Parts.Sum(module => module.Part?.Origin.Evaluations ?? 0);
 
         // The whole part network, with its input neurons as the cut's inputs and its port neurons as the outputs.
         internal static Cut CutOf(Part part)

@@ -204,6 +204,11 @@ namespace SnpEvolution.Cli
                     ConsoleUi.Row("Triggered modules", settings.TriggeredModules ? "on" : "off"),
                     ConsoleUi.Row("Module incubation", settings.ModuleIncubation),
                     ConsoleUi.Row("Module files", settings.ModuleFiles.Count == 0 ? "none" : string.Join(", ", settings.ModuleFiles.Select(System.IO.Path.GetFileName))),
+                    ConsoleUi.Row("Evaluation budget", settings.MaxEvaluations > 0 ? settings.MaxEvaluations.ToString() : "none"),
+                    ConsoleUi.Row("Part library folder", settings.PartLibraryFolder),
+                    ConsoleUi.Row("Composition: most part copies", settings.Composition.MaxParts),
+                    ConsoleUi.Row("Composition: glue edit weight", settings.Composition.GlueEdits),
+                    ConsoleUi.Row("Composition: most glue neurons", settings.Composition.MaxGlue > 0 ? settings.Composition.MaxGlue.ToString() : "max neurons"),
                 }, selection) is int choice)
             {
                 selection = choice;
@@ -253,6 +258,33 @@ namespace SnpEvolution.Cli
                         break;
                     case 14:
                         EditModuleFiles(settings);
+                        break;
+                    case 15:
+                        PromptFor<long>("Evaluations a run may spend, side runs and retests included, or 0 for no limit", "Number was not a whole number of 0 or more.",
+                            InputParsing.TryNonNegativeLong, value => settings.MaxEvaluations = value);
+                        break;
+                    case 16:
+                        ConsoleUi.PromptUntilAccepted("Folder of saved parts that composition search builds from", "Give a folder.", input =>
+                        {
+                            if (string.IsNullOrWhiteSpace(input))
+                            {
+                                return false;
+                            }
+                            settings.PartLibraryFolder = input.Trim();
+                            return true;
+                        }, "evolve-parts saves its parts here.");
+                        break;
+                    case 17:
+                        PromptFor<int>("Most part copies a composed network may hold", NotPositiveInteger, InputParsing.TryPositiveInt,
+                            value => settings.Composition = settings.Composition with { MaxParts = value });
+                        break;
+                    case 18:
+                        PromptFor<double>("Weight of glue edits against part edits (1 is the default)", "Number was not 0 or more.", InputParsing.TryNonNegativeDouble,
+                            value => settings.Composition = settings.Composition with { GlueEdits = value });
+                        break;
+                    case 19:
+                        PromptFor<int>("Most glue neurons a composed network may hold, or 0 for the max neurons setting", NotNonNegativeInteger, InputParsing.TryNonNegativeInt,
+                            value => settings.Composition = settings.Composition with { MaxGlue = value });
                         break;
                 }
             }

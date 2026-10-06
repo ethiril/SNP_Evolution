@@ -18,7 +18,9 @@ namespace SnpEvolution.Evolution
         Action<string> Log,
         MutationPressure? Pressure = null,
         bool Lexicase = false,
-        ModuleSupport? Modules = null)
+        ModuleSupport? Modules = null,
+        ModuleLibrary? Parts = null,
+        CompositionMix? Composition = null)
     {
         public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure, Modules);
 
@@ -47,7 +49,25 @@ namespace SnpEvolution.Evolution
                     context.Lexicase ? new LexicaseSelection() : null)),
             new AlgorithmChoice("NEAT-style speciated", context =>
                 new SpeciatedAlgorithm(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator, new NeuronCrossover(), context.StructuralMutation(1))),
+            new AlgorithmChoice(CompositionPrefix + "MAP-Elites", context =>
+            {
+                CompositionSpace space = CompositionSpace.For(context);
+                return new MapElites(context.PopulationSize, context.Random, space.NewNetwork, context.Evaluator, new KeepFirstParent(), space.Mutation(1, context.Pressure),
+                    context.Lexicase ? new LexicaseSelection() : null);
+            }),
+            new AlgorithmChoice(CompositionPrefix + "tournament of 3", context =>
+            {
+                CompositionSpace space = CompositionSpace.For(context);
+                return new GeneticAlgorithm(context.PopulationSize, context.Random, space.NewNetwork, context.Evaluator,
+                    new GeneticOperators(context.Selection(new TournamentSelection(3)), new KeepFirstParent(), space.Mutation(Math.Max(context.MutationRate, 0.5f), context.Pressure)),
+                    Elitism, context.Log);
+            }),
         };
+
+        // Composition search builds every network from library parts and glue, whatever starting network the run was given.
+        public const string CompositionPrefix = "Composition search, ";
+
+        public static bool IsComposition(string algorithmName) => algorithmName.StartsWith(CompositionPrefix);
 
         private static GeneticAlgorithm Generational(EvolutionContext context, IParentSelection selection, ICrossover crossover, IMutation mutation) =>
             new GeneticAlgorithm(context.PopulationSize, context.Random, context.CreateStartingNetwork, context.Evaluator,

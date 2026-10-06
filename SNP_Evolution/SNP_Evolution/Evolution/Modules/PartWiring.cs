@@ -72,7 +72,7 @@ namespace SnpEvolution.Evolution.Modules
             }
         }
 
-        private static string BodyInside(LibraryPart part)
+        internal static string BodyInside(LibraryPart part)
         {
             Network body = ModuleLibrary.CutOf(part.Part).Body;
             return ModuleEdits.Inside(body, Enumerable.Range(1, body.Neurons.Count).ToList());
