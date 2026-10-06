@@ -84,8 +84,7 @@ namespace SnpEvolution.Evolution
         // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is.
         public bool IsReliablySolved(Network network) => FailedRetest(network) == null;
 
-        // IsReliablySolved for a network the run is holding: a failed retest becomes its score, so a lucky sample stops
-        // leading. Kept with the lucky score, an elite is never scored again, wins every generation and fails every retest.
+        // A failed retest becomes the individual's score, since an elite kept with a lucky score is never rescored and fails every retest.
         public bool ConfirmSolved(Individual individual)
         {
             if (FailedRetest(individual.Genes) is not FitnessResult failed)

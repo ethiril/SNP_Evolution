@@ -1,5 +1,6 @@
 using System.Xml;
 using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Export;
 using SnpEvolution.Networks;
 using SnpEvolution.Storage;
@@ -47,6 +48,29 @@ namespace SnpEvolution.Tests.Export
             Assert.Equal(UppaalExporter.ContractQueries.Select(query => query.Name).Append("every neuron holds what our engine's run holds, on every step"), model.QueryNames);
             Assert.Contains(UppaalExporter.TraceQuery, model.Queries);
             Assert.Contains("system Clock, N1, N2;", model.Model);
+        }
+
+        [Fact]
+        public void TheRegisterModelStartsAndReadsEachCaseAsTheEngineDoes()
+        {
+            Part register = HandBuiltParts.All().Single(part => part.Contract.Name == "register");
+            var task = new ContractTask(register.Contract, register.Binding);
+
+            string model = UppaalExporter.Export(register).Model;
+
+            string starts = string.Join(", ", task.Cases.Select(@case => @case.Input.StepsPerInput[0][0]));
+            string outs = string.Join(", ", register.Contract.Cases.Select(@case => $"{{{@case.Outputs["out"]}}}"));
+            Assert.Contains($"const int START[CASES] = {{{starts}}};", model);
+            Assert.Contains($"const int EXPECTED_OUT[CASES][OUTS] = {{{outs}}};", model);
+            Assert.Contains($"const int AFTER_DONE = {register.Contract.MaxLatency};", model);
+        }
+
+        [Fact]
+        public void VerifytaVerdictsAreReadInQueryOrder()
+        {
+            string output = "Verifying formula 1 at /tmp/delay-2.q:2\n -- Formula is satisfied.\nVerifying formula 2 at /tmp/delay-2.q:4\n -- Formula is NOT satisfied.\n";
+
+            Assert.Equal(new[] { true, false }, Verifyta.Verdicts(output));
         }
 
         [Fact]

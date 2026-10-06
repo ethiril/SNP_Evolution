@@ -10,10 +10,7 @@ using static SnpEvolution.Cli.CommandOptions;
 
 namespace SnpEvolution.Cli
 {
-    // verify: proves every part in a library folder, or one part file, against its contract for every input up to a
-    // bound, raising the bound until --seconds per part run out or --bound is reached, and writes the bound into the
-    // part's file. --only takes contract names, each matching any part whose contract name contains it, ignoring case.
-    // Exits with 1 for a bad command or library, and 2 when a part has a counterexample, which is printed.
+    // verify: exits with 1 for a bad command or library and 2 when a part has a counterexample; --only matches any contract name containing it, ignoring case.
     internal static class VerifyCommand
     {
         internal const int Refuted = 2;
@@ -67,7 +64,8 @@ namespace SnpEvolution.Cli
                 throw new DirectoryNotFoundException($"There is no part library folder '{folder}'.");
             }
             ModuleLibrary library = PartLibraryFiles.Load(folder);
-            return library.Parts.Select(module => (module.Part!, Path.Combine(folder, PartLibraryFiles.FileName(module.Part!.Contract)))).ToList();
+            return library.Parts.Select(module => module.Part).OfType<LibraryPart>()
+                .Select(part => (part, Path.Combine(folder, PartLibraryFiles.FileName(part.Contract)))).ToList();
         }
     }
 }

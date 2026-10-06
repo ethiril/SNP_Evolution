@@ -44,9 +44,10 @@ namespace SnpEvolution.Tests.Cli
         {
             PartsSession.Run(Options("library"), _ => { });
 
-            var loaded = PartLibraryFiles.Load(Path.Combine(folder, "library")).Parts.Select(module => module.Part!.Contract.Name);
+            var loaded = PartLibraryFiles.Load(Path.Combine(folder, "library")).Parts.Select(module => module.Part!).ToList();
 
-            Assert.Equal(new[] { "delay 2", "delay 4" }, loaded.Order());
+            Assert.Equal(new[] { "delay 2", "delay 4" }, loaded.Select(part => part.Contract.Name).Order());
+            Assert.All(loaded, part => Assert.True(part.Proven?.AllInputs));
         }
 
         [Fact]

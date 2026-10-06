@@ -94,12 +94,16 @@ namespace SnpEvolution.Export
             File.WriteAllText(Path.Combine(folder, model.Name + ".q"), model.Queries);
             string program = Program ?? throw new InvalidOperationException(Missing);
             string output = ExternalTool.Run(program, $"-q \"{model.Name}.xml\" \"{model.Name}.q\"", folder);
-            List<bool> verdicts = output.Split('\n').Where(line => line.Contains("Formula is")).Select(line => !line.Contains("NOT")).ToList();
+            IReadOnlyList<bool> verdicts = Verdicts(output);
             if (verdicts.Count != model.QueryNames.Count)
             {
                 throw new InvalidOperationException($"verifyta gave {verdicts.Count} verdicts for {model.QueryNames.Count} queries:\n{output}");
             }
             return verdicts;
         }
+
+        // Whether each query holds, from verifyta's "Formula is satisfied" and "Formula is NOT satisfied" lines.
+        public static IReadOnlyList<bool> Verdicts(string output) =>
+            output.Split('\n').Where(line => line.Contains("Formula is")).Select(line => !line.Contains("NOT")).ToList();
     }
 }

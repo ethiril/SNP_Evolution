@@ -45,15 +45,15 @@ namespace SnpEvolution.Evolution.Tasks
             InputCount = 1 + contract.DataIn.Count();
             dataOut = contract.DataOut.ToList();
             // Running on for the maximum latency again shows a second done or a part that is still busy.
-            int stepsAfterDone = dataOut.Where(port => port.Kind == PortKind.Binary).Select(port => port.Width).DefaultIfEmpty(0).Max() + contract.MaxLatency;
+            StepsAfterDone = dataOut.Where(port => port.Kind == PortKind.Binary).Select(port => port.Width).DefaultIfEmpty(0).Max() + contract.MaxLatency;
             var watch = new PortWatch(
                 PortBinding.OutPorts(contract).Select(port => Binding[port.Name]).ToList(),
                 contract.Done.Select(port => Binding[port.Name]).ToList(),
-                stepsAfterDone);
+                StepsAfterDone);
             List<EncodedCase> encoded = contract.Cases.Select(@case => PortEncoding.ForCase(contract, @case, QuietSteps)).ToList();
             startSteps = encoded.Select(@case => @case.StartStep).ToList();
             Cases = encoded.Select(@case => new TaskCase(@case.Input, Readout.Ports, watch)).ToList();
-            StepsNeeded = startSteps.Max() + 1 + contract.MaxLatency + stepsAfterDone + 1;
+            StepsNeeded = startSteps.Max() + 1 + contract.MaxLatency + StepsAfterDone + 1;
         }
 
         public Contract Contract { get; }
@@ -73,6 +73,11 @@ namespace SnpEvolution.Evolution.Tasks
         public IReadOnlyList<TaskCase> Cases { get; }
 
         public int StepsNeeded { get; }
+
+        public int StepsAfterDone { get; }
+
+        // The step each case sends its start spike on.
+        public IReadOnlyList<int> StartSteps => startSteps;
 
         // A part either meets its contract or does not: one neuron left holding a spike means it cannot be started again.
         public float SolvedFitness => 1f;

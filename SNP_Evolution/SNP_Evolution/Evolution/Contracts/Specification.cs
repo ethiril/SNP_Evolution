@@ -39,8 +39,7 @@ namespace SnpEvolution.Evolution.Contracts
                 .Select(pair => !specification.InDomain(pair.@case.Inputs) ? $"case {pair.index + 1} is outside the specification's domain"
                     : !SameCase(specification.Expected(pair.@case.Inputs), pair.@case) ? $"case {pair.index + 1} expects other outputs than the specification"
                     : null)
-                .Where(problem => problem != null)
-                .Select(problem => problem!)
+                .OfType<string>()
                 .ToList();
 
         private static bool SameCase(ContractCase expected, ContractCase given) =>

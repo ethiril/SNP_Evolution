@@ -26,17 +26,12 @@ namespace SnpEvolution.Evolution.Contracts
         public override string ToString() => $"Counterexample at {Inputs}: {Check} fails. Expected {Expected}; read {Read}.\n{Trace}";
     }
 
-    public sealed record BoundedResult(ProvenBound Proven, Counterexample? Counterexample)
-    {
-        public bool Refuted => Counterexample != null;
-    }
+    public sealed record BoundedResult(ProvenBound Proven, Counterexample? Counterexample);
 
     // MaxBound stops the check at a bound even with time to spare. A bound started before the time runs out is finished.
     public sealed record ProofLimits(TimeSpan Time, int MaxBound = int.MaxValue, int MaxConfigurations = PartEvolution.VerifyConfigurations);
 
-    // Proves a part meets its contract for every input up to a bound N, raising N until the time runs out. Each bound
-    // runs the inputs whose largest value is N, on the exhaustive engine, with the latency the specification allows at N;
-    // a case too wide to follow exactly is not proven, since sampling is not proof.
+    // A case too wide for the exhaustive engine to follow exactly stops the proof, since sampling is not proof.
     public static class BoundedCheck
     {
         // A part entering the library is checked up to twice the largest value its cases test, where a composition built
@@ -76,11 +71,12 @@ namespace SnpEvolution.Evolution.Contracts
                     var task = new ContractTask(atBound, part.Binding);
                     var options = new SimulationOptions(task.StepsNeeded, Repetitions, OutputTiming.Interval);
                     IReadOnlyList<TrialResult> results = engine.Run(task.Cases.Select(@case => new Trial(part.Network, @case.Input, @case.Readout, @case.Watch)).ToList(), options, new Random(0));
-                    if (results.Select((result, index) => (result, index)).FirstOrDefault(pair => !pair.result.Exact) is { result: not null } inexact)
+                    int inexact = results.ToList().FindIndex(result => !result.Exact);
+                    if (inexact >= 0)
                     {
-                        return Stop(proven, $"{Label(atBound, inexact.index)} has too many computations to follow exactly");
+                        return Stop(proven, $"{Label(atBound, inexact)} has too many computations to follow exactly");
                     }
-                    int failing = task.Checks(results).Select((score, check) => (score, check)).Where(pair => pair.score < 1).Select(pair => pair.check).DefaultIfEmpty(-1).First();
+                    int failing = task.Checks(results).ToList().FindIndex(score => score < 1);
                     if (failing >= 0)
                     {
                         string input = Label(atBound, failing / ContractTask.RuleCount);
@@ -96,7 +92,6 @@ namespace SnpEvolution.Evolution.Contracts
             return Stop(proven, $"bound {limits.MaxBound} reached");
         }
 
-        // Admission limits: twice the largest value the contract's cases test, in at most AdmissionTime.
         public static ProofLimits Admission(Contract contract) =>
             new ProofLimits(AdmissionTime, 2 * contract.Cases.SelectMany(@case => @case.Inputs.Values).DefaultIfEmpty(0).Max());
 
@@ -144,7 +139,8 @@ namespace SnpEvolution.Evolution.Contracts
         {
             int caseIndex = check / ContractTask.RuleCount;
             ContractCase @case = task.Contract.Cases[caseIndex];
-            PortRun run = task.FailingRun(results, check)!;
+            // A failing check always has a failing computation; the first is only a fallback the types ask for.
+            PortRun run = task.FailingRun(results, check) ?? results[caseIndex].PortRuns[0];
             string expected = string.Join(",", new[] { @case.Done }.Concat(@case.Outputs.Select(pair => $"{pair.Key}={pair.Value}")));
             string name = task.CheckName(check);
             string rule = name[(name.IndexOf(": ", StringComparison.Ordinal) + 2)..];

@@ -29,6 +29,26 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        public void ExportUppaalWritesTheModelAndItsQueries()
+        {
+            string folder = Folder();
+            try
+            {
+                int exit = CommandLine.Run(new[] { "export-uppaal", "--part", Path.Combine(Repository, "parts", "delay-2.json"), "--out", folder, "--check", "off" });
+
+                Assert.Equal(0, exit);
+                Assert.All(new[] { "delay-2.xml", "delay-2.q" }, file => Assert.True(File.Exists(Path.Combine(folder, file)), file));
+            }
+            finally
+            {
+                if (Directory.Exists(folder))
+                {
+                    Directory.Delete(folder, recursive: true);
+                }
+            }
+        }
+
+        [Fact]
         public void ExportNirRefusesAPartOutsideTheProfile()
         {
             string folder = Folder();

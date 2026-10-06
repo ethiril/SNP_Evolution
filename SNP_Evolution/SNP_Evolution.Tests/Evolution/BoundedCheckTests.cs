@@ -75,6 +75,19 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void ANondeterministicCounterexampleShowsTheFailingComputation()
+        {
+            Part delay = ReferenceParts.Delay(2);
+            Neuron start = delay.Network.Neurons[0];
+            var sometimesTwice = delay with { Network = new Network(new[] { start.WithRules(new[] { Rule.Standard("a", 1, 1), Rule.Standard("a", 1, 2) }), delay.Network.Neurons[1] }) };
+
+            Counterexample counterexample = Assert.IsType<Counterexample>(BoundedCheck.Prove(sometimesTwice, AMinute).Counterexample);
+
+            Assert.NotEqual(counterexample.Expected, counterexample.Read);
+            Assert.StartsWith("Port firings of the failing computation", counterexample.Trace);
+        }
+
+        [Fact]
         public void APartIsNotAdmittedWhenItFailsWithinTwiceItsLargestCase()
         {
             var log = new List<string>();

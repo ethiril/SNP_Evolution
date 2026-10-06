@@ -95,7 +95,9 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(ProposalSource.FailingChecks, proposal.Source);
             Assert.Equal(ProposalOutcome.Solved, proposal.Outcome);
             Assert.StartsWith("delay ", proposal.Contract.Name);
-            Assert.Equal(proposal.Contract.Name, library.Find(proposal.Module!.Value)!.Part!.Contract.Name);
+            LibraryPart proposed = library.Find(proposal.Module!.Value)!.Part!;
+            Assert.Equal(proposal.Contract.Name, proposed.Contract.Name);
+            Assert.True(proposed.Proven?.AllInputs);
             Assert.Contains(log, line => line.StartsWith("Proposal generation") && line.Contains("solved in"));
             Assert.Contains("1 solved", proposals.Describe());
         }

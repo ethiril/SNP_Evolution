@@ -34,6 +34,32 @@ namespace SnpEvolution.Tests.Cli
         }
 
         [Fact]
+        public void OnlyVerifiesThePartsWhoseContractNamesMatch()
+        {
+            string folder = Folder();
+            Directory.CreateDirectory(folder);
+            try
+            {
+                foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
+                {
+                    LibraryPart unproven = PartLibraryFiles.Read(File.ReadAllText(Path.Combine(Repository, "parts", file)), file) with { Proven = null };
+                    File.WriteAllText(Path.Combine(folder, file), PartLibraryFiles.ToJson(unproven));
+                }
+
+                int exit = CommandLine.Run(new[] { "verify", "--library", folder, "--only", "DELAY", "--seconds", "10" });
+
+                Assert.Equal(0, exit);
+                Dictionary<string, ProvenBound?> proven = PartLibraryFiles.Load(folder).Parts.Select(module => module.Part!).ToDictionary(part => part.Contract.Name, part => part.Proven);
+                Assert.NotNull(proven["delay 2"]);
+                Assert.Null(proven["sequencer 2"]);
+            }
+            finally
+            {
+                Directory.Delete(folder, recursive: true);
+            }
+        }
+
+        [Fact]
         public void VerifyExitsWithTwoAndRecordsTheCounterexample()
         {
             string folder = Folder();

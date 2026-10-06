@@ -135,10 +135,11 @@ namespace SnpEvolution.Cli
             File.WriteAllText(Path.Combine(folder, model.Name + ".xml"), model.Model);
             File.WriteAllText(Path.Combine(folder, model.Name + ".q"), model.Queries);
             Console.WriteLine($"Wrote {model.Name}.xml and {model.Name}.q to {folder}: {model.QueryNames.Count} queries over {part.Contract.Cases.Count} case(s).");
-            if (!Switch(options, "check", true))
-            {
-                return 0;
-            }
+            return Switch(options, "check", true) ? ModelCheck(model, folder) : 0;
+        }
+
+        private static int ModelCheck(UppaalModel model, string folder)
+        {
             if (!Verifyta.IsInstalled)
             {
                 Console.WriteLine($"Not model-checked: {Verifyta.Missing}");
