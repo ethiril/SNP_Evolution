@@ -64,6 +64,12 @@ namespace SnpEvolution.Tests.Networks
         }
 
         [Fact]
+        public void ALegacyRuleIsWrittenSendingOneWhateverItsProduce()
+        {
+            Assert.Equal("a+ -> a", NetworkNotation.Rule(new Rule("a+", 0, true, produce: 3)));
+        }
+
+        [Fact]
         public void TableMarksInputNeurons()
         {
             Assert.StartsWith("n1 (in)", NetworkNotation.Format(Identity()).Split(Environment.NewLine)[1]);

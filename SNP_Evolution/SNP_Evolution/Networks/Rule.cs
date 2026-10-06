@@ -6,7 +6,6 @@ namespace SnpEvolution.Networks
     // the neuron, as in the original program. A standard rule E/a^c -> a^p;d fires when the expression matches and the
     // neuron holds at least c spikes, consumes exactly c of them and sends p spikes along every synapse.
     // Either form can be axonal, which changes only what its delay means: see DelayKind.
-    // Every engine and exporter takes a rule's semantics from here: Applies, Sends and DelayKind.
     public sealed class Rule
     {
         public Rule([JsonProperty("RuleExpression")] string expression, int delay, bool fire, long? consume = null, int? produce = null, bool axonal = false)
@@ -71,8 +70,7 @@ namespace SnpEvolution.Networks
         [JsonIgnore]
         public string Key => $"{Expression}:{Delay}:{Fire}:{Consume}:{Produce}:{Axonal}";
 
-        // Whether the rule may be applied to a neuron holding this many spikes: its condition matches, and a standard rule
-        // also needs the spikes it consumes. CompiledNetwork.RuleApplies is this over flattened tables.
+        // A standard rule needs the spikes it consumes as well as a matching condition.
         public bool Applies(long spikes) => spikes >= LeastHeld && Condition.Matches(spikes);
 
         // What the neuron holds after applying the rule to these spikes, before anything arrives.

@@ -112,7 +112,7 @@ namespace SnpEvolution.Simulation
             inputNeurons = inputs.ToArray();
         }
 
-        // RuleConsume holds this for a legacy rule, which empties the neuron.
+        // The consume uploaded to the GPU for a legacy rule, which empties the neuron.
         public const long ConsumesAll = -1;
 
         public int NeuronCount { get; }
@@ -132,12 +132,8 @@ namespace SnpEvolution.Simulation
 
         public ReadOnlySpan<bool> RuleFires => ruleFires;
 
-        public ReadOnlySpan<long> RuleConsume => ruleConsume;
-
         // Spikes sent along each synapse when the rule is applied; 0 for a forgetting rule.
         public ReadOnlySpan<int> RuleProduce => ruleProduce;
-
-        public ReadOnlySpan<DelayKind> RuleDelayKind => ruleDelayKind;
 
         public ReadOnlySpan<int> AcceptStart => acceptStart;
 

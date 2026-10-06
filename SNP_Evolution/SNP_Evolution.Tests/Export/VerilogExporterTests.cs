@@ -110,6 +110,14 @@ namespace SnpEvolution.Tests.Export
         }
 
         [Fact]
+        public void FindsRulesThatOnlyCompeteOnceTheNeuronHoldsWhatTheyConsume()
+        {
+            var network = new Network(new[] { OutputNeuron(0, Standard("a+", 5), Standard("a+", 5, produce: 2)) });
+
+            Assert.Contains("when it holds 5 spike(s)", Assert.Single(SpikeTrace.Choices(network)));
+        }
+
+        [Fact]
         public void SizesCountersFromTheRegisterWidth()
         {
             Part register = ReferenceParts.Register();
