@@ -10,6 +10,19 @@ namespace SnpEvolution.Evolution.Contracts
         public ContractTask Task() => new ContractTask(Contract, Binding);
     }
 
+    // Where a library part came from: the seed its contract was evolved with, the run that found it, and the networks
+    // scored to find, shrink and verify it.
+    public sealed record PartOrigin(int Seed, string Run, long Evaluations);
+
+    // A verified part as the library keeps it, with what measuring it on its contract gave.
+    public sealed record LibraryPart(Part Part, HardwareCost Cost, int Latency, string Behaviour, PartOrigin Origin)
+    {
+        public Contract Contract => Part.Contract;
+
+        public static LibraryPart Of(Part part, PartMeasurement measurement, PartOrigin origin) =>
+            new LibraryPart(part, measurement.Cost, measurement.Latency, measurement.Behaviour, origin);
+    }
+
     // Hand-built parts, each with a copy broken in exactly one contract rule, built and bound the way evolved parts are.
     public static class ReferenceParts
     {

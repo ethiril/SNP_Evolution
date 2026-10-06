@@ -40,6 +40,28 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         // The done neuron fires on steps 0 to 4, but the run stops one step after the first of them.
+        // Neuron 3 holds the two spikes 2 sends it, the most any neuron holds.
+        [Theory]
+        [MemberData(nameof(Engines))]
+        public void RecordsTheMostSpikesAnyNeuronHeld(ISimulationEngine engine)
+        {
+            TrialResult result = engine.Run(new[] { LoopTrial() }, Options, new Random(1))[0];
+
+            Assert.All(result.PortRuns, run => Assert.Equal(2, run.MostHeld));
+        }
+
+        // A shrunken network can lose the neuron a port is bound to; that port then never fires.
+        [Theory]
+        [MemberData(nameof(Engines))]
+        public void APortPastTheLastNeuronNeverFires(ISimulationEngine engine)
+        {
+            var trial = new Trial(Loop(), InputSpikes.None, Readout.Ports, new PortWatch(new[] { 3, 5 }, new[] { 5 }, StepsAfterDone: 1));
+
+            TrialResult result = engine.Run(new[] { trial }, Options, new Random(1))[0];
+
+            Assert.All(result.PortRuns, run => Assert.Empty(run.Firings[1]));
+        }
+
         [Fact]
         public void TheRunStopsAfterTheFirstDoneNotTheLast()
         {

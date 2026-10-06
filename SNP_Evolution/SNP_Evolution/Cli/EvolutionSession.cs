@@ -16,8 +16,10 @@ namespace SnpEvolution.Cli
     // One evolution run with the current settings, shared by the menu and the evolve command.
     internal static class EvolutionSession
     {
+        public const string RunsFolder = "Test Data";
+
         public static string NewOutputFolder() =>
-            Path.Combine(Directory.GetCurrentDirectory(), (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond).ToString());
+            Path.Combine(Directory.GetCurrentDirectory(), RunsFolder, (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond).ToString());
 
         // What the user should know before evolving for this task: limits of the target and changed settings.
         public static IReadOnlyList<string> Notes(Settings settings, BenchmarkTask task)

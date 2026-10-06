@@ -11,7 +11,8 @@ namespace SnpEvolution.Evolution
     // how long a gap it can make, say) cells are behaviours, so stepping stones that are wrong for now but can do
     // something new are kept. Otherwise cells are sizes (neuron count by rule count), so one run maps out how fitness
     // trades against size and small networks are never crowded out by large ones. Parents are picked from the archive
-    // at random unless a selection is given, such as lexicase, which favours elites right about different parts.
+    // at random unless a selection is given, such as lexicase, which favours elites right about different parts. A cells
+    // function, such as one over hardware cost, replaces both.
     public sealed class MapElites : IGeneticAlgorithm
     {
         private const double CrossoverChance = 0.3;
@@ -23,15 +24,17 @@ namespace SnpEvolution.Evolution
         private readonly ICrossover crossover;
         private readonly IMutation mutation;
         private readonly IParentSelection? parents;
+        private readonly Func<Network, (int, int)>? cells;
         private readonly Dictionary<(bool Behaviour, int, int), Individual> archive = new Dictionary<(bool, int, int), Individual>();
         private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
         private List<Individual> elites = new List<Individual>();
         private List<Network> immigrants = new List<Network>();
 
         public MapElites(int batchSize, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, ICrossover crossover, IMutation mutation,
-            IParentSelection? parents = null)
+            IParentSelection? parents = null, Func<Network, (int, int)>? cells = null)
         {
             this.parents = parents;
+            this.cells = cells;
             this.batchSize = batchSize;
             this.random = random;
             this.createRandomNetwork = createRandomNetwork;
@@ -95,7 +98,7 @@ namespace SnpEvolution.Evolution
         {
             foreach (Individual candidate in candidates)
             {
-                (bool, int, int) cell = CellOf(candidate);
+                (bool, int, int) cell = cells?.Invoke(candidate.Genes) is (int first, int second) ? (false, first, second) : CellOf(candidate);
                 if (!archive.TryGetValue(cell, out Individual? incumbent) || Ranking.Compare(candidate, incumbent) <= 0)
                 {
                     archive[cell] = candidate;

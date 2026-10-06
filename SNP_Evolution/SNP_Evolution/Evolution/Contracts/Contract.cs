@@ -48,7 +48,8 @@ namespace SnpEvolution.Evolution.Contracts
             string.Join(",", inPorts.Where(port => Inputs.ContainsKey(port.Name)).Select(port => $"{port.Name}={Inputs[port.Name]}"));
     }
 
-    // MinLatency lets a timer such as a delay demand that done fires no sooner than a given step.
+    // MinLatency lets a timer such as a delay demand that done fires no sooner than a given step. OrderedTriggers makes the
+    // trigger out-ports that fire do so on rising steps in the order they are listed, as a sequencer's outputs must.
     public sealed record Contract(
         string Name,
         Port Start,
@@ -56,7 +57,8 @@ namespace SnpEvolution.Evolution.Contracts
         IReadOnlyList<Port> Data,
         IReadOnlyList<ContractCase> Cases,
         int MaxLatency,
-        int MinLatency = 0)
+        int MinLatency = 0,
+        bool OrderedTriggers = false)
     {
         [JsonIgnore]
         public IEnumerable<Port> DataIn => Data.Where(port => port.Direction == PortDirection.In);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Evolution;
 using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -19,6 +20,8 @@ namespace SnpEvolution.Cli
     //   advise --target VALUES [--kind ...] [any evolve option]: prints the suggested settings without evolving
     //   compile --target VALUES [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--population N] [--seed N]:
     //          compiles a recurrence (sequence) or register program (set, evolved unless --program gives one), then shrinks it
+    //   evolve-parts [--seed N] [--budget N] [--only NAME,NAME] [--library DIR] [--engine exact|sampled] [--redo on]:
+    //          evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for
     //   tasks | algorithms
     // Benchmarks use the exhaustive engine unless given --engine sampled; --configurations N caps its search width.
     // NAME matches any task or algorithm whose name contains it, ignoring case.
@@ -32,7 +35,8 @@ namespace SnpEvolution.Cli
             "                    [--lexicase on|off] [--modules on|off] [--freeze on|off] [--module-files a.json,b.json]\n" +
             "                    [--triggered on|off] [--incubate N]\n" +
             "       snp-evolution advise --target \"1,1,2,3,5,8,13\" [same options as evolve]\n" +
-            "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]";
+            "       snp-evolution compile --target \"1,1,2,3,5,8,13\" [--kind sequence|set] [--program FILE] [--generations N] [--lexicase on|off] [--shrink N] [--seed N]\n" +
+            "       snp-evolution evolve-parts [--seed N] [--budget N] [--only \"add,fan-out\"] [--library DIR] [--engine exact|sampled] [--redo on]";
 
         public static int Run(string[] args)
         {
@@ -59,6 +63,8 @@ namespace SnpEvolution.Cli
                     return Advise(options);
                 case "compile":
                     return Compile(options);
+                case "evolve-parts":
+                    return EvolveParts(options, settings);
                 case "tasks":
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;
@@ -129,6 +135,33 @@ namespace SnpEvolution.Cli
             int shrink = options.TryGetValue("shrink", out string? value) && int.TryParse(value, out int generations) && generations >= 0 ? generations : 300;
             var compile = new CompileSession.Options(shrink, (int)Number(options, "generations", 2000), options.GetValueOrDefault("program"), Switch(options, "lexicase", true));
             return CompileSession.Run(settings, compile, random, Console.WriteLine);
+        }
+
+        // The seed is 1 and the budget the settings' part budget unless given; --only takes contract names, each matching any
+        // contract whose name contains it, ignoring case. Exits with 2 when a contract is left without a part.
+        private static int EvolveParts(IReadOnlyDictionary<string, string> options, Settings settings)
+        {
+            List<Contract> contracts = FirstParts.Contracts.ToList();
+            if (options.GetValueOrDefault("only") is string only)
+            {
+                string[] names = only.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (names.FirstOrDefault(name => !contracts.Any(contract => contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))) is string unknown)
+                {
+                    Console.Error.WriteLine($"No first-part contract matches '{unknown}'. The contracts are: {string.Join(", ", contracts.Select(contract => contract.Name))}.");
+                    return 1;
+                }
+                contracts = contracts.Where(contract => names.Any(name => contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))).ToList();
+            }
+            string engine = options.GetValueOrDefault("engine") is string named ? $" --engine {named}" : "";
+            var parts = new PartsSession.Options(
+                (int)Number(options, "seed", 1),
+                Number(options, "budget", settings.PartBudget),
+                contracts,
+                options.GetValueOrDefault("library", settings.PartLibraryFolder),
+                Engine(options),
+                IsOn(options, "redo"),
+                engine);
+            return PartsSession.Run(parts, Console.WriteLine);
         }
 
         private static int Advise(IReadOnlyDictionary<string, string> options)

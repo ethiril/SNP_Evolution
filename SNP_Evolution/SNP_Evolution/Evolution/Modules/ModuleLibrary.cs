@@ -1,28 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Modules
 {
     // A part kept for reuse: a cut, where it came from, and how often putting a copy of it into a network made a
-    // child fitter than its parent.
+    // child fitter than its parent. A verified part with a contract also carries it as Part; a cheaper part with the
+    // same behaviour can later take its place under the same id.
     public sealed class Module
     {
-        public Module(int id, Cut cut, string origin)
+        public Module(int id, Cut cut, string origin, LibraryPart? part = null)
         {
             Id = id;
             Cut = cut;
             Origin = origin;
+            Part = part;
         }
 
         public int Id { get; }
 
-        public Cut Cut { get; }
+        public Cut Cut { get; private set; }
 
         public Network Body => Cut.Body;
 
-        public string Origin { get; }
+        public string Origin { get; private set; }
+
+        // Null for a module harvested during a run, which has no contract.
+        public LibraryPart? Part { get; private set; }
 
         // Children scored with a new copy of the module in them, and how many of those beat their parent.
         public int Uses { get; private set; }
@@ -36,6 +42,13 @@ namespace SnpEvolution.Evolution.Modules
         {
             Uses++;
             Wins += improved ? 1 : 0;
+        }
+
+        internal void Replace(LibraryPart part, string origin)
+        {
+            Cut = ModuleLibrary.CutOf(part.Part);
+            Origin = origin;
+            Part = part;
         }
     }
 
@@ -91,9 +104,9 @@ namespace SnpEvolution.Evolution.Modules
                 {
                     return known;
                 }
-                if (modules.Count >= capacity)
+                if (modules.Count(module => module.Part == null) >= capacity)
                 {
-                    Module weakest = modules.OrderBy(module => module.SuccessRate).ThenBy(module => module.Id).First();
+                    Module weakest = modules.Where(module => module.Part == null).OrderBy(module => module.SuccessRate).ThenBy(module => module.Id).First();
                     modules.Remove(weakest);
                 }
                 var added = new Module(nextId++, cut, origin);
@@ -102,6 +115,42 @@ namespace SnpEvolution.Evolution.Modules
                 log($"Module {added.Id} kept: {cut.Body.Neurons.Count} neuron(s), from {origin}.");
                 return added;
             }
+        }
+
+        // Keeps a verified part unless one with the same behaviour is kept already, in which case the cheaper of the two
+        // stays under the kept one's id. Parts are never dropped to make room and do not count against the capacity.
+        public Module AddPart(LibraryPart part, string origin)
+        {
+            lock (gate)
+            {
+                if (modules.FirstOrDefault(module => module.Part?.Behaviour == part.Behaviour) is Module known)
+                {
+                    if (part.Cost.CompareTo(known.Part!.Cost) < 0)
+                    {
+                        log($"Module {known.Id} ({part.Contract.Name}) replaced: {known.Part.Cost} by {part.Cost}, from {origin}.");
+                        known.Replace(part, origin);
+                    }
+                    return known;
+                }
+                var added = new Module(nextId++, CutOf(part.Part), origin, part);
+                modules.Add(added);
+                Added++;
+                log($"Module {added.Id} kept: part for {part.Contract.Name}, {part.Cost}, from {origin}.");
+                return added;
+            }
+        }
+
+        // The contract parts kept, in the order they were first added.
+        public IReadOnlyList<Module> Parts => Modules.Where(module => module.Part != null).ToList();
+
+        // The whole part network, with its input neurons as the cut's inputs and its port neurons as the outputs.
+        internal static Cut CutOf(Part part)
+        {
+            Network network = part.Network;
+            var body = new Network(network.Neurons.Select(neuron => neuron.WithRoles(neuron.IsOutput, false)).ToList());
+            List<int> inputs = Enumerable.Range(0, network.Neurons.Count).Where(index => network.Neurons[index].IsInput).ToList();
+            List<int> outputs = part.Binding.Positions.Values.Select(position => position - 1).Where(index => index < network.Neurons.Count).OrderBy(index => index).ToList();
+            return new Cut(body, inputs, outputs);
         }
 
         public Module? Find(int id)
