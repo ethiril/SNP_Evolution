@@ -5,23 +5,11 @@ using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 using Xunit.Abstractions;
+using static SnpEvolution.Tests.Evolution.ModuleFixtures;
 
 namespace SnpEvolution.Tests.Evolution
 {
-    // The Fibonacci register program built by hand from verified parts, typed wires and glue neurons, to show the
-    // composition representation can express a growing sequence, and to give composition search a size to beat. It is
-    // a test only: a Fibonacci network in the app would be a seed by another name.
-    //
-    // Two banks take turns, each a register X for the smaller value and an add part Y for the larger. A round starts
-    // both parts of one bank and drains them into the other: Y's count goes to the other X and to the other Y's a port,
-    // X's goes to the other Y's b port, so the other bank ends up holding B and A + B. Y's done starts the next round
-    // and fires the output, so a round is one output gap.
-    //
-    // A part's start passes through its start neuron, its done neuron and the done of the round before, so a round
-    // that drains y spikes lasts y + 3 steps. The banks therefore hold A - 2 and B - 3, and the done that starts a round
-    // also reaches, through one relay, the three count ports of the bank being loaded, putting back the 1 spike X
-    // lacks and the 2 Y lacks. The first three gaps (1, 1, 2) are shorter than a round can be; a preloaded glue
-    // neuron fires them and then starts the first round, with both banks empty, which makes the gap of 3.
+    // Fibonacci built by hand from verified parts, typed wires and glue, as a size for composition search to beat; it stays a test because in the app it would be a seed by another name.
     public class FibonacciCompositionTests
     {
         private static readonly int[] Fibonacci = { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584 };
@@ -30,14 +18,7 @@ namespace SnpEvolution.Tests.Evolution
 
         public FibonacciCompositionTests(ITestOutputHelper output) => this.output = output;
 
-        private sealed record Machine(Network Network, ModuleLibrary Library, PartCopy X1, PartCopy Y1, PartCopy X2, PartCopy Y2, int Output);
-
-        private static LibraryPart Verified(Part part)
-        {
-            PartMeasurement measurement = PartEvolution.Measure(part);
-            Assert.True(measurement.MeetsContract, measurement.Description);
-            return LibraryPart.Of(part, measurement, new PartOrigin(1, "hand-built", 0));
-        }
+        private sealed record Machine(Network Network, ModuleLibrary Library, PartCopy X1, PartCopy Y1, PartCopy X2, PartCopy Y2, int Output, int FirstRound, int Relay1, int Relay2);
 
         // The hand-built register is checked against the catalogue's register contract, as a library part would be.
         private static Part Register() => ReferenceParts.Register(FirstParts.Larger) with { Contract = FirstParts.Named("register") };
@@ -53,6 +34,9 @@ namespace SnpEvolution.Tests.Evolution
         private static void Connect(List<Neuron> neurons, int from, params int[] to) =>
             neurons[from - 1] = neurons[from - 1].WithConnections(neurons[from - 1].Connections.Concat(to));
 
+        // Both parts keep their store last.
+        private static int Store(PartCopy copy) => copy.Positions[^1];
+
         private static Machine Build()
         {
             var library = new ModuleLibrary();
@@ -60,12 +44,13 @@ namespace SnpEvolution.Tests.Evolution
             Module add = library.AddPart(Verified(ReferenceParts.Add()), "hand-built");
             var neurons = new List<Neuron>();
             PartCopy x1 = Place(neurons, register, 1), y1 = Place(neurons, add, 2), x2 = Place(neurons, register, 3), y2 = Place(neurons, add, 4);
-            int output = neurons.Count + 1, preamble = output + 1, first = output + 2, relay1 = output + 3, relay2 = output + 4;
+            int output = neurons.Count + 1, firstRound = output + 2, relay1 = output + 3, relay2 = output + 4;
             // The output fires on single spikes and drops the preamble's closing pair, which only the first-round trigger takes.
             neurons.Add(new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], isOutput: true));
             // 2 * 3 + 1 spikes: one spike on each of three steps, then a pair, as a register store drains.
-            neurons.Add(new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 7, new[] { output, first }, false));
+            neurons.Add(new Neuron(new[] { Rule.Standard("a(aa)+", 2), Rule.Standard("a", 1, 2) }, 7, new[] { output, firstRound }, false));
             neurons.Add(new Neuron(new[] { Rule.Forget("a", 1), Rule.Standard("aa", 2) }, 0, new[] { x1["start"], y1["start"], output, relay2 }, false));
+            // A round lasts y + 3 steps, so the banks hold A - 2 and B - 3 and each relay puts back the 1 and 2 they lack.
             neurons.Add(new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { x1["n"], y1["a"], y1["b"] }, false));
             neurons.Add(new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { x2["n"], y2["a"], y2["b"] }, false));
             foreach ((PartCopy x, PartCopy y, PartCopy nextX, PartCopy nextY, int relay) in new[] { (x1, y1, x2, y2, relay1), (x2, y2, x1, y1, relay2) })
@@ -74,7 +59,7 @@ namespace SnpEvolution.Tests.Evolution
                 Connect(neurons, x["out"], nextY["b"]);
                 Connect(neurons, y["done"], nextX["start"], nextY["start"], output, relay);
             }
-            return new Machine(new Network(neurons), library, x1, y1, x2, y2, output);
+            return new Machine(new Network(neurons), library, x1, y1, x2, y2, output, firstRound, relay1, relay2);
         }
 
         private static string WireText(Machine machine, Wire wire)
@@ -119,18 +104,6 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
-        public void EachRoundLastsExactlyItsGap()
-        {
-            Machine machine = Build();
-
-            List<int> steps = OutputSteps(machine.Network, 300);
-
-            List<int> gaps = steps.Zip(steps.Skip(1), (earlier, later) => later - earlier).ToList();
-            Assert.Equal(Fibonacci.TakeWhile(gap => gap <= 89), gaps.Take(11));
-            output.WriteLine("Output spikes on steps " + string.Join(", ", steps));
-        }
-
-        [Fact]
         public void ItMakesTheFirstSixteenFibonacciGapsExactlyOnTheExhaustiveEngine()
         {
             Network network = Build().Network;
@@ -144,17 +117,16 @@ namespace SnpEvolution.Tests.Evolution
             output.WriteLine(HardwareCost.Of(network).ToString());
         }
 
-        // Past the 16 it is scored on, the recurrence keeps going.
         [Fact]
-        public void ItKeepsGoingPastTheTarget()
+        public void EachRoundLastsExactlyItsGapPastTheSixteenItIsScoredOn()
         {
             List<int> steps = OutputSteps(Build().Network, Fibonacci.Sum() + 10);
 
             Assert.Equal(Fibonacci, steps.Zip(steps.Skip(1), (earlier, later) => later - earlier).Take(Fibonacci.Length));
+            output.WriteLine("Output spikes on steps " + string.Join(", ", steps));
         }
 
-        // The round whose gap is 3 (both banks empty) and the one whose gap is 5, for RESEARCH.md: what each neuron holds
-        // at the start of each step, with * where it fires.
+        // Prints what each neuron holds at the start of each step, * where it fires, as the table RESEARCH.md shows.
         [Fact]
         public void TraceTheRoundsOfGapThreeAndFive()
         {
@@ -162,10 +134,10 @@ namespace SnpEvolution.Tests.Evolution
             Network network = machine.Network;
             var named = new List<(string Name, int Position)>
             {
-                ("G", machine.Output + 2), ("O", machine.Output),
-                ("Y1.start", machine.Y1["start"]), ("Y1.store", machine.Y1.Positions[5]), ("Y1.done", machine.Y1["done"]), ("R2", machine.Output + 4),
-                ("X2.store", machine.X2.Positions[4]), ("Y2.store", machine.Y2.Positions[5]), ("Y2.sum", machine.Y2["sum"]), ("Y2.done", machine.Y2["done"]),
-                ("R1", machine.Output + 3), ("X1.n", machine.X1["n"]), ("X1.store", machine.X1.Positions[4]),
+                ("G", machine.FirstRound), ("O", machine.Output),
+                ("Y1.start", machine.Y1["start"]), ("Y1.store", Store(machine.Y1)), ("Y1.done", machine.Y1["done"]), ("R2", machine.Relay2),
+                ("X2.store", Store(machine.X2)), ("Y2.store", Store(machine.Y2)), ("Y2.sum", machine.Y2["sum"]), ("Y2.done", machine.Y2["done"]),
+                ("R1", machine.Relay1), ("X1.n", machine.X1["n"]), ("X1.store", Store(machine.X1)),
             };
             var simulation = new NetworkSimulation(network, new Random(1));
             var held = new List<IReadOnlyList<long>>();
@@ -188,7 +160,7 @@ namespace SnpEvolution.Tests.Evolution
             }
 
             // When the gap of 5 starts (A = 3, B = 5), bank 2 holds A - 2 and B - 3, each spike stored as two.
-            Assert.Equal(new[] { 2L, 4L }, new[] { machine.X2.Positions[4], machine.Y2.Positions[5] }.Select(position => held[8][position - 1]));
+            Assert.Equal(new[] { 2L, 4L }, new[] { Store(machine.X2), Store(machine.Y2) }.Select(position => held[8][position - 1]));
         }
     }
 }
