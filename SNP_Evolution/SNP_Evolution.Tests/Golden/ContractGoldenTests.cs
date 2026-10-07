@@ -1,9 +1,9 @@
 using System.Text;
-using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Evolution.Verification;
+using SnpEvolution.Search.Benchmarking;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Tasks;
+using SnpEvolution.Specs.Verification;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Golden

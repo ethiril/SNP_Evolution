@@ -20,7 +20,7 @@ Join's cases should include both orders, equal steps, and the largest gap the co
 Each contract should leave every neuron as it began, as every first part does, because a join left holding one spike fires early next round.
 The contracts should be general, not taken from the add loop, because they are goals for automatic discovery.
 
-Where: `SNP_Evolution/Evolution/Contracts/FirstParts.cs` (catalogue and `Table()`), `SNP_Evolution/Evolution/Contracts/Specification.cs` (a specification for each), `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`; tests in `SNP_Evolution.Tests/Evolution/FirstPartsTests.cs`.
+Where: `Specs/Contracts/FirstParts.cs` (catalogue and `Table()`), `Specs/Contracts/Specification.cs` (a specification for each), `Search/PartSearch.cs`; tests in `SNP_Evolution.Tests/Specs/Contracts/FirstPartsTests.cs`.
 
 Done when:
 - [ ] The four contracts are in the catalogue with specifications that agree with their cases

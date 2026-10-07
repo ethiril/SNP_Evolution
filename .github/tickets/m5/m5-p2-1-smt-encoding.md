@@ -21,7 +21,7 @@ The step should be generated from the same semantics the engines use, not writte
 Encoded runs of fixed networks should be checked against the engine on every step, because the encoding is only trusted once it agrees.
 Rules outside the encodable fragment should be refused by name, because a silently wrong encoding would make every proof built on it wrong.
 
-Where: new `SNP_Evolution/Export/SmtExporter.cs` or the search folder from M2.5; `SNP_Evolution/Networks/SpikeCondition.cs` (lasso tables), `SNP_Evolution/Export/ExternalTool.cs`, the step semantics from M2.5. If the inductive-proof investigation in M4 built an encoding, start from it.
+Where: new `Export/SmtExporter.cs` or `Search/`; `Model/SpikeCondition.cs` (lasso tables), `Export/ExternalTool.cs`, the step semantics from M2.5. If the inductive-proof investigation in M4 built an encoding, start from it.
 
 Done when:
 - [ ] For the first parts and 25 random profile networks, Z3 finds the encoded run equal to the engine's trace on every step

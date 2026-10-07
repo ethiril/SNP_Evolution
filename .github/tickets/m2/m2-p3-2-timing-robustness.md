@@ -14,7 +14,7 @@ We want a simulation option that delays each spike on each synapse by 0 to j ext
 The robustness score should be reported for every library part and be available as a MAP-Elites dimension, because robustness is a property to select for, not only to report.
 Jitter should be a sampled engine option and the exhaustive engine should refuse it, because the branching from every delay choice would explode the exhaustive search.
 
-Where: `SNP_Evolution/Simulation/ISimulationEngine.cs` (`SimulationOptions`), `SNP_Evolution/Simulation/NetworkSimulation.cs`, `SNP_Evolution/Simulation/SequentialCpuEngine.cs`; the library summary from the `evolve-parts` command.
+Where: `Simulation/SimulationOptions.cs`, `Simulation/NetworkSimulation.cs`, `Simulation/SequentialCpuEngine.cs`; the library summary from the `evolve-parts` command.
 
 Done when:
 - [ ] With j = 0 every result equals today's

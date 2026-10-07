@@ -40,8 +40,11 @@ carries what the agent needs:
 3. **`Its responsibilities are:`** only where there are distinct ones.
 4. **`should`** for each requirement, with the reason straight after it.
 5. **`Where:`** the files and types to start from. Paths are relative to the
-   solution folder `SNP_Evolution/`: `SNP_Evolution/...` is the app and
-   `SNP_Evolution.Tests/...` the tests.
+   solution folder `SNP_Evolution/`, whose folders are the layer projects
+   (`Model/...`, `Specs/...`, `Search/...` and so on, as the README lists them)
+   and `SNP_Evolution.Tests/...` the tests; a file the ticket creates follows
+   the word "new". `python3 .github/tickets/where.py` checks that every
+   path in an open ticket's `Where:` line exists.
 6. **`Done when:`** a checklist that a reviewer can tick without asking.
 7. **`Read first:`** the spec sections, last line, no trailing period.
 

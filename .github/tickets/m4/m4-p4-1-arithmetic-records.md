@@ -21,7 +21,7 @@ Rows should be compared only within one encoding, because a unary circuit costs 
 The report should say that our seeds come from our own compiler and not from the published designs, because the published circuits could not be opened and rebuilt.
 Binary rows should wait for the binary adder from M3 Part 4, because no binary contract has been solved yet.
 
-Where: the specs from M4 Part 1, `superopt` from M4 Part 2, `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/HardwareCost.cs`; the table in RESEARCH.md "Evolved against hand-designed arithmetic".
+Where: the specs from M4 Part 1, `superopt` from M4 Part 2, `Specs/Contracts/ArithmeticParts.cs`, `Specs/Parts/HardwareCost.cs`; the table in RESEARCH.md "Evolved against hand-designed arithmetic".
 
 Done when:
 - [ ] Seeds 1 to 10 run per spec, with and without the profile, and the best verified network per spec is saved under `parts/` or `parts-profile/`

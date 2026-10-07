@@ -23,7 +23,7 @@ Case generation should be seeded and deterministic, because two runs of one spec
 A spec built for a catalogue contract should agree with that contract's cases and its `Specification`, checked with `Specifications.Disagreements`, because the catalogue is what existing parts were verified against.
 Training cases should include the edges of the domain (zero, one, the largest training value), because off-by-one parts pass the middle and fail the edges.
 
-Where: new `SNP_Evolution/Evolution/Specs/AlgorithmSpec.cs`; `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Contracts/Contract.cs`, `SNP_Evolution/Evolution/Contracts/PortEncoding.cs`, `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/Tasks/ContractTask.cs`; tests in `SNP_Evolution.Tests/Evolution/`.
+Where: new `Specs/Contracts/AlgorithmSpec.cs`; `Specs/Contracts/Specification.cs`, `Specs/Contracts/Contract.cs`, `Specs/Contracts/PortEncoding.cs`, `Specs/Contracts/ArithmeticParts.cs`, `Specs/Tasks/ContractTask.cs`; tests in `SNP_Evolution.Tests/Specs/`.
 
 Done when:
 - [ ] Specs for add, multiply, compare and fan-out make contracts with no disagreements against the catalogue's

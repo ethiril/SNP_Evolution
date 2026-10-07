@@ -1,7 +1,5 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
+using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Application
@@ -13,7 +11,7 @@ namespace SnpEvolution.Tests.Application
 
         private static Settings Budgeted(string folder, long budget) => new Settings
         {
-            Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 1, 2, 3, 5, 8, 13 }),
+            Target = new OutputTarget(TargetKind.Sequence, Sequences.Fibonacci.Take(7).ToArray()),
             Task = Catalog.TargetTask,
             Repetitions = 3,
             PopulationSize = Population,
@@ -41,25 +39,19 @@ namespace SnpEvolution.Tests.Application
         [Slow]
         public void CompositionSearchSpendsOnlyWhatThePartsLeaveOfTheSharedBudget()
         {
-            string folder = Path.Combine(Path.GetTempPath(), "snp-reach-" + Guid.NewGuid());
-            try
-            {
-                var library = new ModuleLibrary();
-                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2), new EvaluationBudget()).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", PartCost)), "a test");
-                PartLibraryFiles.Save(library, folder);
-                Settings settings = Budgeted(folder, PartCost + 100);
+            using var temp = new TempFolder("snp-reach");
+            string folder = temp.Path;
+            var library = new ModuleLibrary();
+            library.AddPart(PartFixtures.Measured(ReferenceParts.Delay(2), new PartOrigin(1, "a test", PartCost)), "a test");
+            PartLibraryFiles.Save(library, folder);
+            Settings settings = Budgeted(folder, PartCost + 100);
 
-                ReachService.Outcome composition = ReachService.RunOnce(settings, Named("composition"), 1, PartCost);
-                ReachService.Outcome flat = ReachService.RunOnce(settings, Named("flat"), 1, PartCost);
+            ReachService.Outcome composition = ReachService.RunOnce(settings, Named("composition"), 1, PartCost);
+            ReachService.Outcome flat = ReachService.RunOnce(settings, Named("flat"), 1, PartCost);
 
-                Assert.Equal(PartCost, composition.UpFront);
-                Assert.InRange(composition.Evaluations, 100, PartCost - 1);
-                Assert.True(flat.Evaluations >= PartCost + 100);
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            Assert.Equal(PartCost, composition.UpFront);
+            Assert.InRange(composition.Evaluations, 100, PartCost - 1);
+            Assert.True(flat.Evaluations >= PartCost + 100);
         }
     }
 }

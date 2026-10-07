@@ -21,7 +21,7 @@ Its responsibilities are:
 Evaluations should be counted in the same units as composition search (one interpreter run per case counts as one evaluation of a network), plus every lowered network verified, because the two genomes must be compared on one budget.
 A program that solves in the interpreter but fails after lowering should be kept out of the population and logged, because the interpreter would otherwise reward it forever.
 
-Where: new search beside the part-program interpreter; `SNP_Evolution/Evolution/Modules/CompositionSearch.cs` for the edit and evaluation conventions, `SNP_Evolution/Evolution/Proposals/PartProposals.cs`, `SNP_Evolution/Cli/CommandLine.cs` (`compose`), `SNP_Evolution/Evolution/Benchmarking/Benchmark.cs`.
+Where: new search beside the part-program interpreter; `Search/EvolutionSearch.cs` (`CompositionSearch`) for the edit and evaluation conventions, `Search/Proposals/PartProposals.cs`, `Cli/Commands/ComposeCommand.cs`, `Search/Benchmarking/Benchmark.cs`.
 
 Done when:
 - [ ] `compose --task "Contract multiply" --genome program` solves from a library with no hand-built parts on at least half of 10 seeds, with the median evaluations reported next to composition search

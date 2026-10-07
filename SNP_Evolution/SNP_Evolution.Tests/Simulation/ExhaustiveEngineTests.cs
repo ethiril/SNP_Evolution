@@ -1,6 +1,6 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
@@ -17,18 +17,19 @@ namespace SnpEvolution.Tests.Simulation
             Assert.Equal(new[] { 1 }, result.Outputs);
         }
 
-        [Fact]
-        public void EverySampledOutputIsAmongTheExactOutputs()
+        [Theory]
+        [InlineData("natural numbers")]
+        [InlineData("even numbers")]
+        public void EverySampledOutputIsAmongTheExactOutputs(string reference)
         {
-            foreach (Network network in new[] { ReferenceNetworks.NaturalNumbers(), ReferenceNetworks.EvenNumbers() })
-            {
-                TrialResult exact = new ExhaustiveCpuEngine().Run(new[] { Trial.Generate(network) }, Options, new Random(0))[0];
-                TrialResult sampled = new SequentialCpuEngine().Run(new[] { Trial.Generate(network) }, Options, new Random(1))[0];
+            Network network = Reference(reference);
 
-                Assert.True(exact.Exact);
-                Assert.Equal(exact.Outputs.Distinct().OrderBy(output => output), exact.Outputs);
-                Assert.Subset(exact.Outputs.ToHashSet(), sampled.Outputs.ToHashSet());
-            }
+            TrialResult exact = new ExhaustiveCpuEngine().Run(new[] { Trial.Generate(network) }, Options, new Random(0))[0];
+            TrialResult sampled = new SequentialCpuEngine().Run(new[] { Trial.Generate(network) }, Options, new Random(1))[0];
+
+            Assert.True(exact.Exact);
+            Assert.Equal(exact.Outputs.Distinct().OrderBy(output => output), exact.Outputs);
+            Assert.Subset(exact.Outputs.ToHashSet(), sampled.Outputs.ToHashSet());
         }
 
         [Fact]

@@ -6,17 +6,11 @@ namespace SnpEvolution.Tests.Cli
 {
     public class SavedRunsTests : IDisposable
     {
-        private readonly string folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        private readonly TempFolder folder = new TempFolder("snp-saved-runs");
 
-        private SavedRuns Store => new SavedRuns(Path.Combine(folder, "saved-runs.json"));
+        private SavedRuns Store => new SavedRuns(Path.Combine(folder.Path, "saved-runs.json"));
 
-        public void Dispose()
-        {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-        }
+        public void Dispose() => folder.Dispose();
 
         private static SavedRun Run(string name, Settings settings) => new SavedRun(name, DateTime.Now, RunStart.Scratch, "TargetNet", "solved", settings);
 

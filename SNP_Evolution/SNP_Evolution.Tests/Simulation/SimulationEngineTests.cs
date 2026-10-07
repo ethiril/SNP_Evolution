@@ -1,16 +1,17 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
     public class SimulationEngineTests
     {
+        public static TheoryData<ISimulationEngine> Engines => new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine() };
+
         private static readonly SimulationOptions Options = new SimulationOptions(MaxSteps: 50, Repetitions: 50);
 
         private static Network[] Batch() =>
-            new[] { ReferenceNetworks.NaturalNumbers(), TestNetworks.NeverOutputs(), ReferenceNetworks.EvenNumbers(), TestNetworks.AlwaysOutputsOne() };
-
-        public static TheoryData<ISimulationEngine> Engines => new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine() };
+            new[] { ReferenceNetworks.NaturalNumbers(), NeverOutputs(), ReferenceNetworks.EvenNumbers(), AlwaysOutputsOne() };
 
         [Theory]
         [MemberData(nameof(Engines))]
@@ -46,26 +47,6 @@ namespace SnpEvolution.Tests.Simulation
             Assert.Equal(Enumerable.Repeat(1, 20), outputs[3]);
             Assert.Equal(20, outputs[0].Count);
             Assert.Empty(new ParallelCpuEngine().CollectOutputs(Batch(), Options with { Repetitions = 0 }, new Random(2))[3]);
-        }
-
-        [Fact]
-        public void HugeSpikeCountsRunAsFastAsSmallOnes()
-        {
-            // Two neurons pass a spike back and forth while a third, holding billions, waits to reach an odd count.
-            var network = new Network(new[]
-            {
-                TestNetworks.Neuron(1, new[] { 2, 3 }, new Rule("a", 0, true)),
-                TestNetworks.Neuron(0, new[] { 1, 3 }, new Rule("a", 0, true)),
-                TestNetworks.OutputNeuron(4_000_000_000, new Rule("a(aa)+", 0, true)),
-            });
-            var simulation = new NetworkSimulation(network, new Random(0));
-
-            simulation.Step();
-
-            Assert.Equal(4_000_000_001, simulation.Spikes[2]);
-            // The odd count fires and empties the neuron, which then receives the spike passed back this step.
-            simulation.Step();
-            Assert.Equal(1, simulation.Spikes[2]);
         }
     }
 }

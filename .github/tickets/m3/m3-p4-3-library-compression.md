@@ -16,7 +16,7 @@ It should count, for each candidate sub-composition, how many promoted parts hol
 A candidate should only count if it has a contract that can be read off its ports and checked, because a part without a contract cannot be verified or reused.
 It should end in a recommendation: build compression into promotion, or leave it, with the numbers behind it.
 
-Where: `SNP_Evolution/Evolution/Modules/Promotion.cs` (recipes), `SNP_Evolution/Evolution/Modules/PartReuse.cs`, the libraries left by the M3 benchmarks; the finding in RESEARCH.md "Toward general synthesis".
+Where: `Search/Modules/Promotion.cs` (recipes), `Specs/Parts/PartReuse.cs`, the libraries left by the M3 benchmarks; the finding in RESEARCH.md "Toward general synthesis".
 
 Done when:
 - [ ] RESEARCH.md lists the candidate sub-compositions found, how many promoted parts hold each, and the recipe size saved

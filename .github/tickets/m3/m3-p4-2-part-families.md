@@ -19,7 +19,7 @@ A built member should be verified and proven like any other part, because compos
 A built member should be replaced by an evolved one only when the evolved one is cheaper, because the library already keeps the cheaper of two parts that read the same.
 The family's members should be one entry per k in the library, under the family's name, because composition and part programs need a concrete part to wire.
 
-Where: `SNP_Evolution/Evolution/Contracts/Contract.cs`, `SNP_Evolution/Evolution/Contracts/FirstParts.cs`, `SNP_Evolution/Evolution/Modules/Promotion.cs`, `SNP_Evolution/Evolution/Modules/ModuleLibrary.cs`, `SNP_Evolution/Storage/PartLibraryFiles.cs`.
+Where: `Specs/Contracts/Contract.cs`, `Specs/Contracts/FirstParts.cs`, `Search/Modules/Promotion.cs`, `Specs/Parts/ModuleLibrary.cs`, `Storage/PartLibraryFiles.cs`.
 
 Done when:
 - [ ] Delay k and sequencer k are families, and members for k up to 8 are built from the library's members, verified and proven

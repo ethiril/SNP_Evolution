@@ -1,6 +1,6 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
@@ -121,6 +121,26 @@ namespace SnpEvolution.Tests.Simulation
 
             simulation.Step();
             Assert.Equal(0, simulation.Spikes[0]);
+        }
+
+        [Fact]
+        public void HugeSpikeCountsStepWithoutBuildingThem()
+        {
+            // Two neurons pass a spike back and forth while a third, holding billions, waits to reach an odd count.
+            var network = new Network(new[]
+            {
+                Neuron(1, new[] { 2, 3 }, new Rule("a", 0, true)),
+                Neuron(0, new[] { 1, 3 }, new Rule("a", 0, true)),
+                OutputNeuron(4_000_000_000, new Rule("a(aa)+", 0, true)),
+            });
+            var simulation = new NetworkSimulation(network, new Random(0));
+
+            simulation.Step();
+
+            Assert.Equal(4_000_000_001, simulation.Spikes[2]);
+            // The odd count fires and empties the neuron, which then receives the spike passed back this step.
+            simulation.Step();
+            Assert.Equal(1, simulation.Spikes[2]);
         }
     }
 }

@@ -20,7 +20,7 @@ Its responsibilities are:
 A release should be rebuilt and every part verified again before it is written, because a release is a promise about every part in it.
 The index should be generated, never edited by hand, because hand edits drift from the parts.
 
-Where: the result bundle from M4 Part 3; `SNP_Evolution/Storage/PartLibraryFiles.cs`, `SNP_Evolution/Cli/ExportCommands.cs`.
+Where: the result bundle from M4 Part 3; `Storage/PartLibraryFiles.cs`, `Cli/Commands/ExportCommands.cs`.
 
 Done when:
 - [ ] `library release` writes a folder whose index lists every part, and every entry's exports co-simulate

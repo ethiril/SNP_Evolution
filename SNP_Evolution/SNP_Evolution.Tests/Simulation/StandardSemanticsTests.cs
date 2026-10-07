@@ -1,21 +1,19 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.Runs;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
     public class StandardSemanticsTests
     {
-        private static NetworkSimulation Simulate(Network network, InputSpikes? input = null, OutputTiming timing = OutputTiming.Interval) =>
-            new NetworkSimulation(CompiledNetwork.Of(network), new Random(0), input ?? InputSpikes.None, timing);
-
         [Fact]
         public void ConsumesExactlyItsSpikesAndSendsWhatItProduces()
         {
             var network = new Network(new[]
             {
                 Neuron(5, new[] { 2 }, Standard("a+", 2, produce: 3)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -30,7 +28,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[]
             {
                 Neuron(3, new[] { 2 }, StandardForget("aaa", 2)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -47,7 +45,7 @@ namespace SnpEvolution.Tests.Simulation
             {
                 Neuron(1, new[] { 3 }, Standard("a", 1, delay: 2)),
                 Neuron(3, new[] { 1 }, Standard("a+", 1)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 

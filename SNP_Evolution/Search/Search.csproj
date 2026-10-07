@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Specs\Specs.csproj" />
+    <ProjectReference Include="..\Compilation\Compilation.csproj" />
+  </ItemGroup>
+
+</Project>

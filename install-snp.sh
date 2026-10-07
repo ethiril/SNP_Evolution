@@ -14,7 +14,7 @@ version="1.0.0-local.$(date +%Y%m%d%H%M%S)"
 
 echo "Building SNP_Evolution $version..."
 rm -rf nupkg
-dotnet pack SNP_Evolution -c Release -p:Version="$version" --nologo -v quiet
+dotnet pack Cli -c Release -p:Version="$version" --nologo -v quiet
 
 if dotnet tool list --global | grep -qi '^snp_evolution '; then
     dotnet tool uninstall --global SNP_Evolution >/dev/null

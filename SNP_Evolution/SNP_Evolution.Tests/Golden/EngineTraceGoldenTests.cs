@@ -1,12 +1,10 @@
 using System.Text;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Evolution.Verification;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 using SnpEvolution.Simulation.Metal;
-using SnpEvolution.Tests.Simulation;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Tasks;
+using SnpEvolution.Specs.Verification;
 
 namespace SnpEvolution.Tests.Golden
 {
@@ -16,10 +14,10 @@ namespace SnpEvolution.Tests.Golden
         private const int Repetitions = 3;
         private const int ReferenceSteps = 12;
 
-        public static TheoryData<string> Engines => new TheoryData<string> { "sequential", "parallel", "exhaustive" };
+        public static TheoryData<string> EngineNames => new TheoryData<string> { "sequential", "parallel", "exhaustive" };
 
         [Theory]
-        [MemberData(nameof(Engines))]
+        [MemberData(nameof(EngineNames))]
         public void EveryEngineRunsTheReferenceNetworksAndPartsAsBefore(string engine)
         {
             GoldenFile.Check($"engine-{engine}", Traces(Create(engine)));
@@ -33,57 +31,12 @@ namespace SnpEvolution.Tests.Golden
             Assert.Equal(Traces(new ParallelCpuEngine()), Traces(MetalEngine.OrCpu()));
         }
 
-        [Fact]
-        public void TheExportersStepRunsEveryPartAsBefore()
-        {
-            var text = new StringBuilder();
-            foreach ((string name, Part part) in Parts())
-            {
-                text.Append("== ").Append(name).Append('\n');
-                if (SpikeTrace.Choices(part.Network).FirstOrDefault() is string choice)
-                {
-                    text.Append(choice).Append('\n');
-                    continue;
-                }
-                foreach ((string label, InputSpikes input, int steps) in SpikeTrace.Cases(part.Contract))
-                {
-                    text.Append(label).Append('\n');
-                    // held/sent/after for each neuron, sent shown as - when it applied no rule.
-                    AppendFolded(text, SpikeTrace.Run(part.Network, input, steps).Steps
-                        .Select(row => string.Join(' ', row.Select(neuron => $"{neuron.Held}/{(neuron.Applied ? neuron.Sent.ToString() : "-")}/{neuron.After}"))).ToList());
-                }
-            }
-            GoldenFile.Check("exporter-steps", text.ToString());
-        }
-
-        // A run of identical steps is one first-last line, which keeps the file a size a reviewer can read.
-        private static void AppendFolded(StringBuilder text, List<string> rows)
-        {
-            int first = 0;
-            while (first < rows.Count)
-            {
-                int last = first;
-                while (last + 1 < rows.Count && rows[last + 1] == rows[first])
-                {
-                    last++;
-                }
-                text.Append(first == last ? $"{first}" : $"{first}-{last}").Append(": ").Append(rows[first]).Append('\n');
-                first = last + 1;
-            }
-        }
-
         private static ISimulationEngine Create(string engine) => engine switch
         {
             "sequential" => new SequentialCpuEngine(),
             "parallel" => new ParallelCpuEngine(),
             _ => new ExhaustiveCpuEngine(),
         };
-
-        private static IEnumerable<(string Name, Part Part)> Parts() =>
-            new[] { "parts", "parts-profile" }
-                .SelectMany(folder => Directory.GetFiles(Path.Combine(RepositoryFiles.Root, folder), "*.json").Select(Path.GetFileName).Order(StringComparer.Ordinal)
-                    .Select(file => ($"{folder}/{file}", RepositoryFiles.ReadPart(folder, file!).Part)))
-                .Concat(HandBuiltParts.All().Select(part => ($"hand-built {part.Contract.Name}", part)));
 
         private static string Traces(ISimulationEngine engine)
         {
@@ -111,7 +64,7 @@ namespace SnpEvolution.Tests.Golden
 
         private static void AppendPartTraces(StringBuilder text, ISimulationEngine engine)
         {
-            foreach ((string name, Part part) in Parts())
+            foreach ((string name, Part part) in GoldenParts.All())
             {
                 ContractTask task = part.Task();
                 List<Trial> trials = task.Cases.Select(@case => new Trial(part.Network, @case.Input, Readout.Ports, @case.Watch! with { Neurons = EveryNeuron(part.Network) })).ToList();

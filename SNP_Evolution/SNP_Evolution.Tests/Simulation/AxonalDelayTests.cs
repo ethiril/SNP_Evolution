@@ -1,17 +1,12 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using SnpEvolution.Storage;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.Runs;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
     public class AxonalDelayTests
     {
-        private static Rule Axonal(string expression, int delay) => new Rule(expression, delay, true, axonal: true);
-
-        private static NetworkSimulation Simulate(Network network) =>
-            new NetworkSimulation(CompiledNetwork.Of(network), new Random(0), InputSpikes.None, OutputTiming.Interval);
-
         [Fact]
         public void ConsumesAtOnceStaysOpenAndSendsDelayStepsLater()
         {
@@ -20,7 +15,7 @@ namespace SnpEvolution.Tests.Simulation
             {
                 Neuron(1, new[] { 3 }, Axonal("a+", 2)),
                 Neuron(3, new[] { 1 }, Standard("a+", 1)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -40,7 +35,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[]
             {
                 Neuron(1, new[] { 2 }, Axonal("a", 3)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -81,29 +76,6 @@ namespace SnpEvolution.Tests.Simulation
             EngineSupport gpu = new EngineSupport(Jitter: false, AxonalDelay: false, Ports: false, EveryComputation: false);
             Assert.True(gpu.Runs(Trial.Generate(plain), new SimulationOptions(10, 1)));
             Assert.False(gpu.Runs(Trial.Generate(delayed), new SimulationOptions(10, 1)));
-        }
-
-        [Fact]
-        public void AnAxonalRuleIsADifferentRuleFromTheSameRuleThatHoldsTheNeuron()
-        {
-            var network = new Network(new[] { Neuron(0, new[] { 2 }, Axonal("a+", 2)), Neuron(0, Array.Empty<int>(), new Rule("a+", 2, true)) });
-
-            Assert.NotEqual(network.Neurons[0].Rules[0].Key, network.Neurons[1].Rules[0].Key);
-            Assert.Equal(2, SnpEvolution.Evolution.Parts.HardwareCost.Of(network).DistinctRules);
-        }
-
-        [Fact]
-        public void SavesTheAxonalFlagOnlyWhenSet()
-        {
-            var network = new Network(new[] { Neuron(1, new[] { 2 }, Axonal("a+", 2)), OutputNeuron(0, new Rule("a", 1, true)) });
-
-            string json = NetworkFiles.ToJson(network);
-            Network loaded = Assert.IsType<Network>(NetworkFiles.FromJson(json));
-
-            Assert.True(loaded.Neurons[0].Rules[0].Axonal);
-            Assert.False(loaded.Neurons[1].Rules[0].Axonal);
-            Assert.Single(json.Split("Axonal").Skip(1));
-            Assert.Equal("a+ -> a;2 axonal", NetworkNotation.Rule(loaded.Neurons[0].Rules[0]));
         }
     }
 }

@@ -1,52 +1,46 @@
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Genome;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
+using SnpEvolution.Search.Genome;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Verification;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Export
 {
     public class NirExporterTests
     {
         // Parts evolve-parts --profile hardware found, kept in the repository next to parts/.
-        private static Part ProfilePart(string file)
-        {
-            return RepositoryFiles.ReadPart("parts-profile", file).Part;
-        }
+        private const string ProfileFolder = "parts-profile";
+
+        private static readonly string[] ProfilePartFiles = { "delay-2.json", "sequencer-2.json" };
+
+        public static TheoryData<string> ProfileFiles => new TheoryData<string>(ProfilePartFiles);
 
         private static string Check(NirDescription description)
         {
-            string folder = Path.Combine(Path.GetTempPath(), "snp-nir-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                return NirExporter.WriteAndCheck(description, folder);
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            using var temp = new TempFolder("snp-nir");
+            return NirExporter.WriteAndCheck(description, temp.Path);
         }
 
-        [Fact]
-        public void TheProfilePartsMeetTheirContractsAndFitTheProfile()
+        [Theory]
+        [MemberData(nameof(ProfileFiles))]
+        public void TheProfilePartsMeetTheirContractsAndFitTheProfile(string file)
         {
-            foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
-            {
-                Part part = ProfilePart(file);
-                Assert.True(Verifier.Measure(part, new EvaluationBudget()).Verdict is Verdict.Passed, file);
-                Assert.Empty(HardwareProfile.Problems(part.Network));
-            }
+            Part part = RepositoryFiles.Part(ProfileFolder, file);
+
+            Assert.True(Verifier.Measure(part, new EvaluationBudget()).Verdict is Verdict.Passed, file);
+            Assert.Empty(HardwareProfile.Problems(part.Network));
         }
 
+        // Stays a loop over the files, since the attribute that skips it without the NIR tools is a fact.
         [NirFact]
         public void ProfilePartsLoadInNirAndMatchOurTracesInNorse()
         {
-            foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
+            foreach (string file in ProfilePartFiles)
             {
-                string report = Check(NirExporter.Export(ProfilePart(file)));
+                string report = Check(NirExporter.Export(RepositoryFiles.Part(ProfileFolder, file)));
 
                 Assert.Contains("matches SN P on all 1 case(s)", report);
             }
@@ -58,7 +52,7 @@ namespace SnpEvolution.Tests.Export
         {
             var random = new Random(3);
             var space = new GenomeSpace(InputCount: 2, MaxNeurons: 7, MaxDelay: 3, HardwareProfile: true);
-            var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+            var factory = Factories.Networks(space, random);
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0, 1, 1, 2, 5, 6, 6, 6 }, new[] { 0, 3, 4, 4, 9 } });
             int firings = 0, delays = 0, forgetting = 0;
             for (int network = 0; network < 4; network++)

@@ -1,29 +1,13 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using SnpEvolution.Simulation.Metal;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.PortTrials;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
     public class PortReadoutTests
     {
-        private static readonly SimulationOptions Options = new SimulationOptions(MaxSteps: 20, Repetitions: 3);
-
-        // Neuron 1 starts the spike round: it sends one spike to 2 on step 0, 2 sends two to 3 on step 1, and 3 sends
-        // one back to 2 on step 2, which sends two to 3 again on step 3, and so on for ever.
-        private static Network Loop() => new Network(new[]
-        {
-            Neuron(1, new[] { 2 }, Standard("a", 1)),
-            Neuron(0, new[] { 3 }, Standard("a", 1, produce: 2)),
-            Neuron(0, new[] { 2 }, Standard("aa", 2)),
-        });
-
-        // Watching 2 and 3, with 3 as done: done fires on step 2, so steps 0 to 3 run and 3 still holds the two spikes 2
-        // sent it on step 3.
-        private static Trial LoopTrial() => new Trial(Loop(), InputSpikes.None, Readout.Ports, new PortWatch(new[] { 2, 3 }, new[] { 3 }, StepsAfterDone: 1));
-
-        public static TheoryData<ISimulationEngine> Engines =>
-            new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine(), new ExhaustiveCpuEngine() };
+        public static TheoryData<ISimulationEngine> Engines => new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine(), new ExhaustiveCpuEngine() };
 
         [Theory]
         [MemberData(nameof(Engines))]
@@ -40,7 +24,6 @@ namespace SnpEvolution.Tests.Simulation
             });
         }
 
-        // The done neuron fires on steps 0 to 4, but the run stops one step after the first of them.
         // Neuron 3 holds the two spikes 2 sends it, the most any neuron holds.
         [Theory]
         [MemberData(nameof(Engines))]
@@ -63,6 +46,7 @@ namespace SnpEvolution.Tests.Simulation
             Assert.All(result.PortRuns, run => Assert.Empty(run.Firings[1]));
         }
 
+        // The done neuron fires on steps 0 to 4, but the run stops one step after the first of them.
         [Fact]
         public void TheRunStopsAfterTheFirstDoneNotTheLast()
         {
@@ -144,16 +128,6 @@ namespace SnpEvolution.Tests.Simulation
             TrialResult result = new ExhaustiveCpuEngine().Run(new[] { Trial.Generate(PingPong()) }, Options, new Random(1))[0];
 
             Assert.Empty(result.PortRuns);
-        }
-
-        [MetalFact]
-        public void MetalEngineRunsPortsReadoutsOnTheCpu()
-        {
-            var trials = Enumerable.Repeat(LoopTrial(), 50).ToList();
-
-            IReadOnlyList<TrialResult> results = MetalEngine.OrCpu(gpuThreshold: 0).Run(trials, Options, new Random(1));
-
-            Assert.All(results, result => Assert.Equal(new[] { new Firing(2, 1) }, result.PortRuns.First().Firings[1]));
         }
     }
 }

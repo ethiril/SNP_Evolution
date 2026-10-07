@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Search\Search.csproj" />
+    <ProjectReference Include="..\Export\Export.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Specs\Specs.csproj" />
+  </ItemGroup>
+
+</Project>

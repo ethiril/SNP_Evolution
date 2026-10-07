@@ -1,8 +1,8 @@
-using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Tests.Golden;
+using SnpEvolution.Search.Benchmarking;
 
 namespace SnpEvolution.Tests.Cli
 {
+    [Collection(ProcessStateCollection.Name)]
     public class ListCommandsTests
     {
         [Fact]

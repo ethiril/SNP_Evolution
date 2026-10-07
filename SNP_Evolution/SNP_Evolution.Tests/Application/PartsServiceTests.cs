@@ -1,32 +1,25 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Application
 {
     public sealed class PartsServiceTests : IDisposable
     {
-        private readonly string folder = Path.Combine(Path.GetTempPath(), "parts-session-" + Guid.NewGuid().ToString("N"));
-
-        public void Dispose()
-        {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-        }
-
         private static readonly IReadOnlyList<Contract> Delays = new[] { FirstParts.Named("delay 2"), FirstParts.Named("delay 4") };
+
+        private readonly TempFolder temp = new TempFolder("parts-session");
+
+        private string folder => temp.Path;
+
+        public void Dispose() => temp.Dispose();
 
         private Settings Library(string library) => new Settings { PartBudget = 4000, PartLibraryFolder = Path.Combine(folder, library) };
 
         private static PartsRequest Request(bool redo = false) => new PartsRequest(Delays, Seed: 1, Redo: redo);
 
-        private int Run(string library, Action<string> log, bool redo = false)
-        {
-            PartsResult result = PartsService.Run(Library(library), Request(redo), log);
-            return result.Error != null ? 1 : result.AllSolved ? 0 : 2;
-        }
+        private PartsResult Run(string library, Action<string> log, bool redo = false) =>
+            PartsService.Run(Library(library), Request(redo), log);
 
         private static Dictionary<string, string> Files(string library) =>
             Directory.GetFiles(library).ToDictionary(path => Path.GetFileName(path), File.ReadAllText);
@@ -37,8 +30,13 @@ namespace SnpEvolution.Tests.Application
         {
             var log = new List<string>();
 
-            Assert.Equal(0, Run("first", log.Add));
-            Assert.Equal(0, Run("second", _ => { }));
+            PartsResult firstRun = Run("first", log.Add);
+            PartsResult secondRun = Run("second", _ => { });
+
+            Assert.Null(firstRun.Error);
+            Assert.True(firstRun.AllSolved);
+            Assert.Null(secondRun.Error);
+            Assert.True(secondRun.AllSolved);
 
             Dictionary<string, string> first = Files(Path.Combine(folder, "first"));
             Assert.Equal(new[] { "delay-2.json", "delay-4.json" }, first.Keys.Order());
@@ -77,7 +75,7 @@ namespace SnpEvolution.Tests.Application
         {
             string library = Path.Combine(folder, "broken");
             Directory.CreateDirectory(library);
-            File.WriteAllText(Path.Combine(library, "delay-2.json"), "{ not json");
+            PartFixtures.WriteBrokenLibrary(library);
 
             PartsResult result = PartsService.Run(Library("broken"), Request(), _ => { });
 

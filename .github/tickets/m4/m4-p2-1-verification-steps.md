@@ -21,7 +21,7 @@ A held-out failure should become a counterexample case like a proof's, because b
 Only candidates that pass training should go on to later steps, because held-out runs and proofs cost far more and most candidates fail training.
 The step reached should be part of the saved result, because a network that passed held-out cases but was never proven must not be reported as proven.
 
-Where: new `SNP_Evolution/Evolution/Specs/SpecVerifier.cs`; `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs`, `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`, `SNP_Evolution/Storage/PartLibraryFiles.cs`, `SNP_Evolution/Cli/VerifyCommand.cs`.
+Where: new `Specs/Verification/SpecVerifier.cs`; `Specs/Verification/BoundedCheck.cs`, `Search/PartSearch.cs`, `Storage/PartLibraryFiles.cs`, `Cli/Commands/VerifyCommand.cs`.
 
 Done when:
 - [ ] The add loop as it was before its done waited for the accumulator fails at the held-out or proof step with a counterexample at a = 14 or below, and the counterexample is added as a case

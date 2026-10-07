@@ -1,10 +1,9 @@
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Specs.Parts;
 
 namespace SnpEvolution.Tests.Golden
 {
     // Populations stay under the GPU's batch threshold, so a Mac with Metal runs these on the CPU exactly as Linux does.
-    [Collection(GoldenCollection.Name)]
+    [Collection(ProcessStateCollection.Name)]
     public class CommandGoldenTests
     {
         [Fact]
@@ -45,6 +44,8 @@ namespace SnpEvolution.Tests.Golden
             GoldenFile.Check("verify-add", run.Run("verify", "--part", "add.json", "--bound", "6"));
         }
 
+        private const string Register = "register.json";
+
         // NIR takes only hardware-profile networks, so its delay comes from parts-profile/.
         public static TheoryData<string, string> Exports => new TheoryData<string, string>
         {
@@ -53,8 +54,6 @@ namespace SnpEvolution.Tests.Golden
             { "export-uppaal", "parts/delay-2.json" }, { "export-uppaal", Register },
         };
 
-        private const string Register = "register.json";
-
         [Theory]
         [MemberData(nameof(Exports))]
         public void Export(string command, string part)
@@ -62,7 +61,7 @@ namespace SnpEvolution.Tests.Golden
             using var run = new CommandRun();
             if (part == Register)
             {
-                run.Save(HandBuiltParts.All().Single(each => each.Contract.Name == "register"), Register);
+                run.Save(PartFixtures.HandBuiltRegister(), Register);
             }
             else
             {

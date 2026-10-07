@@ -23,7 +23,7 @@ A network should enter the map only after passing the verifier's held-out step, 
 Evaluations should be charged to the shared evaluation budget in the same units as the other searches, because the synthesis arm is compared on the same budget.
 Under the hardware profile, seeds that do not fit should be conformed first and verified again, because conforming can change behaviour.
 
-Where: new `SNP_Evolution/Evolution/Specs/Superoptimiser.cs`; `SNP_Evolution/Compilation/ShrinkRun.cs`, `SNP_Evolution/Evolution/MapElites.cs`, `SNP_Evolution/Evolution/HardwareCost.cs`, `SNP_Evolution/Evolution/HardwareProfile.cs`, `SNP_Evolution/Evolution/EvaluationCounter.cs`, `SNP_Evolution/Compilation/RegisterMachineCompiler.cs`, `SNP_Evolution/Compilation/RecurrenceCompiler.cs`, `SNP_Evolution/Cli/CommandLine.cs`, `SNP_Evolution/Cli/CompileSession.cs`, `SNP_Evolution/Cli/ExportCommands.cs`.
+Where: new `Search/Superoptimiser.cs`; `Search/ShrinkSearch.cs`, `Search/Algorithms/MapElites.cs`, `Specs/Parts/HardwareCost.cs`, `Model/HardwareProfile.cs`, `Specs/Accounting/EvaluationBudget.cs`, `Compilation/RegisterMachineCompiler.cs`, `Compilation/RecurrenceCompiler.cs`, `Cli/Commands/CommandRegistry.cs`, `Application/CompileService.cs`, `Cli/Commands/ExportCommands.cs`.
 
 Done when:
 - [ ] `superopt --spec add` and `superopt --spec multiply`, seeded from compiled networks, each return a network with fewer neurons than its seed that passes held-out cases and a bounded proof, on at least 8 of 10 seeds

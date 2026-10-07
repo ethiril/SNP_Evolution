@@ -21,7 +21,7 @@ A gap after a mistake should still earn credit when it follows the rule from the
 Coefficients as inputs should be optional, because a fixed rule is the first test and the family g(k) = c1 g(k-1) + c2 g(k-2) is the stretch.
 The compiled recurrence network should be the reference that scores 1, because `RecurrenceCompiler` already makes a network that follows the rule for any start it is built with.
 
-Where: new `SNP_Evolution/Evolution/Tasks/RecurrenceTask.cs`; `SNP_Evolution/Evolution/Tasks/SequenceTask.cs`, `SNP_Evolution/Evolution/Tasks/TriggeredSequenceTask.cs`, `SNP_Evolution/Compilation/Recurrence.cs`, `SNP_Evolution/Compilation/RecurrenceCompiler.cs`, `SNP_Evolution/Evolution/Tasks/TaskSuite.cs`; the spec type from this epic.
+Where: new `Specs/Tasks/RecurrenceTask.cs`; `Specs/Tasks/SequenceTask.cs`, `Specs/Tasks/TriggeredSequenceTask.cs`, `Compilation/Recurrence.cs`, `Compilation/RecurrenceCompiler.cs`, `Search/Benchmarking/TaskSuite.cs`; the spec type from this epic.
 
 Done when:
 - [ ] A network that lists the 16 Fibonacci gaps from 1,1 scores below 0.5 on the held-out cases

@@ -21,7 +21,7 @@ A count out-port should add to its register rather than overwrite it, because tw
 A register read by a call should be emptied by it, because a count port consumes what it reads; a program that needs a value twice must fan it out first, as the network must.
 The step estimate should be marked as an estimate, because exact timing comes only from the lowered network.
 
-Where: new `SNP_Evolution/Evolution/Programs/` (or beside `SNP_Evolution/Compilation/RegisterMachine.cs`), `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Modules/ModuleLibrary.cs`.
+Where: new `Compilation/PartPrograms/` (or beside `Compilation/RegisterMachine.cs`), `Specs/Contracts/Specification.cs`, `Specs/Parts/ModuleLibrary.cs`.
 
 Done when:
 - [ ] A hand-written part program for n1 x n2 from register, add, zero test, decrement and fan-out gives every multiply case in the interpreter

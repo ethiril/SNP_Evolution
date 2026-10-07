@@ -1,4 +1,12 @@
 <Solution>
+  <Project Path="Model/Model.csproj" />
+  <Project Path="Simulation/Simulation.csproj" />
+  <Project Path="Specs/Specs.csproj" />
+  <Project Path="Compilation/Compilation.csproj" />
+  <Project Path="Search/Search.csproj" />
+  <Project Path="Storage/Storage.csproj" />
+  <Project Path="Export/Export.csproj" />
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Cli/Cli.csproj" />
   <Project Path="SNP_Evolution.Tests/SNP_Evolution.Tests.csproj" />
-  <Project Path="SNP_Evolution/SNP_Evolution.csproj" />
 </Solution>

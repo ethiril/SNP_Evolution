@@ -1,5 +1,6 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
@@ -19,7 +20,7 @@ namespace SnpEvolution.Tests.Simulation
         [Fact]
         public void CollectsOneOutputPerSuccessfulRun()
         {
-            List<int> outputs = NetworkRunner.CollectOutputs(TestNetworks.AlwaysOutputsOne(), maxSteps: 10, repetitions: 12, new Random(0));
+            List<int> outputs = NetworkRunner.CollectOutputs(AlwaysOutputsOne(), maxSteps: 10, repetitions: 12, new Random(0));
 
             Assert.Equal(Enumerable.Repeat(1, 12), outputs);
         }
@@ -29,7 +30,7 @@ namespace SnpEvolution.Tests.Simulation
         {
             var network = new Network(new[]
             {
-                TestNetworks.OutputNeuron(1, new Rule("a", 0, false), new Rule("a", 0, false)),
+                OutputNeuron(1, new Rule("a", 0, false), new Rule("a", 0, false)),
             });
             var random = new CountingRandom();
 
@@ -42,20 +43,19 @@ namespace SnpEvolution.Tests.Simulation
         [Fact]
         public void StopsARunAtMaxSteps()
         {
-            Assert.Null(NetworkRunner.RunOnce(TestNetworks.AlwaysOutputsOne(), maxSteps: 1, new Random(0)));
+            Assert.Null(NetworkRunner.RunOnce(AlwaysOutputsOne(), maxSteps: 1, new Random(0)));
         }
 
-        [Fact]
-        public void ReferenceNetworksProduceSortedPositiveOutputs()
+        [Theory]
+        [InlineData("natural numbers")]
+        [InlineData("even numbers")]
+        public void ReferenceNetworksProduceSortedPositiveOutputs(string reference)
         {
-            foreach (Network network in new[] { ReferenceNetworks.NaturalNumbers(), ReferenceNetworks.EvenNumbers() })
-            {
-                List<int> outputs = NetworkRunner.CollectOutputs(network, maxSteps: 50, repetitions: 50, new Random(3));
+            List<int> outputs = NetworkRunner.CollectOutputs(Reference(reference), maxSteps: 50, repetitions: 50, new Random(3));
 
-                Assert.NotEmpty(outputs);
-                Assert.All(outputs, output => Assert.True(output > 0));
-                Assert.Equal(outputs.OrderBy(output => output), outputs);
-            }
+            Assert.NotEmpty(outputs);
+            Assert.All(outputs, output => Assert.True(output > 0));
+            Assert.Equal(outputs.OrderBy(output => output), outputs);
         }
     }
 }

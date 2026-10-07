@@ -18,7 +18,7 @@ Its responsibilities are:
 The behaviour key should be the same one the library uses to find duplicate parts, because two definitions of "behaves the same" would disagree.
 The search should report how far it got when it runs out of budget, because the size it exhausted is a lower bound on the smallest network.
 
-Where: the search interface from M2.5; `SNP_Evolution/Evolution/Modules/ModuleLibrary.cs` (behaviour dedupe), `SNP_Evolution/Evolution/EvaluationCounter.cs`.
+Where: the search interface from M2.5; `Specs/Parts/ModuleLibrary.cs` (behaviour dedupe), `Specs/Accounting/EvaluationBudget.cs`.
 
 Done when:
 - [ ] The enumerative search solves delay 1 to 4 and reports the size it exhausted for join and bit-serial add within the default budget

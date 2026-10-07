@@ -10,12 +10,12 @@ Thanks to Newtonsoft for the JSON parser libraries which are provided with this 
 From the `SNP_Evolution` folder:
 
 ```
-dotnet run --project SNP_Evolution    # start the console menu
+dotnet run --project Cli              # start the console menu
 dotnet test                           # run the test suite
 dotnet test --filter "Speed!=slow"    # the fast set, golden runs included, in seconds
 ```
 
-Warnings are errors, and `dotnet format --verify-no-changes` must pass; both projects share `Directory.Build.props` and `.editorconfig`. Tests that run searches, time-limited bounded checks or external tools are marked `[Slow]`. CI (`.github/workflows/ci.yml`) builds, checks formatting and runs the fast set, then the slow set, on every push and pull request, on Linux with iverilog; the Metal, Uppaal and norse tests skip there.
+Warnings are errors, and `dotnet format --verify-no-changes` must pass; every project shares `Directory.Build.props` and `.editorconfig`. Tests that run searches, time-limited bounded checks or external tools are marked `[Slow]`. CI (`.github/workflows/ci.yml`) builds, checks formatting and runs the fast set, then the slow set, on every push and pull request, on Linux with iverilog; the Metal, Uppaal and norse tests skip there.
 
 The golden runs in `SNP_Evolution.Tests/Golden` run fixed-seed commands (evolve, evolve-parts, compile, compose, verify and the three exports) and every engine on the reference networks and parts, and compare their output with the files in `Golden/Expected` exactly, evaluation counts included. A change that alters one fails them. When a change is meant to alter results, rerun with `SNP_UPDATE_GOLDEN=1 dotnet test --filter Golden` and say in the pull request why the files changed.
 
@@ -30,7 +30,7 @@ sh install-snp.sh
 Run the script again after changing the code to reinstall the latest build. It adds `~/.dotnet/tools` to your `PATH` in `~/.zshrc` if needed. Elsewhere, from the `SNP_Evolution` folder:
 
 ```
-dotnet pack SNP_Evolution -c Release
+dotnet pack Cli -c Release
 dotnet tool install --global --add-source ./nupkg SNP_Evolution
 ```
 
@@ -115,7 +115,7 @@ The *Rule Form* setting (Legacy, Standard or Mixed) picks the form of the rules 
 
 ## Tasks
 
-A task says what a network should do (`Evolution/Tasks/ITask`):
+A task says what a network should do (`Specs/Tasks/ITask`):
 
 - **Generator**: with no input, produce exactly a set of numbers, such as a set target from the settings.
 - **Sequence**: with no input, space the output spikes by the target's gaps, in order (`SequenceTask`). Each gap that is wrong but close earns partial credit.
@@ -124,7 +124,7 @@ A task says what a network should do (`Evolution/Tasks/ITask`):
 The last two read the whole output spike train (`Readout.SpikeTrain`), not just the first two spikes. `OutputTarget` turns a typed target into the matching task.
 - **Function**: read numbers on the input neurons, each as two spikes n steps apart, and output f(n). Examples are `n + 1`, `2n` and `n1 + n2`. Wrong but close outputs earn partial credit.
 - **Acceptor**: read a number on the input neuron and halt if and only if it belongs to the set. Scored by balanced accuracy.
-- **Contract**: behave as a part with a start trigger, one or more done triggers and typed data ports (interval, count, trigger or binary), as a `Contract` in `Evolution/Contracts/` describes (`ContractTask`). Each case is checked against four rules: nothing is sent before start, done fires exactly once with the right outputs, every neuron ends with the spikes it started with, and done fires within the maximum latency. It reads the named port neurons (`Readout.Ports`), which the exhaustive engine follows over every computation. `ReferenceParts` holds a hand-built delay and register that meet their contracts.
+- **Contract**: behave as a part with a start trigger, one or more done triggers and typed data ports (interval, count, trigger or binary), as a `Contract` in `Specs/Contracts/` describes (`ContractTask`). Each case is checked against four rules: nothing is sent before start, done fires exactly once with the right outputs, every neuron ends with the spikes it started with, and done fires within the maximum latency. It reads the named port neurons (`Readout.Ports`), which the exhaustive engine follows over every computation. `ReferenceParts` holds a hand-built delay and register that meet their contracts.
 
 - **Streaming**: a controller with no start or done (`StreamingTask`). A long sensor train arrives on the one input neuron, drawn from a fixed seed per case so every network sees the same trains, and the output's spike train is judged window by window, one check per window. Scored by balanced accuracy over windows that want output and windows that want silence, so a silent network earns 0.5 and one that copies its input less; it counts as solved only at 1. The **debouncer** answers each burst of at least m spikes within w steps with exactly one spike, and glitches of fewer spikes with none. The **rate detector** fires at least once in every window of a fast stretch (at least m spikes per w steps) and never in a slow one; the first window after each change of rate is not judged.
 
@@ -145,7 +145,7 @@ The last two read the whole output spike train (`Readout.SpikeTrain`), not just 
 - **MAP-Elites**: keeps the best network for every size, which maps out how fitness trades against size.
 - **NEAT-style speciated**: groups similar structures into species that share fitness, so new structures get time to improve.
 
-Structural mutation (`Evolution/Operators/StructuralMutations.cs`) is a weighted mix of small edits. It can:
+Structural mutation (`Search/Operators/StructuralMutations.cs`) is a weighted mix of small edits. It can:
 
 - nudge or replace an expression;
 - change a delay, a consumed or produced count, or whether a rule fires;
@@ -337,12 +337,12 @@ The `evolve-parts` summary reports every library part's robustness at j = 1 and 
 Both also run without the menu:
 
 ```
-dotnet run --project SNP_Evolution -c Release -- benchmark --budget 3000 --seeds 3 --task "Compute" --algorithm "MAP"
-dotnet run --project SNP_Evolution -c Release -- select --task "Accept even"
-dotnet run --project SNP_Evolution -c Release -- evolve --target "1,1,2,3,5,8,13" --generations 4000 --population 100
-dotnet run --project SNP_Evolution -c Release -- evolve --kind binary --target 001001001001
-dotnet run --project SNP_Evolution -c Release -- tasks        # list the suite
-dotnet run --project SNP_Evolution -c Release -- algorithms   # list the searches
+dotnet run --project Cli -c Release -- benchmark --budget 3000 --seeds 3 --task "Compute" --algorithm "MAP"
+dotnet run --project Cli -c Release -- select --task "Accept even"
+dotnet run --project Cli -c Release -- evolve --target "1,1,2,3,5,8,13" --generations 4000 --population 100
+dotnet run --project Cli -c Release -- evolve --kind binary --target 001001001001
+dotnet run --project Cli -c Release -- tasks        # list the suite
+dotnet run --project Cli -c Release -- algorithms   # list the searches
 ```
 
 `--task` and `--algorithm` match any name containing the text. These runs use the exhaustive engine unless given `--engine sampled`. `--lexicase on` picks parents by lexicase selection, and `--repetitions N` sets the sampled runs per network. A task or algorithm named exactly wins over those that only contain the name. Composition search builds from `--library DIR`, plus the hand-built parts with `--hand-built on`; a contract it solves is promoted into that run's library.
@@ -355,36 +355,39 @@ dotnet run --project SNP_Evolution -c Release -- algorithms   # list the searche
 snp-evolution reach --target "1,1,2,3,5,8,13,21,34" --evaluations 20000 --seeds 10 --setups flat,composition
 ```
 
-File Structure (under `SNP_Evolution/SNP_Evolution`):
+The solution folder `SNP_Evolution/` holds one project per layer. They are listed lowest first, and each may reference only the projects listed before it. A project's namespace is `SnpEvolution.` followed by its folder name, and the tests in `SNP_Evolution.Tests/Layering` fail if a project references one listed after it or a namespace depends on itself.
 
-- `Program.cs` starts the console menu, or runs a command when given arguments.
-- `Networks/`: the SN P system.
+- `Model/`: the SN P system.
   - `Rule`, `Neuron` and `Network` describe a system.
   - `SpikeCondition` compiles a rule expression into the exact set of spike counts it matches.
   - `NetworkNotation` renders a network as a readable text table.
+  - `HardwareProfile` says which rule forms and limits a chip takes.
   - `ReferenceNetworks` holds the hand-built natural and even numbers systems.
 - `Simulation/`: runs networks.
   - `CompiledNetwork` flattens a network into arrays.
   - `NetworkStep` steps one computation, with the rules chosen by its caller; `NetworkSimulation` chooses them at random.
   - `InputSpikes` describes what the environment feeds the input neurons.
   - `NetworkRunner` samples runs.
-  - The `ISimulationEngine` implementations run whole batches of trials, and declare what they support; `Metal/` holds the GPU engine.
-- `Evolution/`: specifications, parts and verification, then the search.
+  - The `ISimulationEngine` implementations run whole batches of trials, and declare what they support; `Metal/` holds the GPU engine, whose kernel is embedded in this project.
+- `Specs/`: what a network should do, and the checks that it does.
+  - `Accounting/` holds the `EvaluationBudget` every evaluation is charged to, what a search spent and why it stopped.
   - `Contracts/` holds contracts, their specifications and the catalogue built from them (the first parts and the arithmetic contracts).
   - `Tasks/` holds the tasks, their scoring and when a score counts as solved (`Solved`).
   - `Parts/` holds the part records, hand-built parts, compositions and recipes, and the module library.
   - `Verification/` holds the `Verifier`, the bounded check and the robustness measure.
+- `Compilation/` compiles recurrences and register machines into networks.
+- `Search/`: every search, behind `ISearch` and listed in `SearchCatalog`, with the run setup (`EvolutionContext`), composition search, part evolution, program search and the shrink.
   - `Genome/` makes random networks (`NetworkFactory`, `GenomeSpace`); `Fitness/` scores populations (`FitnessEvaluator`).
-  - `Operators/` holds the swappable mutation, crossover and selection operators; `Algorithms/` the genetic algorithms.
+  - `Operators/` holds the swappable mutation, crossover and selection operators; `Algorithms/` the genetic algorithms and the shared generation loop.
   - `Modules/` holds the modular loop: inserting and freezing modules, harvesting the changes that pay off, side runs on what is missing, promotion and the hand-built add loop.
-  - `Search/` holds the run setup (`EvolutionContext`, the algorithm catalog), composition search, part evolution and the shrink.
   - `Proposals/` proposes parts when a composition run stalls, from its failing checks or the shape of its target.
   - `Benchmarking/` holds the benchmark harness, the task suite and the algorithm selector.
-- `Compilation/` compiles recurrences and register machines into networks.
-- `Export/` writes Verilog, NIR and Uppaal models of networks.
 - `Storage/` saves and loads networks, parts and contracts as JSON, through one set of settings (`Json`), and fitness history as CSV.
+- `Export/` writes Verilog, NIR and Uppaal models of networks and parts, and runs the external tools that check them.
 - `Application/` holds the settings and one run service per flow (evolve, compose, compile, evolve-parts, reach, benchmark, verify, export), which the menu, the command line and the tests all call. A service takes settings and a request, reports progress through a callback and returns a typed result; it never writes to the console. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings offer, `PartLibraries` loads part libraries and part files, and `EvolutionSession` builds and runs one evolution.
-- `Cli/` holds the console menus, one per submenu, and the command line. `Commands/` has one class per command, listed in `CommandRegistry`; `SettingOptions` declares each setting that is both a flag and a settings menu row once, for both.
+- `Cli/` is the `snp-evolution` tool. `Program.cs` starts the console menu, or runs a command when given arguments. It holds the console menus, one per submenu, and the command line: `Commands/` has one class per command, listed in `CommandRegistry`, and `SettingOptions` declares each setting that is both a flag and a settings menu row once, for both.
+
+`SNP_Evolution.Tests/` mirrors these folders. The builders and setup more than one test needs (test networks, parts, temporary folders, console capture, engine theory data) are in `Fixtures/`, and `Golden/` holds the golden runs.
 
 ## How spikes are stored
 
@@ -394,11 +397,13 @@ When an evolution finishes, the best network is printed and saved as a `.txt` ta
 
 ## Extending
 
-Each swappable part is an interface plus one line in a catalog, after which it appears in the settings menu:
+Each kind of extension is an interface to implement in the project it belongs to, plus one line where it is registered, after which the menus, the command line, the benchmark and the tests pick it up:
 
-- **Simulation engine** (`ISimulationEngine`, listed in `Application/Catalog.cs`): receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out, and declares what it can run in `Support`. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
-- **Fitness function** (`IFitnessFunction`, `Application/Catalog.cs`): scores a generator's sorted outputs from 0 to 1.
-- **Task** (`ITask`, `Evolution/Benchmarking/TaskSuite.cs` or `Application/Catalog.cs`): lists its cases (input spikes and readout), then scores and describes the results.
-- **Search** (`ISearch<TCandidate>`, registered in `Evolution/Search/SearchCatalog.cs`): takes a `SearchRequest` (the task, the `EvaluationBudget` every evaluation is charged to, the run's random source and log, and optionally seeds, a stall policy and how to make and score networks) and returns a `SearchOutcome` (why it stopped, the best candidate, what it spent). A genetic algorithm only needs to implement `IGeneticAlgorithm`, built from the `EvolutionContext`, and be registered as an `EvolutionSearch`; it then runs in the shared generation loop with stall recovery and solve confirmation. Or combine new `IParentSelection`, `ICrossover` or `IMutation` operators with an existing algorithm. A network search that starts from nothing is automatically included in the benchmark and the selector; one that improves the networks it is given, such as the shrink, says `NeedsSeeds`.
+- **Simulation engine**: implement `ISimulationEngine` in `Simulation/` and add it to `Catalog.Engines` in `Application/Catalog.cs`. An engine receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out, and declares what it can run in `Support`. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
+- **Search**: implement `ISearch<TCandidate>` in `Search/` and add it to `SearchCatalog.All` in `Search/SearchCatalog.cs` (or call `SearchCatalog.Register` at run time). A search takes a `SearchRequest` (the task, the `EvaluationBudget` every evaluation is charged to, the run's random source and log, and optionally seeds, a stall policy and how to make and score networks) and returns a `SearchOutcome` (why it stopped, the best candidate, what it spent). A genetic algorithm only needs to implement `IGeneticAlgorithm`, built from the `EvolutionContext`, and be registered as an `EvolutionSearch`; it then runs in the shared generation loop with stall recovery and solve confirmation. Or combine new `IParentSelection`, `ICrossover` or `IMutation` operators in `Search/Operators/` with an existing algorithm. A network search that starts from nothing is automatically included in the benchmark and the selector; one that improves the networks it is given, such as the shrink, says `NeedsSeeds`.
+- **Task**: implement `ITask` in `Specs/Tasks/` and add it to `TaskSuite` in `Search/Benchmarking/TaskSuite.cs` for the benchmark, or to `Catalog.Tasks` in `Application/Catalog.cs` for the settings menu. A task lists its cases (input spikes and readout), then scores and describes the results. A part's behaviour is better written as a `Specification` in `Specs/Contracts/`, which the contract task, the verifier and the exporters all read.
+- **Fitness function**: implement `IFitnessFunction` in `Specs/Tasks/` and add it to `Catalog.FitnessFunctions` in `Application/Catalog.cs`. It scores a generator's sorted outputs from 0 to 1.
+- **Exporter**: exporters share no interface, since each target takes different inputs. Write the exporter in `Export/` as a static class that turns a network or a part into its files, add a method to `ExportService` in `Application/` that writes them and runs the target's own check, and give it a command as below, deriving from `ExportCommand` in `Cli/Commands/ExportCommands.cs`.
+- **Command**: derive from `Command` in `Cli/Commands/` and add it to `CommandRegistry.All`. The command declares its name, a one-line summary and its options; usage, option parsing and errors come from the declarations, and a test checks the command table above against the registry. An option several commands take is declared once in `CommonOptions`, or in `SettingOptions` when it is also a settings menu row. The command should call a run service in `Application/` rather than run the flow itself.
 
-A new command is one subclass of `Command` (in `Cli/Commands/`), which declares its name, a one-line summary and its options, plus one line in `CommandRegistry`. Usage, option parsing and errors come from the declarations, and a test checks the command table above against the registry. An option several commands take is declared once in `CommonOptions`, or in `SettingOptions` when it is also a settings menu row. The command should call a run service in `Application/` rather than run the flow itself.
+New code goes in the lowest project that has everything it needs, and a project may only reference projects below it, so a check never depends on a search and a search never on the command line.

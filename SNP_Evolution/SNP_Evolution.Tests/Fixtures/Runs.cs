@@ -1,0 +1,37 @@
+using SnpEvolution.Model;
+using SnpEvolution.Search.Fitness;
+using SnpEvolution.Simulation;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Tasks;
+
+namespace SnpEvolution.Tests.Fixtures
+{
+    internal static class Runs
+    {
+        // Long and repeated enough for the task tests' small networks to show every behaviour.
+        public static readonly SimulationOptions TaskOptions = new SimulationOptions(MaxSteps: 40, Repetitions: 20, OutputTiming.Interval);
+
+        // One step at a time, choosing rules from a fixed seed.
+        public static NetworkSimulation Simulate(Network network, InputSpikes? input = null, OutputTiming timing = OutputTiming.Interval) =>
+            new NetworkSimulation(CompiledNetwork.Of(network), new Random(0), input ?? InputSpikes.None, timing);
+
+        // Scores the network on the task as a run would: on the exhaustive engine for one step and five repetitions
+        // unless told otherwise.
+        public static FitnessResult Evaluate(ITask task, Network network, ISimulationEngine? engine = null, SimulationOptions? options = null, int solvedRetestCount = 1) =>
+            new FitnessEvaluator(engine ?? new ExhaustiveCpuEngine(), task, options ?? new SimulationOptions(1, 5, OutputTiming.Interval), solvedRetestCount, new Random(0), new EvaluationBudget())
+                .Evaluate(network);
+
+        // Scores on the single-threaded sampling engine, whose draws follow the random source given.
+        public static FitnessEvaluator SamplingEvaluator(ITask task, Random random, int maxSteps, int repetitions = 2) =>
+            new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(maxSteps, repetitions, OutputTiming.Interval), 1, random, new EvaluationBudget());
+
+        public static FitnessEvaluator SequenceEvaluator(IReadOnlyList<int> values) => SamplingEvaluator(new SequenceTask("target", values), new Random(1), maxSteps: 50);
+
+        // Every number the network outputs, over all its computations.
+        public static IReadOnlyList<int> Generated(Network network, int maxSteps = 400) =>
+            new ExhaustiveCpuEngine().CollectOutputs(new[] { network }, new SimulationOptions(maxSteps, 20, OutputTiming.Interval), new Random(1))[0];
+
+        // Rewards networks for having exactly three neurons, which every algorithm should manage.
+        public static float ThreeNeurons(Network network) => 1f / (1 + Math.Abs(network.Neurons.Count - 3));
+    }
+}

@@ -15,7 +15,7 @@ The table should give, per contract, seeds solved, evaluations, and neurons, syn
 The n1 x n2 runs should repeat the M1 benchmark settings (10 seeds per algorithm, 6000 evaluations, lexicase, 5 sampled runs) with `--hand-built off`, because only then is the change attributable to the library.
 If n1 x n2 is not solved, the report should say so and give the best fitness and the parts the best networks hold, because an honest negative is still the result.
 
-Where: `SNP_Evolution/Evolution/Benchmarking/Benchmark.cs`, the `evolve-parts` and `benchmark` commands; results in RESEARCH.md "Evolved against hand-designed arithmetic" and README "Composing machines from parts".
+Where: `Search/Benchmarking/Benchmark.cs`, the `evolve-parts` and `benchmark` commands; results in RESEARCH.md "Evolved against hand-designed arithmetic" and README "Composing machines from parts".
 
 Done when:
 - [ ] The per-contract table is in RESEARCH.md, seeds 1 to 5

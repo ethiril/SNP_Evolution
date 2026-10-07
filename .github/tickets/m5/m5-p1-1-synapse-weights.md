@@ -21,7 +21,7 @@ Weights should be non-negative unless a target allows inhibition, because standa
 Weights should be off by default in every search, because results so far were found without them and must stay reproducible.
 The step semantics should change in one place only, because each engine and exporter repeating the delivery rule is how they drift apart.
 
-Where: `SNP_Evolution/Networks/` (synapse and network types), `SNP_Evolution/Simulation/NetworkSimulation.cs`, `SNP_Evolution/Simulation/ExhaustiveCpuEngine.cs`, `SNP_Evolution/Simulation/Metal/`, `SNP_Evolution/Export/VerilogExporter.cs`, `SNP_Evolution/Export/NirExporter.cs`, `SNP_Evolution/Export/UppaalDeclarations.cs`, `SNP_Evolution/Evolution/Operators/StructuralMutations.cs`, `SNP_Evolution/Storage/`.
+Where: `Model/` (synapse and network types), `Simulation/NetworkSimulation.cs`, `Simulation/ExhaustiveCpuEngine.cs`, `Simulation/Metal/`, `Export/VerilogExporter.cs`, `Export/NirExporter.cs`, `Export/UppaalDeclarations.cs`, `Search/Operators/StructuralMutations.cs`, `Storage/`.
 
 Done when:
 - [ ] A network with weights gives identical traces on every engine and under Verilog and NIR co-simulation, over 25 random weighted networks

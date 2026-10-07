@@ -21,7 +21,7 @@ Its responsibilities are:
 Each chip limit should be cited from the vendor's documentation or a paper, and a limit with no source should be left unset rather than guessed, because a wrong limit is worse than none.
 `--profile hardware` should mean `--target generic-if`, because there should be one notion of fitting hardware.
 
-Where: `SNP_Evolution/Evolution/HardwareProfile.cs`, `SNP_Evolution/Evolution/HardwareCost.cs`, `SNP_Evolution/Cli/CommandLine.cs`, `SNP_Evolution/Cli/ExportCommands.cs`, `SNP_Evolution/Cli/VerifyCommand.cs`.
+Where: `Model/HardwareProfile.cs`, `Specs/Parts/HardwareCost.cs`, `Cli/Commands/CommandRegistry.cs`, `Cli/Commands/ExportCommands.cs`, `Cli/Commands/VerifyCommand.cs`.
 
 Done when:
 - [ ] Each target lists its limits and sources with `targets`

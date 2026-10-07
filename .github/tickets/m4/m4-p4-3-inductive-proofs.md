@@ -22,7 +22,7 @@ The prototype should be checked against `BoundedCheck` where both run, because a
 The step encoding should be written so the SMT encoding in M5 can reuse it, because exact synthesis and induction need the same terms for one step.
 The external solver should be optional and its tests should skip when it is missing, as the Uppaal and iverilog tests do, because not every machine has it.
 
-Where: `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs`, `SNP_Evolution/Simulation/` (the lasso tables for rule conditions), `SNP_Evolution/Export/ExternalTool.cs`; Pérez-Jiménez et al. 2024 in RESEARCH.md "Proving contracts" for the by-hand method; results in RESEARCH.md.
+Where: `Specs/Verification/BoundedCheck.cs`, `Simulation/` (the lasso tables for rule conditions), `Export/ExternalTool.cs`; Pérez-Jiménez et al. 2024 in RESEARCH.md "Proving contracts" for the by-hand method; results in RESEARCH.md.
 
 Done when:
 - [ ] RESEARCH.md says whether one round of the add part and of the Fibonacci round can be encoded and proven for every input, with solver times, or why not

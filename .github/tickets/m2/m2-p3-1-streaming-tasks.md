@@ -18,7 +18,7 @@ Its responsibilities are:
 The task should use the existing `Readout.SpikeTrain`, because it already returns every firing step of the output neuron.
 Inputs should be generated with a fixed seed per case, because the exhaustive engine needs the same input every time.
 
-Where: new `SNP_Evolution/Evolution/Tasks/StreamingTask.cs`; `SNP_Evolution/Evolution/Tasks/SpikeTrains.cs` and `TaskSuite.cs`; `SNP_Evolution/Simulation/InputSpikes.cs`.
+Where: new `Specs/Tasks/StreamingTask.cs`; `Specs/Tasks/SpikeTrains.cs` and `Search/Benchmarking/TaskSuite.cs`; `Simulation/InputSpikes.cs`.
 
 Done when:
 - [ ] Both tasks appear in `dotnet run -- tasks`

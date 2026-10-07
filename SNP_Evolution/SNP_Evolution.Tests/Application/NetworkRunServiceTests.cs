@@ -4,7 +4,7 @@ namespace SnpEvolution.Tests.Application
 {
     public class NetworkRunServiceTests
     {
-        private static Settings SingleThread() => new Settings { Engine = Catalog.Engines.Single(engine => engine.Name == "CPU, single thread") };
+        private static Settings SingleThread() => new Settings { Engine = CatalogEntries.SingleThreadEngine };
 
         [Fact]
         public void ANetworkWithAnInputIsScoredOnTheSelectedTask()

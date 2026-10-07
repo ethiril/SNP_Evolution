@@ -19,7 +19,7 @@ Its responsibilities are:
 Fibonacci should be one row among the family and not the headline, because a method that only finds Fibonacci is a Fibonacci method.
 The family with coefficients as inputs should be reported even if neither mode solves it, with where each stops, because that is the "solve equations" case and its limit is the finding.
 
-Where: `RecurrenceTask` and the generator spec from M4 Part 1, `superopt` and the synthesis arm from M4 Part 2, `SNP_Evolution/Compilation/RecurrenceCompiler.cs`; results in RESEARCH.md.
+Where: `RecurrenceTask` and the generator spec from M4 Part 1, `superopt` and the synthesis arm from M4 Part 2, `Compilation/RecurrenceCompiler.cs`; results in RESEARCH.md.
 
 Done when:
 - [ ] Seeds 1 to 10 run in both modes for each recurrence, with solved counts, held-out pass rates and sizes in RESEARCH.md

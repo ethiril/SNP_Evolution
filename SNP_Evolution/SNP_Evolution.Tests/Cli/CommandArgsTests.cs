@@ -1,9 +1,10 @@
 using SnpEvolution.Application;
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Search.Modules;
 
 namespace SnpEvolution.Tests.Cli
 {
+    [Collection(ProcessStateCollection.Name)]
     public class CommandArgsTests
     {
         private static string Problem(params string[] line)
@@ -13,13 +14,12 @@ namespace SnpEvolution.Tests.Cli
             return error;
         }
 
+        private static CommandArgs Parsed(params string[] line) =>
+            CommandArgs.Parse(CommandRegistry.Find(line[0])!, line, out string error) ?? throw new ArgumentException(error);
+
         // The settings evolve would run with, from the menu's defaults and the options given.
-        private static Settings Evolving(params string[] options)
-        {
-            string[] line = new[] { "evolve", "--target", "1,2" }.Concat(options).ToArray();
-            CommandArgs args = CommandArgs.Parse(CommandRegistry.Find("evolve")!, line, out string error) ?? throw new ArgumentException(error);
-            return TargetArgs.Settings(args, SettingOptions.Evolve)!;
-        }
+        private static Settings Evolving(params string[] options) =>
+            TargetArgs.Settings(Parsed(new[] { "evolve", "--target", "1,2" }.Concat(options).ToArray()), SettingOptions.Evolve)!;
 
         [Fact]
         public void AnUnknownOptionIsRefusedByName() =>
@@ -59,8 +59,12 @@ namespace SnpEvolution.Tests.Cli
         [InlineData("evolve", "--target", "1,2", "--glue-weight", "-1")]
         [InlineData("compose", "--task", "no such task")]
         [InlineData("evolve", "--target", "1,2", "--algorithm", "no such search")]
-        public void BadCommandLinesExitWithUsage(params string[] line) =>
+        public void BadCommandLinesExitWithUsage(params string[] line)
+        {
+            using var console = new ConsoleCapture();
+
             Assert.Equal((int)ExitCode.Usage, CommandLine.Run(line));
+        }
 
         [Fact]
         public void BudgetAndCompositionOptionsReachTheSettings()
@@ -103,8 +107,7 @@ namespace SnpEvolution.Tests.Cli
         [Fact]
         public void OptionsGivenOverrideTheAdvisorsSuggestions()
         {
-            string[] line = { "evolve", "--target", "1,2", "--advise", "on", "--population", "3" };
-            CommandArgs args = CommandArgs.Parse(CommandRegistry.Find("evolve")!, line, out string error) ?? throw new ArgumentException(error);
+            CommandArgs args = Parsed("evolve", "--target", "1,2", "--advise", "on", "--population", "3");
 
             Assert.Equal(3, EvolveCommand.Configured(args, _ => { })!.PopulationSize);
         }

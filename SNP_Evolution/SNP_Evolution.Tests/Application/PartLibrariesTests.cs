@@ -1,5 +1,5 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Specs.Parts;
 
 namespace SnpEvolution.Tests.Application
 {
@@ -9,7 +9,8 @@ namespace SnpEvolution.Tests.Application
         [Slow]
         public void HandBuiltLeavesLeaveOutThePromotedAddLoop()
         {
-            string missing = Path.Combine(Path.GetTempPath(), "snp-no-parts-" + Guid.NewGuid().ToString("N"));
+            using var temp = new TempFolder("snp-no-parts");
+            string missing = temp.Path;
 
             ModuleLibrary leaves = PartLibraries.Load(missing, handBuilt: true, addLoop: false).Value!;
             ModuleLibrary withLoop = PartLibraries.Load(missing, handBuilt: true, addLoop: true).Value!;
@@ -22,21 +23,14 @@ namespace SnpEvolution.Tests.Application
         [Fact]
         public void ABrokenLibraryIsATypedErrorNamingTheFile()
         {
-            string folder = Path.Combine(Path.GetTempPath(), "snp-broken-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(folder);
-            try
-            {
-                File.WriteAllText(Path.Combine(folder, "delay-2.json"), "{ not json");
+            using var temp = new TempFolder("snp-broken").Made();
+            string folder = temp.Path;
+            PartFixtures.WriteBrokenLibrary(folder);
 
-                Loaded<ModuleLibrary> loaded = PartLibraries.Load(folder, handBuilt: false, addLoop: false);
+            Loaded<ModuleLibrary> loaded = PartLibraries.Load(folder, handBuilt: false, addLoop: false);
 
-                Assert.Null(loaded.Value);
-                Assert.Contains("delay-2.json", loaded.Error);
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            Assert.Null(loaded.Value);
+            Assert.Contains("delay-2.json", loaded.Error);
         }
     }
 }

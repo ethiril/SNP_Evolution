@@ -21,7 +21,7 @@ Expressions should be limited to integer arithmetic, comparisons and conditional
 The file should be read into the C# spec type and nothing downstream should know it came from a file, because two paths to one spec would score differently.
 Built-in specs should be writable as files that give the same cases, because that is the test that the format covers what the code does.
 
-Where: new `SNP_Evolution/Evolution/Specs/SpecFile.cs`; `SNP_Evolution/Cli/CommandLine.cs`, `SNP_Evolution/Cli/CommandOptions.cs`, `SNP_Evolution/Cli/InputParsing.cs`; the spec type from M4 Part 1; tests in `SNP_Evolution.Tests/Cli/`.
+Where: new `Storage/SpecFiles.cs`; `Cli/Commands/CommandRegistry.cs`, `Cli/Commands/CommonOptions.cs`, `Cli/InputParsing.cs`; the spec type from M4 Part 1; tests in `SNP_Evolution.Tests/Cli/`.
 
 Done when:
 - [ ] Add, multiply, compare, the Fibonacci recurrence and the divisor relation are each written as a spec file that gives the same cases as the built-in spec

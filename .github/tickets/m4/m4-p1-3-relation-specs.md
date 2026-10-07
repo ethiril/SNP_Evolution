@@ -20,7 +20,7 @@ Every computation should have to satisfy the checker, not just one, because a pa
 A spec with no solution for an input should say so in its domain, and the part should answer on its no-answer done port, because a part that never fires done cannot be composed.
 The checker should not be used to make expected values for the case text, because two parts that give different valid answers read differently but are both right.
 
-Where: the spec type from this epic; `SNP_Evolution/Evolution/Tasks/ContractTask.cs`, `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs`, `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Simulation/ExhaustiveCpuEngine.cs`.
+Where: the spec type from this epic; `Specs/Tasks/ContractTask.cs`, `Specs/Verification/BoundedCheck.cs`, `Specs/Contracts/Specification.cs`, `Simulation/ExhaustiveCpuEngine.cs`.
 
 Done when:
 - [ ] A "some divisor of n other than 1 and n, or no answer" spec scores a hand-built nondeterministic network as solved when every computation gives a valid divisor
