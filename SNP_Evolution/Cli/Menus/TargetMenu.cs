@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Application;
-using static SnpEvolution.Cli.MenuPrompts;
 
 namespace SnpEvolution.Cli
 {
-    // Choosing the target a run evolves for, and how long it evolves for.
+    // Choosing the target a run evolves for.
     internal static class TargetMenu
     {
         // Asks for the kind of target and then its values, and makes matching it the task; false when the user backs
@@ -56,7 +55,7 @@ namespace SnpEvolution.Cli
             }, notes.ToArray());
             if (accepted)
             {
-                settings.Task = Catalog.TargetTask;
+                settings.UseTask(Catalog.TargetTask);
             }
             return accepted;
         }
@@ -70,30 +69,8 @@ namespace SnpEvolution.Cli
                 return false;
             }
             settings.Target = savedTargets[choice].Settings.Target;
-            settings.Task = Catalog.TargetTask;
+            settings.UseTask(Catalog.TargetTask);
             return true;
-        }
-
-        // Asks how many generations to evolve a target for; false when the user backs out. Empty input means 1000.
-        public static bool EditTargetGenerations(Settings settings)
-        {
-            const int DefaultGenerations = 1000;
-            bool accepted = false;
-            ConsoleInput.PromptUntilAccepted("Maximum number of generations", NotPositiveInteger, input =>
-            {
-                if (input.Trim().Length == 0)
-                {
-                    settings.MaxGenerations = DefaultGenerations;
-                    return accepted = true;
-                }
-                if (!InputParsing.TryPositiveInt(input.Trim(), out int generations))
-                {
-                    return false;
-                }
-                settings.MaxGenerations = generations;
-                return accepted = true;
-            }, $"Target: {settings.Target.Kind} {settings.Target}", $"Leave it empty for {DefaultGenerations}. Evolution stops early once the target is matched.");
-            return accepted;
         }
     }
 }

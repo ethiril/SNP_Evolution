@@ -10,15 +10,20 @@ namespace SnpEvolution.Search.Algorithms
     // A stage that has finished, or the one under way when the run stopped.
     public sealed record StageReport(int Length, int Generations, bool Solved, float BestFitness);
 
+    // One stage: the task it scores on, and how many of the whole target's values or cases that task holds.
+    public sealed record Stage(ITask Task, int Length);
+
     // Evolves for a long target a few values at a time: first for its opening values, and once a network reliably
     // gives those, for a few more. The same algorithm carries on from stage to stage, with everything it kept scored
     // again on the longer target, so the population, and an archive of stepping stones, survive each step. Each stage
     // only has to find a small change to networks that already work, and early stages are cheap because their runs
-    // are short. Finished when the whole target is solved.
+    // are short. Finished when the whole target is solved. The stages can be any tasks that grow towards the whole one,
+    // such as a contract's cases a few at a time.
     public sealed class IterativeEvolution : IGeneticAlgorithm
     {
-        private readonly IPrefixTask task;
-        private readonly IReadOnlyList<int> lengths;
+        private readonly IReadOnlyList<Stage> stages;
+        private readonly int total;
+        private readonly string unit;
         private readonly Func<ITask, FitnessEvaluator> createEvaluator;
         private readonly StageEvaluator evaluator;
         private readonly IGeneticAlgorithm algorithm;
@@ -33,16 +38,29 @@ namespace SnpEvolution.Search.Algorithms
             Func<ITask, FitnessEvaluator> createEvaluator,
             Func<IPopulationEvaluator, IGeneticAlgorithm> createAlgorithm,
             Action<string>? log = null)
+            : this(lengths.Select(length => new Stage(length >= task.Length ? task : task.Prefix(length), length)).ToList(), task.Length, "values", createEvaluator, createAlgorithm, log)
         {
-            if (lengths.Count == 0)
+        }
+
+        // Unit names what the lengths count, for the log.
+        public IterativeEvolution(
+            IReadOnlyList<Stage> stages,
+            int total,
+            string unit,
+            Func<ITask, FitnessEvaluator> createEvaluator,
+            Func<IPopulationEvaluator, IGeneticAlgorithm> createAlgorithm,
+            Action<string>? log = null)
+        {
+            if (stages.Count == 0)
             {
-                throw new ArgumentException("There must be at least one stage.", nameof(lengths));
+                throw new ArgumentException("There must be at least one stage.", nameof(stages));
             }
-            this.task = task;
-            this.lengths = lengths;
+            this.stages = stages;
+            this.total = total;
+            this.unit = unit;
             this.createEvaluator = createEvaluator;
             this.log = log ?? Console.WriteLine;
-            evaluator = new StageEvaluator(createEvaluator(StageTask(0)));
+            evaluator = new StageEvaluator(createEvaluator(stages[0].Task));
             algorithm = createAlgorithm(evaluator);
             this.log(StageAnnouncement());
         }
@@ -59,9 +77,9 @@ namespace SnpEvolution.Search.Algorithms
         // Zero-based index of the stage under way.
         public int Stage { get; private set; }
 
-        public int StageCount => lengths.Count;
+        public int StageCount => stages.Count;
 
-        public int StageLength => lengths[Stage];
+        public int StageLength => stages[Stage].Length;
 
         public bool IsComplete { get; private set; }
 
@@ -82,15 +100,15 @@ namespace SnpEvolution.Search.Algorithms
                 return;
             }
             completedStages.Add(new StageReport(StageLength, Generation - stageStartGeneration, true, best.Fitness));
-            log($"Stage {Stage + 1}/{StageCount} solved: the first {StageLength} of {task.Length} values, in {Generation - stageStartGeneration} generations.");
-            if (Stage == lengths.Count - 1)
+            log($"Stage {Stage + 1}/{StageCount} solved: the first {StageLength} of {total} {unit}, in {Generation - stageStartGeneration} generations.");
+            if (Stage == stages.Count - 1)
             {
                 IsComplete = true;
                 return;
             }
             Stage++;
             stageStartGeneration = Generation;
-            evaluator.Current = createEvaluator(StageTask(Stage));
+            evaluator.Current = createEvaluator(stages[Stage].Task);
             algorithm.Rescore();
             log(StageAnnouncement());
         }
@@ -99,9 +117,7 @@ namespace SnpEvolution.Search.Algorithms
 
         public void Rescore() => algorithm.Rescore();
 
-        private ITask StageTask(int stage) => lengths[stage] >= task.Length ? task : task.Prefix(lengths[stage]);
-
-        private string StageAnnouncement() => $"Stage {Stage + 1}/{StageCount}: evolving for the first {StageLength} of {task.Length} values.";
+        private string StageAnnouncement() => $"Stage {Stage + 1}/{StageCount}: evolving for the first {StageLength} of {total} {unit}.";
 
         // Scores with whichever stage's evaluator is current.
         private sealed class StageEvaluator : ITaskEvaluator

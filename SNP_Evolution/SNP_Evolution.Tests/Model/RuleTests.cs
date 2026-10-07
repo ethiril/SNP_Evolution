@@ -22,5 +22,21 @@ namespace SnpEvolution.Tests.Model
 
             Assert.Equal(applies, rule.Applies(spikes));
         }
+
+        // Two rules overlap when one spike count lets both apply, which gives their neuron a choice.
+        [Theory]
+        [InlineData("a", 1L, "aa", 2L, false)]
+        [InlineData("a+", 1L, "aa", 2L, true)]
+        [InlineData("a(aa)*", 1L, "(aa)+", 2L, false)]
+        [InlineData("a+", 3L, "a", 1L, false)]
+        [InlineData("a+", 3L, "a{2,}", 1L, true)]
+        [InlineData("a{5,}", 5L, "(aaa)+", 1L, true)]
+        public void OverlapsWhenSomeSpikeCountLetsBothApply(string first, long firstConsume, string second, long secondConsume, bool overlaps)
+        {
+            Rule one = Standard(first, firstConsume), other = Standard(second, secondConsume);
+
+            Assert.Equal(overlaps, one.Overlaps(other));
+            Assert.Equal(overlaps, other.Overlaps(one));
+        }
     }
 }

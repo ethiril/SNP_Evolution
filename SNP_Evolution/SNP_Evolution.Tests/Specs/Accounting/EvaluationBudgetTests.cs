@@ -59,6 +59,16 @@ namespace SnpEvolution.Tests.Specs.Accounting
         }
 
         [Fact]
+        public void APhaseCountsItsRepeatsInItsParentAndTheReportNamesThem()
+        {
+            var run = new EvaluationBudget();
+            run.Phase().CountRepeats(1_200, 300);
+
+            Assert.Equal(1_200, run.Report().Repeats);
+            Assert.Contains(" 1,200 repeated a network already scored on the same task, 300 of them exactly.", run.Report().Describe());
+        }
+
+        [Fact]
         public void AVerifierChargesOneExhaustiveCheckPerNetworkItRuns()
         {
             var budget = new EvaluationBudget();

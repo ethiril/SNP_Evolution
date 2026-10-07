@@ -3,91 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using SnpEvolution.Application;
 using SnpEvolution.Search;
+using SnpEvolution.Search.Genome;
+using SnpEvolution.Simulation;
+using SnpEvolution.Specs.Tasks;
 
 namespace SnpEvolution.Cli
 {
-    // A setting that is both a command-line option and a row of the settings menu, declared once for both.
-    internal abstract class SettingOption
-    {
-        protected SettingOption(string label)
-        {
-            Label = label;
-        }
-
-        // The menu row's label.
-        public string Label { get; }
-
-        public abstract Option Option { get; }
-
-        public abstract string Row(Settings settings);
-
-        // Sets the setting from the command line, when the option was given.
-        public abstract void ApplyFrom(CommandArgs args, Settings settings);
-
-        // Changes the setting from the menu: a switch flips, anything else is asked for.
-        public abstract void Edit(Settings settings);
-    }
-
-    internal sealed class SettingOption<T> : SettingOption where T : notnull
-    {
-        private readonly Func<Settings, T> get;
-        private readonly Action<Settings, T> set;
-        private readonly Func<Settings, object>? show;
-        private readonly string? prompt;
-        private readonly Action<Settings>? edit;
-
-        // prompt is what the menu asks; show is the row's value when it is not simply the setting; edit replaces the
-        // menu's flip or prompt.
-        public SettingOption(Option<T> option, string label, Func<Settings, T> get, Action<Settings, T> set,
-            string? prompt = null, Func<Settings, object>? show = null, Action<Settings>? edit = null) : base(label)
-        {
-            Typed = option;
-            this.get = get;
-            this.set = set;
-            this.prompt = prompt;
-            this.show = show;
-            this.edit = edit;
-        }
-
-        public Option<T> Typed { get; }
-
-        public override Option Option => Typed;
-
-        public override string Row(Settings settings) =>
-            ConsoleUi.Row(Label, show?.Invoke(settings) ?? (get(settings) is bool on ? (on ? "on" : "off") : get(settings)));
-
-        public override void ApplyFrom(CommandArgs args, Settings settings)
-        {
-            if (args.TryGet(Typed, out T value))
-            {
-                set(settings, value);
-            }
-        }
-
-        public override void Edit(Settings settings)
-        {
-            if (edit != null)
-            {
-                edit(settings);
-            }
-            else if (get(settings) is bool on)
-            {
-                set(settings, (T)(object)!on);
-            }
-            else
-            {
-                MenuPrompts.PromptFor(prompt ?? Label, Typed.Kind.Invalid, Typed.Kind.Parse, value => set(settings, value));
-            }
-        }
-    }
-
-    // Every setting with both a flag and a menu row. Commands list the ones they take; the settings menus show them.
+    // Every setting, each with a flag and a menu row. Commands list the ones they take; the settings menus show them.
     internal static class SettingOptions
     {
         public static readonly SettingOption<EvolutionSearch> Algorithm = new(
-            new Option<EvolutionSearch>("algorithm", AlgorithmKind, "the search to evolve with; any whose name contains NAME", "NAME"), "Genetic algorithm",
-            settings => settings.Algorithm, (settings, value) => settings.Algorithm = value, show: settings => settings.Algorithm.Name,
+            new Option<EvolutionSearch>("algorithm", ValueKinds.Named(Catalog.Algorithms, search => search.Name, "the name of a search; run 'algorithms' to list them"),
+                "the search to evolve with; any whose name contains NAME", "NAME"), "Genetic algorithm",
+            settings => settings.Algorithm, (settings, value) => settings.Algorithm = value,
             edit: settings => settings.Algorithm = MenuPrompts.Choose(settings, "Evolve networks with:", Catalog.Algorithms, settings.Algorithm, search => search.Name));
+
+        public static readonly SettingOption<CatalogEntry<Settings, IFitnessFunction>> Fitness = new(
+            new Option<CatalogEntry<Settings, IFitnessFunction>>("fitness", ValueKinds.Named(Catalog.FitnessFunctions, entry => entry.Name, "the name of a fitness function"),
+                "how set targets are scored; any whose name contains NAME", "NAME"), "Fitness function (sets)",
+            settings => settings.FitnessFunction, (settings, value) => settings.FitnessFunction = value,
+            edit: settings => settings.FitnessFunction = MenuPrompts.ChooseEntry(settings, "Score set targets with:", Catalog.FitnessFunctions, settings.FitnessFunction));
+
+        public static readonly SettingOption<float> MutationRate = new(new Option<float>("mutation-rate", ValueKinds.Probability, "the chance of each mutation, between 0 and 1"), "Mutation rate",
+            settings => settings.MutationRate, (settings, value) => settings.MutationRate = value, "Mutation rate, between 0 and 1");
+
+        public static readonly SettingOption<bool> Experimental = new(new Option<bool>("experimental", ValueKinds.Switch, "let evolution use the experimental rule expressions"), "Experimental rules",
+            settings => settings.ExperimentalRules, (settings, value) => settings.ExperimentalRules = value);
 
         public static readonly SettingOption<int> Population = new(new Option<int>("population", ValueKinds.PositiveInt, "networks per generation"), "Population size",
             settings => settings.PopulationSize, (settings, value) => settings.PopulationSize = value);
@@ -97,6 +38,29 @@ namespace SnpEvolution.Cli
 
         public static readonly SettingOption<int> Neurons = new(new Option<int>("neurons", ValueKinds.PositiveInt, "most neurons an evolved network may have"), "Max neurons",
             settings => settings.MaxNeurons, (settings, value) => settings.MaxNeurons = value, "Maximum number of neurons in an evolved network");
+
+        public static readonly SettingOption<int> FirstStage = new(new Option<int>("first-stage", ValueKinds.NonNegativeInt, "values in the first stage, or 0 for automatic"), "First stage length",
+            settings => settings.IterativeStartLength, (settings, value) => settings.IterativeStartLength = value, "Values in the first stage, or 0 for automatic",
+            show: settings => MenuPrompts.Automatic(settings.IterativeStartLength));
+
+        public static readonly SettingOption<int> StageStep = new(new Option<int>("stage-step", ValueKinds.NonNegativeInt, "values each later stage adds, or 0 for automatic"), "Values added per stage",
+            settings => settings.IterativeStep, (settings, value) => settings.IterativeStep = value, "Values each later stage adds, or 0 for automatic",
+            show: settings => MenuPrompts.Automatic(settings.IterativeStep));
+
+        public static readonly SettingOption<bool> Recovery = new(new Option<bool>("recovery", ValueKinds.Switch, "react when the best fitness stops improving"), "Stagnation recovery",
+            settings => settings.StagnationRecovery, (settings, value) => settings.StagnationRecovery = value);
+
+        public static readonly SettingOption<int> MaxDelay = new(new Option<int>("max-delay", ValueKinds.NonNegativeInt, "the longest delay a rule can have"), "Max delay",
+            settings => settings.MaxDelay, (settings, value) => settings.MaxDelay = value, "Longest delay a rule can have");
+
+        public static readonly SettingOption<int> MaxProduce = new(new Option<int>("max-produce", ValueKinds.PositiveInt, "the most spikes a rule can send at once"), "Max spikes produced",
+            settings => settings.MaxProduce, (settings, value) => settings.MaxProduce = value, "Most spikes a rule can send at once");
+
+        public static readonly SettingOption<int> InitialSpikes = new(new Option<int>("initial-spikes", ValueKinds.NonNegativeInt, "the most spikes a new neuron can start with"), "Max initial spikes",
+            settings => settings.MaxInitialSpikes, (settings, value) => settings.MaxInitialSpikes = value, "Most spikes a new neuron can start with");
+
+        public static readonly SettingOption<bool> Duplicates = new(new Option<bool>("duplicates", ValueKinds.Switch, "let mutation copy working neurons"), "Duplicate neurons",
+            settings => settings.DuplicateNeurons, (settings, value) => settings.DuplicateNeurons = value);
 
         public static readonly SettingOption<bool> Iterative = new(new Option<bool>("iterative", ValueKinds.Switch, "evolve a long target a few values at a time"), "Iterative evolution",
             settings => settings.IterativeEvolution, (settings, value) => settings.IterativeEvolution = value);
@@ -123,7 +87,7 @@ namespace SnpEvolution.Cli
         public static readonly SettingOption<string[]> ModuleFiles = new(new Option<string[]>("module-files", ValueKinds.List, "saved networks to start the module library with", "a.json,b.json"), "Module files",
             settings => settings.ModuleFiles.ToArray(), (settings, files) => (settings.ModuleFiles, settings.Modules) = (files, settings.Modules || files.Length > 0),
             show: settings => settings.ModuleFiles.Count == 0 ? "none" : string.Join(", ", settings.ModuleFiles.Select(System.IO.Path.GetFileName)),
-            edit: SearchMenu.EditModuleFiles);
+            edit: SettingsMenu.EditModuleFiles);
 
         public static readonly SettingOption<long> Evaluations = new(new Option<long>("evaluations", ValueKinds.NonNegativeLong, "evaluations a run may spend in all, or 0 for no limit"), "Evaluation budget",
             settings => settings.MaxEvaluations, (settings, value) => settings.MaxEvaluations = value, "Evaluations a run may spend, side runs and retests included, or 0 for no limit",
@@ -157,14 +121,31 @@ namespace SnpEvolution.Cli
         public static readonly SettingOption<long> ProposalBudget = new(new Option<long>("proposal-budget", ValueKinds.PositiveLong, "evaluations to evolve each proposed part"), "Composition: evaluations per proposed part",
             settings => settings.ProposalBudget, (settings, value) => settings.ProposalBudget = value, "Evaluations to spend evolving each proposed part");
 
-        // leaves leaves out the promoted add loop, as a control; the menu only turns the hand-built parts on and off.
+        // leaves leaves out the promoted add loop, as a control.
         public static readonly SettingOption<string> HandBuilt = new(new Option<string>("hand-built", ValueKinds.Choice("on", "off", "leaves"), "add the hand-built parts to the library"),
             "Composition: start from hand-built parts", settings => !settings.HandBuiltParts ? "off" : settings.HandBuiltAddLoop ? "on" : "leaves",
-            (settings, value) => (settings.HandBuiltParts, settings.HandBuiltAddLoop) = (value != "off", value != "leaves"),
-            show: settings => settings.HandBuiltParts ? "on" : "off", edit: settings => settings.HandBuiltParts = !settings.HandBuiltParts);
+            (settings, value) => (settings.HandBuiltParts, settings.HandBuiltAddLoop) = (value != "off", value != "leaves"), "Add the hand-built parts to the library:");
+
+        public static readonly SettingOption<long> PartBudget = new(new Option<long>("budget", ValueKinds.PositiveLong, "evaluations to search for each part"), "Evaluations per library part",
+            settings => settings.PartBudget, (settings, value) => settings.PartBudget = value, "Evaluations evolve-parts spends searching for each part");
 
         public static readonly SettingOption<bool> HardwareProfile = new(new Option<bool>("profile", ProfileKind, "hardware keeps every rule to threshold-and-reset forms"), "Hardware profile",
             settings => settings.HardwareProfile, (settings, value) => settings.HardwareProfile = value, show: settings => settings.HardwareProfile ? "on (threshold-and-reset rules only)" : "off");
+
+        public static readonly SettingOption<CatalogEntry<Settings, ISimulationEngine>> Simulator = new(
+            new Option<CatalogEntry<Settings, ISimulationEngine>>("simulator", ValueKinds.Named(Catalog.Engines, entry => entry.Name, "the name of an engine"),
+                "the engine that runs networks; any whose name contains NAME", "NAME"), "Engine",
+            settings => settings.Engine, (settings, value) => settings.Engine = value,
+            edit: settings => settings.Engine = MenuPrompts.ChooseEntry(settings, "Run networks on:", Catalog.Engines, settings.Engine));
+
+        public static readonly SettingOption<int> Steps = new(new Option<int>("steps", ValueKinds.PositiveInt, "the most steps a run lasts"), "Max steps per run",
+            settings => settings.MaxSteps, (settings, value) => settings.MaxSteps = value, "Maximum steps per run");
+
+        public static readonly SettingOption<RuleForm> Rules = new(new Option<RuleForm>("rule-form", ValueKinds.Enum<RuleForm>(), "the form of the rules evolution creates"), "Rule form",
+            settings => settings.RuleForm, (settings, value) => settings.RuleForm = value, "Form of the rules evolution creates:");
+
+        public static readonly SettingOption<OutputTiming> Timing = new(new Option<OutputTiming>("timing", ValueKinds.Enum<OutputTiming>(), "how the output neuron's spikes become a number"), "Output timing",
+            settings => settings.OutputTiming, (settings, value) => settings.OutputTiming = value, "How the output neuron's spikes become a number:");
 
         public static readonly SettingOption<int> Repetitions = new(new Option<int>("repetitions", ValueKinds.PositiveInt, "sampled runs that score each network"), "Runs per network",
             settings => settings.Repetitions, (settings, value) => settings.Repetitions = value, "Number of runs per network");
@@ -178,12 +159,22 @@ namespace SnpEvolution.Cli
         public static readonly SettingOption<int> BenchmarkPopulation = new(new Option<int>("population", ValueKinds.PositiveInt, "networks per generation"), "Population size",
             settings => settings.BenchmarkPopulationSize, (settings, value) => settings.BenchmarkPopulationSize = value, "Population size for benchmarks");
 
+        // The settings that say how networks are run, which every command that runs them takes.
+        public static readonly IReadOnlyList<SettingOption> Simulation = new SettingOption[] { Simulator, Steps, Repetitions, Timing };
+
         // The settings evolve, advise, reach and compose take, in the order they are applied: module files after modules.
         public static readonly IReadOnlyList<SettingOption> Evolve = new SettingOption[]
         {
-            Generations, Population, Neurons, Patience, Iterative, Lexicase, HardwareProfile, Modules, Freeze, Triggered, Incubation, Evaluations,
-            Library, HandBuilt, Propose, ProposalBudget, MaxParts, Glue, GlueWeight, ModuleFiles, Algorithm,
-        };
+            Generations, Population, Neurons, MutationRate, Experimental, Fitness, Patience, Recovery, Iterative, FirstStage, StageStep, MaxDelay, MaxProduce,
+            InitialSpikes, Duplicates, Lexicase, HardwareProfile, Rules, Modules, Freeze, Triggered, Incubation, Evaluations, Library, HandBuilt, Propose,
+            ProposalBudget, MaxParts, Glue, GlueWeight, ModuleFiles, Algorithm,
+        }.Concat(Simulation).ToList();
+
+        // Every setting option, so the menu can find the setting behind a command's option.
+        public static readonly IReadOnlyList<SettingOption> All =
+            Evolve.Concat(new SettingOption[] { PartBudget, BenchmarkSeeds, BenchmarkBudget, BenchmarkPopulation }).ToList();
+
+        public static SettingOption? For(Option option) => All.FirstOrDefault(setting => setting.Option == option);
 
         public static void Apply(Settings settings, CommandArgs args, IEnumerable<SettingOption> options)
         {
@@ -194,10 +185,6 @@ namespace SnpEvolution.Cli
         }
 
         public static IReadOnlyList<Option> Flags(IEnumerable<SettingOption> options) => options.Select(option => option.Option).ToList();
-
-        private static ValueKind<EvolutionSearch> AlgorithmKind => new ValueKind<EvolutionSearch>(
-            (string input, out EvolutionSearch value) => (value = Catalog.Matching(Catalog.Algorithms, search => search.Name, input.Trim()).FirstOrDefault()!) != null,
-            "the name of a search; run 'algorithms' to list them", "", "NAME");
 
         private static ValueKind<bool> ProfileKind => ValueKinds.Words(("hardware", true), ("none", false));
     }

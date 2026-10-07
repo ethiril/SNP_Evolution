@@ -17,14 +17,18 @@ namespace SnpEvolution.Cli
             new EvolvePartsCommand(),
             new ComposeCommand(),
             new VerifyCommand(),
+            new PartsCommand(),
             new ExportVerilogCommand(),
             new ExportNirCommand(),
             new ExportUppaalCommand(),
             new BenchmarkCommand(),
             new SelectCommand(),
+            new RunCommand(),
             new TasksCommand(),
             new AlgorithmsCommand(),
         };
+
+        public static T Get<T>() where T : Command => All.OfType<T>().Single();
 
         public static Command? Find(string name) => All.FirstOrDefault(command => string.Equals(command.Name, name, StringComparison.OrdinalIgnoreCase));
 

@@ -1,0 +1,107 @@
+{
+  "Contract": {
+    "Name": "delay 1",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 1,
+    "MinLatency": 1,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 2
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 2,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          3
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a(aa)*",
+            "Delay": 2,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 2,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 2,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 3,
+    "Synapses": 2,
+    "DistinctRules": 3,
+    "Rules": 3,
+    "RegisterWidth": 3,
+    "LassoTable": 9
+  },
+  "Latency": 1,
+  "Origin": {
+    "Seed": 409677482,
+    "Run": "evolve-parts --seed 1 --budget 50000",
+    "Evaluations": 13217
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

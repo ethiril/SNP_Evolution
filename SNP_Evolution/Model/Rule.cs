@@ -73,6 +73,21 @@ namespace SnpEvolution.Model
         // A standard rule needs the spikes it consumes as well as a matching condition.
         public bool Applies(long spikes) => spikes >= LeastHeld && Condition.Matches(spikes);
 
+        // Whether some spike count lets both rules apply, so a neuron holding both would have a choice to make. Past both
+        // tails and the larger need, the pair repeats every product of the periods, so one such stretch settles it.
+        public bool Overlaps(Rule other)
+        {
+            long last = Math.Max(Math.Max(LeastHeld, other.LeastHeld), Math.Max(Condition.TailLength, other.Condition.TailLength)) + (long)Condition.Period * other.Condition.Period;
+            for (long spikes = 1; spikes <= last; spikes++)
+            {
+                if (Applies(spikes) && other.Applies(spikes))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // What the neuron holds after applying the rule to these spikes, before anything arrives.
         public long Leaves(long spikes) => Consume is long consume ? spikes - consume : 0;
 

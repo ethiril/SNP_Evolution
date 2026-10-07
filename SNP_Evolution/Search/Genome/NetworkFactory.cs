@@ -21,7 +21,9 @@ namespace SnpEvolution.Search.Genome
     // The bounds evolution searches within. The first InputCount neurons of every network are its input neurons.
     // DuplicateNeurons lets mutation copy working neurons, which helps build repeated parts such as counters but
     // disrupts small networks, so it is off unless asked for. HardwareProfile keeps every network within HardwareProfile:
-    // one threshold rule per neuron and no initial spikes, whatever the rule form and limits say.
+    // one threshold rule per neuron and no initial spikes, whatever the rule form and limits say. Deterministic keeps
+    // every neuron free of rival rules (see DeterministicNeurons), for searches whose networks must behave the same on
+    // every computation.
     public sealed record GenomeSpace(
         int InputCount = 0,
         RuleForm RuleForm = RuleForm.Legacy,
@@ -32,9 +34,22 @@ namespace SnpEvolution.Search.Genome
         int MaxInitialSpikes = 4,
         int MaxProduce = 2,
         bool DuplicateNeurons = false,
-        bool HardwareProfile = false)
+        bool HardwareProfile = false,
+        bool Deterministic = false)
     {
         public int SmallestNetwork => Math.Max(MinNeurons, InputCount + 1);
+
+        // Whether operators' networks must be put back within the space, or refused when they leave it.
+        public bool Conforms => HardwareProfile || Deterministic;
+
+        // The network within the profile, when the space has it; the same network when it already is.
+        public Network Profiled(Network network) => HardwareProfile ? Model.HardwareProfile.Conform(network) : network;
+
+        // A network outside a deterministic space cannot be put back without losing rules, so an edit making one is refused instead.
+        public bool Fits(Network network) => !Deterministic || DeterministicNeurons.Fits(network);
+
+        // The network within the space's profile and determinism, or the same network when it already is.
+        public Network Conform(Network network) => Deterministic ? DeterministicNeurons.Conform(Profiled(network)) : Profiled(network);
     }
 
     // Creates random rules, neurons and networks within a genome space.
@@ -42,6 +57,9 @@ namespace SnpEvolution.Search.Genome
     {
         private const double ExactConditionChance = 0.5;
         private const double FiringRuleChance = 0.8;
+
+        // Draws a deterministic space makes for a rule that no rule already in the neuron overlaps, before it gives up.
+        private const int RuleDraws = 8;
 
         private readonly ExpressionGenerator expressions;
         private readonly Random random;
@@ -89,17 +107,34 @@ namespace SnpEvolution.Search.Genome
             return new Rule(expression, delay, fire, random.Next(1, (int)smallest + 1), produce);
         }
 
+        // A rule to add beside these, or null when a deterministic space finds none that leaves the neuron without a choice.
+        public Rule? NewRuleBeside(IReadOnlyList<Rule> rules)
+        {
+            for (int draw = 0; draw < RuleDraws; draw++)
+            {
+                Rule rule = NewRule();
+                if (!Space.Deterministic || DeterministicNeurons.Fits(rule, rules))
+                {
+                    return rule;
+                }
+            }
+            return null;
+        }
+
         // A relay that passes each spike straight on, in the space's rule form.
         public Rule RelayRule() => Space.HardwareProfile ? HardwareProfile.ThresholdRule(1)
             : Space.RuleForm == RuleForm.Legacy ? new Rule("a", 0, true) : new Rule("a", 0, true, 1, 1);
 
-        public Neuron NewNeuron(IReadOnlyList<int> connections, bool isOutput = false, bool isInput = false) =>
-            new Neuron(
-                Enumerable.Range(0, Space.HardwareProfile ? 1 : random.Next(1, Space.MaxRulesPerNeuron + 1)).Select(_ => NewRule()).ToList(),
-                isInput || Space.HardwareProfile ? 0 : random.Next(0, Space.MaxInitialSpikes + 1),
-                connections,
-                isOutput,
-                isInput);
+        public Neuron NewNeuron(IReadOnlyList<int> connections, bool isOutput = false, bool isInput = false)
+        {
+            int ruleCount = Space.HardwareProfile ? 1 : random.Next(1, Space.MaxRulesPerNeuron + 1);
+            var rules = new List<Rule> { NewRule() };
+            while (rules.Count < ruleCount && NewRuleBeside(rules) is Rule rule)
+            {
+                rules.Add(rule);
+            }
+            return new Neuron(rules, isInput || Space.HardwareProfile ? 0 : random.Next(0, Space.MaxInitialSpikes + 1), connections, isOutput, isInput);
+        }
 
         // Inputs come first, the output is one of the other neurons, and every neuron sends to at least one other.
         public Network NewNetwork()

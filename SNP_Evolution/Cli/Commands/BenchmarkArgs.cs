@@ -33,9 +33,9 @@ namespace SnpEvolution.Cli
                 Console.Error.WriteLine($"No search matches '{args.Find(CommonOptions.Algorithm)}'; run 'algorithms' to list them.");
                 return null;
             }
-            var settings = new Application.Settings();
-            SettingOptions.Apply(settings, args, Settings);
-            BenchmarkSettings benchmark = settings.BenchmarkSettings with { CreateEngine = CommonOptions.EngineFrom(args).Factory, Lexicase = args.Get(SettingOptions.Lexicase.Typed, false) };
+            Application.Settings settings = args.StartingSettings();
+            SettingOptions.Apply(settings, args, Settings.Append(SettingOptions.Lexicase));
+            BenchmarkSettings benchmark = settings.BenchmarkSettings with { CreateEngine = CommonOptions.EngineFrom(args).Factory, Lexicase = settings.Lexicase };
             Loaded<BenchmarkPlan> plan = BenchmarkService.Plan(settings, benchmark, searches);
             if (plan.Value == null)
             {
@@ -58,7 +58,10 @@ namespace SnpEvolution.Cli
 
         public override IReadOnlyList<Option> Options => BenchmarkArgs.Options;
 
-        public override ExitCode Run(CommandArgs args)
+        public override ExitCode Run(CommandArgs args) => Run(args, null);
+
+        // done hears the table's rows, so the menu can save them.
+        internal ExitCode Run(CommandArgs args, Action<IReadOnlyList<BenchmarkRow>>? done)
         {
             List<BenchmarkTask> tasks = BenchmarkArgs.Tasks(args);
             if (tasks.Count == 0)
@@ -69,7 +72,9 @@ namespace SnpEvolution.Cli
             {
                 return ExitCode.Usage;
             }
-            Console.WriteLine(Benchmark.FormatTable(BenchmarkService.Run(plan, tasks, Console.Error.WriteLine)));
+            IReadOnlyList<BenchmarkRow> rows = BenchmarkService.Run(plan, tasks, Console.Error.WriteLine);
+            Console.WriteLine(Benchmark.FormatTable(rows));
+            done?.Invoke(rows);
             return ExitCode.Success;
         }
     }
@@ -84,7 +89,10 @@ namespace SnpEvolution.Cli
 
         public override IReadOnlyList<Option> Required { get; } = new[] { CommonOptions.Task };
 
-        public override ExitCode Run(CommandArgs args)
+        public override ExitCode Run(CommandArgs args) => Run(args, null);
+
+        // picked hears the winner, so the menu can offer to evolve with it.
+        internal ExitCode Run(CommandArgs args, Action<ISearch<Individual>>? picked)
         {
             List<BenchmarkTask> tasks = BenchmarkArgs.Tasks(args);
             if (tasks.Count != 1)
@@ -101,6 +109,7 @@ namespace SnpEvolution.Cli
             {
                 Console.WriteLine("Best network found (fitness {0}, {1}):\n{2}", best.Fitness, best.Description, Model.NetworkNotation.Format(best.Genes));
             }
+            picked?.Invoke(result.Winner);
             return ExitCode.Success;
         }
     }

@@ -9,9 +9,6 @@ namespace SnpEvolution.Cli
     internal sealed record SettingRow(Func<Settings, string> Row, Action<Settings> Edit)
     {
         public static implicit operator SettingRow(SettingOption option) => new SettingRow(option.Row, option.Edit);
-
-        public static SettingRow Toggle(string label, Func<Settings, bool> get, Action<Settings, bool> set) =>
-            new SettingRow(settings => ConsoleUi.Row(label, get(settings) ? "on" : "off"), settings => set(settings, !get(settings)));
     }
 
     // A page of settings that lists each with its current value and stays open until the user goes back, so several

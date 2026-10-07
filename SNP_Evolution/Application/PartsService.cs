@@ -15,7 +15,7 @@ using SnpEvolution.Storage;
 namespace SnpEvolution.Application
 {
     // Seed is the run's seed, which each contract's own seed comes from.
-    public sealed record PartsRequest(IReadOnlyList<Contract> Contracts, int Seed = RunSeed.Repeatable, bool Redo = false, EngineChoice? Engine = null, int RobustJitter = 0);
+    public sealed record PartsRequest(IReadOnlyList<Contract> Contracts, int Seed = RunSeed.Repeatable, bool Redo = false, EngineChoice? Engine = null, int RobustJitter = 0, bool StagedCases = true);
 
     // Error says why nothing was evolved, when the library folder cannot be used.
     public sealed record PartsResult(IReadOnlyList<PartsService.Row> Rows, string? Error = null)
@@ -43,11 +43,16 @@ namespace SnpEvolution.Application
             {
                 return new PartsResult(Array.Empty<Row>(), loaded.Error);
             }
-            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.CommandLineFlag}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}";
-            PartSearchSettings search = SearchSettings(budget, engine.Factory) with { HardwareProfile = settings.HardwareProfile, RobustJitter = request.RobustJitter };
+            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.CommandLineFlag}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}{(request.StagedCases ? "" : " --staged off")}";
+            PartSearchSettings search = SearchSettings(budget, engine.Factory) with { HardwareProfile = settings.HardwareProfile, RobustJitter = request.RobustJitter, StagedCases = request.StagedCases };
             var rows = new List<Row>();
             foreach (Contract contract in request.Contracts)
             {
+                if (EarlyStop.Requested)
+                {
+                    log("Stopped early: the contracts left are not evolved.");
+                    break;
+                }
                 Module? kept = library.PartFor(contract.Name);
                 if (kept != null && !request.Redo)
                 {
@@ -70,7 +75,7 @@ namespace SnpEvolution.Application
                 }
                 else
                 {
-                    rows.Add(new Row(contract.Name, "not solved", outcome.Evaluations, kept?.Part));
+                    rows.Add(new Row(contract.Name, EarlyStop.Requested ? "stopped early" : "not solved", outcome.Evaluations, kept?.Part));
                 }
             }
             IReadOnlyList<string> written = PartLibraryFiles.Save(library, folder);

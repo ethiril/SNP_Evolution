@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SnpEvolution.Cli
 {
     // One --name value option a command takes. Commands that take the same option share its declaration.
@@ -19,6 +21,12 @@ namespace SnpEvolution.Cli
 
         public string Usage => $"{Flag} {Placeholder}";
 
+        // What the menu says to a value the option cannot take.
+        public abstract string Invalid { get; }
+
+        // The words the option can take, for the menu to offer; empty when it takes any text of its kind.
+        public abstract IReadOnlyList<string> Words { get; }
+
         // The value the text gives, or false with why it gives none.
         public abstract bool TryRead(string text, out object? value, out string problem);
     }
@@ -34,6 +42,10 @@ namespace SnpEvolution.Cli
         public ValueKind<T> Kind { get; }
 
         public override string Placeholder { get; }
+
+        public override string Invalid => Kind.Invalid;
+
+        public override IReadOnlyList<string> Words => Kind.Words;
 
         public override bool TryRead(string text, out object? value, out string problem)
         {

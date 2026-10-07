@@ -29,8 +29,8 @@ namespace SnpEvolution.Application
         public int SolvedRetestCount { get; set; } = 5;
         public OutputTarget Target { get; set; } = OutputTarget.Set(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         public bool ExperimentalRules { get; set; } = true;
-        public RuleForm RuleForm { get; set; } = RuleForm.Legacy;
-        public OutputTiming OutputTiming { get; set; } = OutputTiming.Legacy;
+        public RuleForm RuleForm { get; set; } = RuleForm.Standard;
+        public OutputTiming OutputTiming { get; set; } = OutputTiming.Interval;
         public int MaxNeurons { get; set; } = 7;
         public int MaxDelay { get; set; } = 1;
         public int MaxProduce { get; set; } = 2;
@@ -91,6 +91,17 @@ namespace SnpEvolution.Application
 
         public IReadOnlyList<string> MutationTemplates =>
             ExperimentalRules ? ExpressionGenerator.ExperimentalTemplates : ExpressionGenerator.SimpleTemplates;
+
+        // Makes the task the one to evolve for; a suite task brings the rule form and timing it is meant for.
+        public void UseTask(CatalogEntry<Settings, BenchmarkTask> task)
+        {
+            Task = task;
+            if (task != Catalog.TargetTask)
+            {
+                BenchmarkTask chosen = task.Create(this);
+                (RuleForm, OutputTiming) = (chosen.RuleForm, chosen.Timing);
+            }
+        }
 
         // The selected task, built with the rule form and output timing chosen here.
         public BenchmarkTask SelectedTask => Task.Create(this) with { RuleForm = RuleForm, Timing = OutputTiming };

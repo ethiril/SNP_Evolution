@@ -21,7 +21,7 @@ namespace SnpEvolution.Cli
 
         public override ExitCode Run(CommandArgs args)
         {
-            var settings = new Settings();
+            Settings settings = args.StartingSettings();
             SettingOptions.Library.ApplyFrom(args, settings);
             Loaded<IReadOnlyList<PartFile>> loaded = args.Find(CommonOptions.Part) is string file
                 ? PartLibraries.ReadPart(file).Select<IReadOnlyList<PartFile>>(part => new[] { part })

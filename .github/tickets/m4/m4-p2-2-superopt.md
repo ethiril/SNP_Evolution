@@ -18,6 +18,7 @@ Its responsibilities are:
 * A map keyed by neurons and latency, scored by `HardwareCost`, holding only verified networks
 * Output: the best network per cell, its cost, the step it was verified to, and its export as Verilog and NIR when it fits the profile
 
+The command should extend the `superopt` command and part superoptimiser built for library parts with `--spec`, because a contract is already a spec with cases, and a second superoptimiser would drift from the first.
 Every seed should pass the verifier before the search starts, because a wrong seed would make every descendant compete against a wrong reference.
 A network should enter the map only after passing the verifier's held-out step, and the bounded proof should run on each new elite once, because proofs on every candidate cost too much and an unproven elite must not be reported.
 Evaluations should be charged to the shared evaluation budget in the same units as the other searches, because the synthesis arm is compared on the same budget.

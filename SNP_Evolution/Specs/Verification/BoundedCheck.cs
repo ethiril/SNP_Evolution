@@ -40,6 +40,10 @@ namespace SnpEvolution.Specs.Verification
                 {
                     return Stopped(proven, new StopReason(Stop.TimeLimit, $"{limits.Time.TotalSeconds:0.#}"));
                 }
+                if (EarlyStop.Requested)
+                {
+                    return Stopped(proven, new StopReason(Stop.StoppedEarly));
+                }
                 if (AtBound(contract, specification, bound) is Contract atBound)
                 {
                     budget.Charge(EvaluationKind.ProofStep, 1);

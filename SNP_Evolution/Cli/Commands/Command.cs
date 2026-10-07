@@ -31,6 +31,9 @@ namespace SnpEvolution.Cli
 
         public abstract ExitCode Run(CommandArgs args);
 
+        // The settings the command starts from, before its options, given the defaults or the menu's settings.
+        public virtual Settings Starting(Settings settings) => settings.Copy();
+
         public string Usage => string.Join(" ", new[] { "snp-evolution", Name }.Concat(Options.Select(option => Required.Contains(option) ? option.Usage : $"[{option.Usage}]")));
 
         protected static ExitCode Ended(EvolveResult result) =>

@@ -39,7 +39,7 @@ namespace SnpEvolution.Tests.Cli
 
         [Fact]
         public void ARequiredOptionLeftOutIsNamed() =>
-            Assert.Equal("evolve needs --target VALUES.", Problem("evolve", "--seed", "1"));
+            Assert.Equal("compile needs --target VALUES.", Problem("compile", "--seed", "1"));
 
         [Fact]
         public void AWordThatIsNotAnOptionIsRefused() =>
@@ -59,6 +59,12 @@ namespace SnpEvolution.Tests.Cli
         [InlineData("evolve", "--target", "1,2", "--glue-weight", "-1")]
         [InlineData("compose", "--task", "no such task")]
         [InlineData("evolve", "--target", "1,2", "--algorithm", "no such search")]
+        [InlineData("evolve", "--seed", "1")]
+        [InlineData("evolve", "--target", "1,2", "--task", "Compute n")]
+        [InlineData("evolve", "--task", "Compute n", "--start", "natural")]
+        [InlineData("evolve", "--task", "Contract")]
+        [InlineData("evolve", "--target", "1,2", "--simulator", "no such engine")]
+        [InlineData("run", "--network", "no-such-network.json")]
         public void BadCommandLinesExitWithUsage(params string[] line)
         {
             using var console = new ConsoleCapture();

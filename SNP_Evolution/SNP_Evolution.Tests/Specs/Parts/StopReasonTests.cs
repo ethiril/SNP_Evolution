@@ -12,6 +12,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         [InlineData("n=3 has too many computations to follow exactly")]
         [InlineData("counterexample at a=14,b=0,n=0")]
         [InlineData("the contract has no specification")]
+        [InlineData("stopped early")]
         public void AStopReasonReadsBackFromItsText(string text)
         {
             StopReason reason = StopReason.Parse(text);

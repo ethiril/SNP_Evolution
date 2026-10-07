@@ -4,7 +4,7 @@ using SnpEvolution.Specs.Accounting;
 
 namespace SnpEvolution.Search.Algorithms
 {
-    // The budget is looked at before each generation, so one started is always finished.
+    // The budget is looked at before each generation, so one started is always finished; so is an early stop (see EarlyStop).
     public static class GenerationLoop
     {
         // generation is told how many came before and says whether the search is now solved.
@@ -12,7 +12,7 @@ namespace SnpEvolution.Search.Algorithms
         {
             for (int run = 0; run < maxGenerations; run++)
             {
-                if (cancellation.IsCancellationRequested)
+                if (cancellation.IsCancellationRequested || EarlyStop.Requested)
                 {
                     return (SearchStop.Cancelled, run);
                 }

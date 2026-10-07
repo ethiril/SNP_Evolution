@@ -34,6 +34,8 @@ namespace SnpEvolution.Specs.Accounting
         private readonly EvaluationSource? source;
         private readonly long? limit;
         private long upFront;
+        private long repeats;
+        private long exactRepeats;
 
         // Without a limit nothing stops a search but itself.
         public EvaluationBudget(long? limit = null)
@@ -74,10 +76,23 @@ namespace SnpEvolution.Specs.Accounting
 
         public void AddUpFront(long evaluations) => Interlocked.Add(ref upFront, evaluations);
 
+        // Of the networks already charged, how many repeated one scored before on the same task, and how many of those
+        // repeated an exact result, which a cache could have answered without simulating. Measured, not saved.
+        public void CountRepeats(long count, long exact)
+        {
+            Interlocked.Add(ref repeats, count);
+            Interlocked.Add(ref exactRepeats, exact);
+            parent?.CountRepeats(count, exact);
+        }
+
         public BudgetReport Report() => new BudgetReport(
             Enum.GetValues<EvaluationKind>().ToDictionary(kind => kind, kind => this[kind]),
             Enum.GetValues<EvaluationSource>().ToDictionary(source => source, source => this[source]),
-            UpFront);
+            UpFront)
+        {
+            Repeats = Interlocked.Read(ref repeats),
+            ExactRepeats = Interlocked.Read(ref exactRepeats),
+        };
     }
 
     public sealed record BudgetReport(IReadOnlyDictionary<EvaluationKind, long> Kinds, IReadOnlyDictionary<EvaluationSource, long> Sources, long UpFront)
@@ -89,13 +104,19 @@ namespace SnpEvolution.Specs.Accounting
         // Network evaluations and exhaustive checks, which is what a part's record has always counted.
         public long NetworksAndChecks => Networks + this[EvaluationKind.ExhaustiveCheck];
 
+        // See EvaluationBudget.CountRepeats.
+        public long Repeats { get; init; }
+
+        public long ExactRepeats { get; init; }
+
         public string Describe()
         {
             IEnumerable<string> spent = Enum.GetValues<EvaluationSource>().Select(source => $"{Number(Sources[source])} {Name(source)}");
             string others = string.Concat(Enum.GetValues<EvaluationKind>().Where(kind => kind != EvaluationKind.Network && Kinds[kind] > 0)
                 .Select(kind => $" Besides them, {Number(Kinds[kind])} {Name(kind)}."));
             string parts = UpFront > 0 ? $" Evolving the library's parts beforehand took {Number(UpFront)}, so {Number(Networks + UpFront)} with them." : "";
-            return $"Evaluations: {string.Join(", ", spent)}; {Number(Networks)} in all.{parts}{others}";
+            string repeated = Repeats > 0 ? $" {Number(Repeats)} repeated a network already scored on the same task, {Number(ExactRepeats)} of them exactly." : "";
+            return $"Evaluations: {string.Join(", ", spent)}; {Number(Networks)} in all.{parts}{repeated}{others}";
         }
 
         private static string Name(EvaluationSource source) => source switch

@@ -89,9 +89,9 @@ namespace SnpEvolution.Search.Operators
         {
             int index = random.Next(network.Neurons.Count);
             Neuron neuron = network.Neurons[index];
-            return neuron.Rules.Count >= factory.Space.MaxRulesPerNeuron
+            return neuron.Rules.Count >= factory.Space.MaxRulesPerNeuron || factory.NewRuleBeside(neuron.Rules) is not Rule rule
                 ? network
-                : network.WithNeuron(index, neuron.WithRules(neuron.Rules.Append(factory.NewRule())));
+                : network.WithNeuron(index, neuron.WithRules(neuron.Rules.Append(rule)));
         }
     }
 

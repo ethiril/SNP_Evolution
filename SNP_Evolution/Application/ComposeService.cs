@@ -1,6 +1,5 @@
 using System;
 using SnpEvolution.Search;
-using SnpEvolution.Search.Benchmarking;
 
 namespace SnpEvolution.Application
 {
@@ -9,21 +8,16 @@ namespace SnpEvolution.Application
     {
         public const string FileStem = "ComposedNet";
 
-        // The settings compose starts from, before any options: the task's rule form and timing, composition search with
-        // tournament selection and lexicase parents, and a budget large enough for the arithmetic contracts.
-        public static Settings SettingsFor(CatalogEntry<Settings, BenchmarkTask> task)
+        // The settings compose starts from, before its task and options: composition search with tournament selection and
+        // lexicase parents, and a budget large enough for the arithmetic contracts.
+        public static Settings Starting(Settings settings)
         {
-            BenchmarkTask suiteTask = task.Create(new Settings());
-            return new Settings
-            {
-                Task = task,
-                RuleForm = suiteTask.RuleForm,
-                OutputTiming = suiteTask.Timing,
-                Algorithm = SearchCatalog.CompositionTournament,
-                MaxEvaluations = 30_000,
-                MaxGenerations = 5_000,
-                Lexicase = true,
-            };
+            Settings starting = settings.Copy();
+            starting.Algorithm = SearchCatalog.CompositionTournament;
+            starting.MaxEvaluations = 30_000;
+            starting.MaxGenerations = 5_000;
+            starting.Lexicase = true;
+            return starting;
         }
 
         // Why these settings cannot compose, or null when they can.

@@ -17,7 +17,7 @@ namespace SnpEvolution.Cli
             {
                 Console.SetWindowSize(Console.WindowWidth, Math.Min(Console.WindowHeight + 5, Console.LargestWindowHeight));
             }
-            new MainMenu().Run();
+            MainMenu.Run();
             Console.WriteLine("Thanks for testing! :)");
             return 0;
         }
