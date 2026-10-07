@@ -53,7 +53,8 @@ namespace SnpEvolution.Cli
             }
         }
 
-        // Parses the form's command line as the command line would, then runs the command and waits for Enter.
+        // Parses the form's command line as the command line would, then runs the command, with a heartbeat while it is quiet,
+        // and waits for Enter.
         public static void Run(MenuState state, CommandItem item, IReadOnlyDictionary<Option, string> typed)
         {
             var form = new CommandForm(item, state.Settings, typed);
@@ -67,7 +68,11 @@ namespace SnpEvolution.Cli
                 ConsoleInput.WaitForEnter(" Press enter to return to the form.");
                 return;
             }
-            ExitCode exit = item.Run(args);
+            ExitCode exit;
+            using (Heartbeat.Start())
+            {
+                exit = item.Run(args);
+            }
             if (exit != ExitCode.Success)
             {
                 Console.WriteLine();

@@ -150,5 +150,31 @@ namespace SnpEvolution.Tests.Search.Fitness
             Assert.Equal(1, counter[EvaluationSource.SideRun]);
             Assert.Equal(3, counter[EvaluationSource.Verification]);
         }
+
+        [Fact]
+        public void ANetworkScoredAgainCountsAsARepeatAndExactlySoUnderTheExhaustiveEngine()
+        {
+            var budget = new EvaluationBudget();
+            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }), TaskOptions, solvedRetestCount: 5, new Random(0), budget);
+
+            evaluator.EvaluateAll(new[] { Identity(), Identity() });
+            evaluator.Evaluate(Identity());
+            evaluator.ConfirmSolved(Identity());
+
+            Assert.Equal(2, budget.Report().Repeats);
+            Assert.Equal(2, budget.Report().ExactRepeats);
+        }
+
+        [Fact]
+        public void ASampledRepeatIsNotAnExactOne()
+        {
+            var budget = new EvaluationBudget();
+            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), new SetCoverageFitness(new[] { 1 }), new SimulationOptions(MaxSteps: 10, 2), 1, new Random(0), budget);
+
+            evaluator.EvaluateAll(new[] { RefillThenStarve(), RefillThenStarve(), AlwaysOutputsOne() });
+
+            Assert.Equal(1, budget.Report().Repeats);
+            Assert.Equal(0, budget.Report().ExactRepeats);
+        }
     }
 }

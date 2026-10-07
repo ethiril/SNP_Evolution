@@ -48,6 +48,9 @@ namespace SnpEvolution.Search
         private const float MutationRate = 0.5f;
         private const int CheckedPerGeneration = 3;
 
+        // How often a search says how far it has got: once for each of these shares of its budget.
+        private const int ProgressReports = 4;
+
         private readonly PartSearchSettings settings;
 
         public PartSearch(PartSearchSettings? settings = null)
@@ -88,9 +91,22 @@ namespace SnpEvolution.Search
                 Lexicase = settings.Lexicase,
             };
             EvaluationBudget searchPhase = request.Budget.Phase(settings.Budget);
-            IGeneticAlgorithm algorithm = settings.Algorithm.Create(setup.Context(setup.Scoring.Evaluator(task, searchPhase, request.Random), request.Random, _ => { }));
+            IGeneticAlgorithm algorithm = settings.Algorithm.Create(setup.Context(setup.Scoring.Evaluator(task, searchPhase, request.Random), request.Random, request.Log));
             PartMeasurement? found = null;
-            (SearchStop stop, _) = GenerationLoop.Run(algorithm, int.MaxValue, () => searchPhase.IsSpent, run => (found = FirstVerified(run, task, verifier)) != null);
+            int reported = 0;
+            (SearchStop stop, _) = GenerationLoop.Run(algorithm, int.MaxValue, () => searchPhase.IsSpent, run =>
+            {
+                if ((found = FirstVerified(run, task, verifier)) != null)
+                {
+                    return true;
+                }
+                // The last share is the outcome's to report.
+                for (; reported < ProgressReports - 1 && searchPhase.Networks >= settings.Budget * (reported + 1) / ProgressReports; reported++)
+                {
+                    request.Log($"{task.Contract.Name}: {searchPhase.Networks} of {settings.Budget} evaluations, best fitness {run.Best?.Fitness ?? 0:0.000}.");
+                }
+                return false;
+            });
             if (found == null)
             {
                 string failing = string.Join("; ", (algorithm.Best?.Description ?? "").Split(Environment.NewLine).Take(3));
@@ -114,7 +130,8 @@ namespace SnpEvolution.Search
                 MaxDelay: settings.MaxDelay,
                 MaxInitialSpikes: settings.MaxInitialSpikes,
                 MaxProduce: settings.MaxProduce,
-                HardwareProfile: settings.HardwareProfile);
+                HardwareProfile: settings.HardwareProfile,
+                Deterministic: true);
             return new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
         }
 

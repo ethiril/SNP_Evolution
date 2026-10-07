@@ -56,5 +56,22 @@ namespace SnpEvolution.Tests.Search
                 }
             }
         }
+
+        [Fact]
+        public void EveryStructuralEditIsPutBackWithinADeterministicSpace()
+        {
+            NetworkFactory factory = Factories.Networks(new GenomeSpace(InputCount: 1, RuleForm: RuleForm.Standard, MaxNeurons: 8, MaxDelay: 3, Deterministic: true), new Random(7));
+            var context = new EvolutionContext(10, 1f, factory.Random, factory.NewNetwork, Evaluator(), factory, _ => { });
+            foreach (var edit in context.StructuralMutation(1).Edits)
+            {
+                var conformed = context.Conformed(edit.Edit);
+                Network network = factory.NewNetwork();
+                for (int step = 0; step < 200; step++)
+                {
+                    network = conformed.Mutate(network, factory.Random);
+                    Assert.True(DeterministicNeurons.Fits(network), edit.Name);
+                }
+            }
+        }
     }
 }

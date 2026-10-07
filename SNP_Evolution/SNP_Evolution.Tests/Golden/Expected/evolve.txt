@@ -299,7 +299,7 @@ intervals [2,4,6] / [2,4,6]
 Current best fitness: 1
 Testing the best fitness for repeated success.
 Fitness over 0.985, stopping . . .
-Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all.
+Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all. 123 repeated a network already scored on the same task, 0 of them exactly.
 Saved the file to: <work>/runs/<run>/TargetNet-evaluations.txt
 Saved the file to: <work>/runs/<run>/TargetNet.csv
 
@@ -325,7 +325,7 @@ Saved the file to: <work>/runs/<run>/TargetNet.html
 Saved to <work>/runs/<run>
 --- stderr
 --- file runs/<run>/TargetNet-evaluations.txt
-Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all.
+Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all. 123 repeated a network already scored on the same task, 0 of them exactly.
 --- file runs/<run>/TargetNet-sizes.txt
 Neurons  Rules  Fitness
       4      4  0.417   intervals [2,3,5] / [2,4,6]

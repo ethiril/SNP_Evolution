@@ -39,10 +39,11 @@ namespace SnpEvolution.Search
             return new WeightedMutation(1, edits);
         }
 
-        // A check sees only the task, so under the hardware profile the edits must keep every network within it themselves.
+        // A check sees only the task, so under the hardware profile or a deterministic space the edits must keep every
+        // network within it themselves.
         internal static (ICrossover Crossover, IMutation Edits) Operators(NetworkFactory factory) =>
-            factory.Space.HardwareProfile
-                ? (new ProfileCrossover(new NeuronCrossover()), new ProfileMutation(Edits(factory)))
+            factory.Space.Conforms
+                ? (new ConformingCrossover(new NeuronCrossover(), factory.Space), new ConformingMutation(Edits(factory), factory.Space))
                 : (new NeuronCrossover(), Edits(factory));
 
         public static string Describe(Network network) =>

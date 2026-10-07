@@ -28,13 +28,13 @@ namespace SnpEvolution.Search
     {
         public WeightedMutation StructuralMutation(float rate) => WeightedMutation.Structural(rate, Factory, Pressure, Modules);
 
-        // Under the hardware profile, what an operator or the starting networks make is put back within it, so no edit
-        // has to know the profile; outside it they are returned as given.
-        public IMutation Conformed(IMutation mutation) => Factory.Space.HardwareProfile ? new ProfileMutation(mutation) : mutation;
+        // Under the hardware profile or a deterministic space, what an operator or the starting networks make is put back
+        // within the space, so no edit has to know it; otherwise they are returned as given.
+        public IMutation Conformed(IMutation mutation) => Factory.Space.Conforms ? new ConformingMutation(mutation, Factory.Space) : mutation;
 
-        public ICrossover Conformed(ICrossover crossover) => Factory.Space.HardwareProfile ? new ProfileCrossover(crossover) : crossover;
+        public ICrossover Conformed(ICrossover crossover) => Factory.Space.Conforms ? new ConformingCrossover(crossover, Factory.Space) : crossover;
 
-        public Func<Network> Conformed(Func<Network> create) => Factory.Space.HardwareProfile ? () => HardwareProfile.Conform(create()) : create;
+        public Func<Network> Conformed(Func<Network> create) => Factory.Space.Conforms ? () => Factory.Space.Conform(create()) : create;
 
         public IParentSelection Selection(IParentSelection usual) => Lexicase ? new LexicaseSelection(usual) : usual;
     }

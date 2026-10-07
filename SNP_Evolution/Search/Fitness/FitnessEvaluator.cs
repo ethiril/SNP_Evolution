@@ -41,6 +41,8 @@ namespace SnpEvolution.Search.Fitness
         private readonly Random random;
         private readonly EvaluationBudget budget;
         private readonly EvaluationSource source;
+        // Whether each network scored so far had an exact result, by fingerprint, to count repeats.
+        private readonly Dictionary<ulong, bool> scored = new Dictionary<ulong, bool>();
 
         // Every network scored is charged to the budget. Retests that confirm a solve are charged as verification
         // whatever source the evaluator was given.
@@ -71,11 +73,40 @@ namespace SnpEvolution.Search.Fitness
             IReadOnlyList<TaskCase> cases = Task.Cases;
             var trials = networks.SelectMany(network => cases.Select(@case => new Trial(network, @case.Input, @case.Readout, @case.Watch))).ToList();
             IReadOnlyList<TrialResult> results = engine.Run(trials, options, random);
-            return Enumerable.Range(0, networks.Count).Select(index =>
+            List<FitnessResult> scores = Enumerable.Range(0, networks.Count).Select(index =>
             {
                 List<TrialResult> own = results.Skip(index * cases.Count).Take(cases.Count).ToList();
                 return new FitnessResult(Task.Score(own), own[0].Outputs, Task.Describe(own), own.All(result => result.Exact), Task.Niche(own), Task.Checks(own));
             }).ToList();
+            // Retests repeat on purpose, so only the search's own evaluations are counted.
+            if (spentOn != EvaluationSource.Verification)
+            {
+                CountRepeats(networks, scores);
+            }
+            return scores;
+        }
+
+        private void CountRepeats(IReadOnlyList<Network> networks, IReadOnlyList<FitnessResult> scores)
+        {
+            long repeats = 0;
+            long exact = 0;
+            lock (scored)
+            {
+                for (int index = 0; index < networks.Count; index++)
+                {
+                    ulong key = NetworkFingerprint.Of(networks[index]);
+                    if (scored.TryGetValue(key, out bool wasExact))
+                    {
+                        repeats++;
+                        exact += wasExact ? 1 : 0;
+                    }
+                    scored[key] = wasExact || scores[index].Exact;
+                }
+            }
+            if (repeats > 0)
+            {
+                budget.CountRepeats(repeats, exact);
+            }
         }
 
         public FitnessResult Evaluate(Network network) => EvaluateAll(new[] { network })[0];

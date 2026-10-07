@@ -10,13 +10,18 @@ namespace SnpEvolution.Simulation
     // merged, which keeps the small networks evolution works with cheap. When only halting matters and the input is
     // spent, a configuration seen on any earlier step is dropped too, as its future has already been explored with
     // more steps to spare; a network that cycles without halting is then settled in a few steps. A trial whose
-    // configurations outgrow maxConfigurations is sampled instead, and its result says TooWide. Spike train
+    // configurations outgrow maxConfigurations is sampled instead, and its result says TooWide; so is one whose
+    // successors on a step, merged or not, outgrow WorkPerConfiguration times that, since each is built before it can
+    // be merged and a few wide neurons can make millions that merge into a few thousand. Spike train
     // and Ports readouts keep what they have recorded in the merge key, so only computations with the same record so far
     // are merged; each distinct computation is reported once. A deterministic network then costs one configuration a step.
     // Jitter would need a delay choice for every spike on every synapse, past following, so it is not supported.
     public sealed class ExhaustiveCpuEngine : ISimulationEngine
     {
         public const int DefaultMaxConfigurations = 2_000;
+
+        // How many successors a step may build for each configuration it may keep.
+        public const int WorkPerConfiguration = 16;
 
         private readonly int maxConfigurations;
 
@@ -59,6 +64,7 @@ namespace SnpEvolution.Simulation
             for (int step = 0; step < options.MaxSteps && frontier.Count > 0; step++)
             {
                 var next = new Dictionary<long[], NetworkStep>(StateComparer.Instance);
+                long work = 0;
                 foreach (NetworkStep configuration in frontier)
                 {
                     if (configuration.IsHalted)
@@ -77,7 +83,7 @@ namespace SnpEvolution.Simulation
                         AddPortRun(portRuns, configuration);
                         continue;
                     }
-                    if (!Expand(configuration, trial.Readout, outputs, next, seen))
+                    if (!Expand(configuration, trial.Readout, outputs, next, seen, ref work))
                     {
                         return new TrialResult(Array.Empty<int>(), false, TrialCoverage.TooWide);
                     }
@@ -109,9 +115,10 @@ namespace SnpEvolution.Simulation
         private static void AddPortRun(Dictionary<long[], PortRun> portRuns, NetworkStep configuration) =>
             portRuns.TryAdd(configuration.PortHistory().Concat(configuration.Spikes).ToArray(), configuration.PortRun());
 
-        // Adds every successor of the configuration to next, or returns false once there are too many.
+        // Adds every successor of the configuration to next, or returns false once there are too many, kept or built
+        // this step; work counts the successors the step has built so far.
         private bool Expand(
-            NetworkStep configuration, Readout readout, SortedSet<int> outputs, Dictionary<long[], NetworkStep> next, HashSet<long[]>? seen)
+            NetworkStep configuration, Readout readout, SortedSet<int> outputs, Dictionary<long[], NetworkStep> next, HashSet<long[]>? seen, ref long work)
         {
             int neuronCount = configuration.NeuronCount;
             var options = new int[neuronCount][];
@@ -126,6 +133,11 @@ namespace SnpEvolution.Simulation
                 {
                     return false;
                 }
+            }
+            work += combinations;
+            if (work > (long)maxConfigurations * WorkPerConfiguration)
+            {
+                return false;
             }
             var choice = new int[neuronCount];
             var position = new int[neuronCount];

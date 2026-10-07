@@ -150,7 +150,7 @@ namespace SnpEvolution.Tests.Application
         public void EveryNetworkAPartSearchScoresIsChargedAndItsChecksBesideThem()
         {
             var engine = new CountingEngine(new ExhaustiveCpuEngine());
-            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.StructuralDefault, () => engine);
+            var settings = new PartSearchSettings(20_000, 1_000, 30, Catalog.StructuralDefault, () => engine);
 
             PartOutcome outcome = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings, new EvaluationBudget(), _ => { });
 

@@ -79,6 +79,20 @@ namespace SnpEvolution.Tests.Simulation
         }
 
         [Fact]
+        public void FallsBackToSamplingWhenAStepBuildsTooManySuccessorsEvenIfTheyMerge()
+        {
+            // The output neuron forgets one or two spikes a step, so step t holds t + 1 configurations; each of the five
+            // others has two rules that do the same, so every configuration builds 64 successors that merge into two.
+            Rule twin = StandardForget("a+", 1);
+            var network = new Network(new[] { OutputNeuron(100, StandardForget("a+", 1), StandardForget("a+", 2)) }
+                .Concat(Enumerable.Range(0, 5).Select(_ => Neuron(100, Array.Empty<int>(), twin, twin))).ToList());
+
+            TrialResult result = new ExhaustiveCpuEngine(maxConfigurations: 64).Run(new[] { Trial.Generate(network) }, Options, new Random(0))[0];
+
+            Assert.Equal(TrialCoverage.TooWide, result.Coverage);
+        }
+
+        [Fact]
         public void FallsBackToSamplingWhenTheComputationTreeIsTooWide()
         {
             TrialResult result = new ExhaustiveCpuEngine(maxConfigurations: 1).Run(new[] { Trial.Generate(ReferenceNetworks.NaturalNumbers()) }, Options, new Random(0))[0];

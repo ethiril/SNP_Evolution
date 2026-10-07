@@ -2,12 +2,12 @@ $ snp-evolution evolve-parts --only "delay 2" --seed 1 --library library
 exit 0
 --- stdout
 Evolving a part for delay 2.
-delay 2: solved after 120 evaluations, 3 neurons, 4 synapses, 7 rules (7 distinct), register width 4, lasso table 35.
-delay 2: kept 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, latency 2.
-Module 1 kept: part for delay 2, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, from evolve-parts --seed 1 --budget 50000.
+delay 2: solved after 2700 evaluations, 6 neurons, 5 synapses, 6 rules (6 distinct), register width 3, lasso table 23.
+delay 2: kept 2 neurons, 1 synapses, 2 rules (2 distinct), register width 1, lasso table 5, latency 2.
+Module 1 kept: part for delay 2, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 1, lasso table 5, from evolve-parts --seed 1 --budget 50000.
 Saved 1 part(s) to library.
 Contract   Result   Evaluations   Neurons   Synapses   Latency   Robust j=1   Robust j=2
-delay 2    solved   12675         2         1          2         1.00         1.00
+delay 2    solved   15247         2         1          2         1.00         1.00
 
 Robust j=N is the share of 100 runs that keep the contract, latency aside, when each spike on each synapse may arrive up to N steps late.
 --- stderr
@@ -51,11 +51,11 @@ Robust j=N is the share of 100 runs that keep the contract, latency aside, when 
       {
         "Rules": [
           {
-            "RuleExpression": "a*",
-            "Delay": 0,
+            "RuleExpression": "a?",
+            "Delay": 1,
             "Fire": true,
             "Consume": 1,
-            "Produce": 2
+            "Produce": 1
           }
         ],
         "SpikeCount": 0,
@@ -68,11 +68,11 @@ Robust j=N is the share of 100 runs that keep the contract, latency aside, when 
       {
         "Rules": [
           {
-            "RuleExpression": "a*",
-            "Delay": 1,
+            "RuleExpression": "a+",
+            "Delay": 0,
             "Fire": true,
-            "Consume": 2,
-            "Produce": 1
+            "Consume": 1,
+            "Produce": 2
           }
         ],
         "SpikeCount": 0,
@@ -87,14 +87,14 @@ Robust j=N is the share of 100 runs that keep the contract, latency aside, when 
     "Synapses": 1,
     "DistinctRules": 2,
     "Rules": 2,
-    "RegisterWidth": 2,
-    "LassoTable": 4
+    "RegisterWidth": 1,
+    "LassoTable": 5
   },
   "Latency": 2,
   "Origin": {
     "Seed": 426451231,
     "Run": "evolve-parts --seed 1 --budget 50000",
-    "Evaluations": 12675
+    "Evaluations": 15247
   },
   "Proven": {
     "UpTo": 0,

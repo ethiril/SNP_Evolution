@@ -26,6 +26,18 @@ namespace SnpEvolution.Tests.Search.Genome
         }
 
         [Fact]
+        public void NetworksMadeInADeterministicSpaceHaveNoRivalRulesYetStillHaveSeveral()
+        {
+            var space = new GenomeSpace(InputCount: 1, RuleForm: RuleForm.Standard, MaxNeurons: 8, MaxDelay: 3, Deterministic: true);
+            NetworkFactory factory = Factories.Networks(space, new Random(1));
+
+            List<Network> made = Enumerable.Range(0, 300).Select(_ => factory.NewNetwork()).ToList();
+
+            Assert.All(made, network => Assert.True(DeterministicNeurons.Fits(network)));
+            Assert.Contains(made.SelectMany(network => network.Neurons), neuron => neuron.Rules.Count > 1);
+        }
+
+        [Fact]
         public void RandomNetworksAreWellFormed()
         {
             for (int seed = 0; seed < 100; seed++)

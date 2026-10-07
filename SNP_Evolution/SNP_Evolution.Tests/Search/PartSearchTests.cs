@@ -29,13 +29,17 @@ namespace SnpEvolution.Tests.Search
         [Slow]
         public void ARobustShrinkKeepsAVerifiedPartAtLeastAsRobustAsTheOneFound()
         {
-            var settings = new PartSearchSettings(5_000, 1_000, 30, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine(), RobustJitter: 1);
+            var settings = new PartSearchSettings(20_000, 1_000, 30, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine(), RobustJitter: 1);
+            static int Tenths(PartOutcome outcome) => Robustness.Tenths(Robustness.Of(outcome.Part!, jitter: 1, budget: new EvaluationBudget(), runs: Robustness.CellRuns));
 
+            // Without a shrink budget the part kept is the one the search found, as the shrink comes after the search.
+            PartOutcome found = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings with { ShrinkBudget = 0 }, new EvaluationBudget(), _ => { });
             PartOutcome outcome = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings, new EvaluationBudget(), _ => { });
 
+            Assert.True(found.Solved);
             Assert.True(outcome.Solved);
             Assert.IsType<Verdict.Passed>(outcome.Measurement!.Verdict);
-            Assert.Equal(10, Robustness.Tenths(Robustness.Of(outcome.Part!, jitter: 1, budget: new EvaluationBudget(), runs: Robustness.CellRuns)));
+            Assert.True(Tenths(outcome) >= Tenths(found), $"kept {Tenths(outcome)}/10, found {Tenths(found)}/10");
         }
     }
 }

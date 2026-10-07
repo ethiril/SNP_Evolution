@@ -333,7 +333,7 @@ a=4,b=4: done once 0.04
 a=6,b=5: done once 0.02
 Current best fitness: 0.85559493
 The budget of 100 evaluations is spent, stopping . . .
-Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them.
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 71 repeated a network already scored on the same task, 0 of them exactly.
 Saved the file to: <work>/runs/<run>/ComposedNet-evaluations.txt
 Saved the file to: <work>/runs/<run>/ComposedNet.csv
 
@@ -857,7 +857,7 @@ Saved to <work>/runs/<run>
   }
 }
 --- file runs/<run>/ComposedNet-evaluations.txt
-Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them.
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 71 repeated a network already scored on the same task, 0 of them exactly.
 --- file runs/<run>/ComposedNet-parts.txt
 No parts were proposed.
 
