@@ -2,6 +2,7 @@ using SnpEvolution.Application;
 using SnpEvolution.Search;
 using SnpEvolution.Search.Algorithms;
 using SnpEvolution.Search.Benchmarking;
+using SnpEvolution.Search.Genome;
 using SnpEvolution.Search.Modules;
 using SnpEvolution.Simulation;
 using SnpEvolution.Specs.Accounting;
@@ -33,9 +34,12 @@ namespace SnpEvolution.Tests.Application
             }
         }
 
-        // A target no small network makes in a few generations, so the run stalls and the modular loop reacts.
+        // A target no small network makes in a few generations, so the run stalls and the modular loop reacts. The rule
+        // form and timing are fixed, so the seeded runs below incubate a module whatever the defaults are.
         private static Settings Stalling(int generations) => new Settings
         {
+            RuleForm = RuleForm.Legacy,
+            OutputTiming = OutputTiming.Legacy,
             Target = new OutputTarget(TargetKind.Sequence, Sequences.Fibonacci.Take(9).ToArray()),
             Task = Catalog.TargetTask,
             Engine = CatalogEntries.SingleThreadEngine,

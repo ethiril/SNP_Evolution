@@ -1,5 +1,5 @@
 $ snp-evolution evolve --target "2,4,6" --seed 1 --population 20 --generations 125
-exit 2
+exit 0
 --- stdout
 Evolving a network for Spike intervals 2,4,6,... with MAP-Elites over network size.
 Only a network that gives this output on every run solves the task.
@@ -7,888 +7,315 @@ After 50 generations without improvement, mutation steps up and newcomers join.
 Small SN P systems produce intervals that eventually repeat, so the evolved network matches the
 numbers given and need not continue the pattern after them.
 Running Generation 0
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n3
-n2         aaa      aaa -> a                  n3
-n3 (out)   a        a -> a;1                  n2
-intervals [3,4] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                            Sends to
+n1 (out)   aa       aa/a -> a;1                      n2, n3, n4
+n2         -        aa -> forget;1  |  a -> forget   n3
+n3         aa       aa -> a;1  |  aaa -> aa;1        n1
+n4         aa       aa/a -> a;1                      n3
+intervals [2,2,2,2,2] / [2,4,6]
+Current best fitness: 0.38888887
 Running Generation 1
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n3
-n2         aaa      aaa -> a                  n3
-n3 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3, n4
+n2         a        aa/a -> a;1  |  aa -> a  |  a -> a              n1
+n3         aa       aa -> a;1  |  aaa -> aa;1                       n1
+n4         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n3
+intervals [2,3,3,3] / [2,4,6]
+Current best fitness: 0.41666666
 Running Generation 2
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n3
-n2         aaa      aaa -> a                  n3
-n3 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3, n4
+n2         a        aa/a -> a;1  |  aa -> a  |  a -> a              n1
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                    n1
+n4         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n3
+intervals [2,3,3,3] / [2,4,6]
+Current best fitness: 0.41666666
 Running Generation 3
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n3
-n2         aaa      aaa -> a                  n3
-n3 (out)   a        aa? -> a;1                -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3
+n2         aa       aa -> a;1  |  aa/aaa -> aa;1                    n1
+n3         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n2
+intervals [2,4,4,6] / [2,4,6]
+Current best fitness: 0.72222227
 Running Generation 4
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n3
-n2         aaa      aaa -> a                  n3
-n3 (out)   a        aa? -> a;1                -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3
+n2         aa       aa -> a;1  |  aa/aaa -> aa;1                    n1
+n3         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n2
+intervals [2,4,4,6] / [2,4,6]
+Current best fitness: 0.72222227
 Running Generation 5
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        aa? -> a;1                -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3
+n2         aa       aa -> a;1  |  aa/aaa -> aa;1                    n1
+n3         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n2
+intervals [2,4,4,6] / [2,4,6]
+Current best fitness: 0.72222227
 Running Generation 6
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                           Sends to
+n1 (out)   aa       aa/a -> a;1                                     n2, n3
+n2         aa       aa -> a;1  |  aa/aaa -> aa;1                    n1
+n3         -        aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n2
+intervals [2,4,4,6] / [2,4,6]
+Current best fitness: 0.72222227
 Running Generation 7
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                                Sends to
+n1 (out)   aa       aa/a -> a;1                                          n2, n3
+n2         aa       aa -> a;1  |  aa/aaa -> aa;1                         n1
+n3         -        aa -> a;1  |  aaa/a -> aa;1  |  aaaa/aaa -> forget   n2
+intervals [2,4,4,6] / [2,4,6]
+Current best fitness: 0.72222227
 Running Generation 8
-Neuron     Spikes   Rules                    Sends to
-n1         a        a -> a;1  |  aa -> a;1   n2
-n2 (out)   a        a -> a;1                 -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.7266667
 Running Generation 9
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aaa?/a -> a;1                                           n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/a -> aa;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.73333335
 Running Generation 10
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                                  Sends to
+n1 (out)   aa       aa/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                          n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                           n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/a -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.7833333
 Running Generation 11
-Neuron     Spikes   Rules                     Sends to
-n1         a        a -> a;1  |  aaa -> a;1   n2
-n2 (out)   a        a -> a;1                  -
-intervals [3] / [2,4,6]
-Current best fitness: 0.083333336
+Neuron     Spikes   Rules                                                  Sends to
+n1 (out)   aa       aa/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                          n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                           n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/a -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.7833333
 Running Generation 12
-Neuron     Spikes   Rules                                 Sends to
-n1         a        a -> a  |  aaa -> a;1                 n2
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1   n1
-intervals [2] / [2,4,6]
-Current best fitness: 0.33333334
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 13
-Neuron     Spikes   Rules                                 Sends to
-n1         a        a -> a  |  aaa -> a;1                 n2
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1   n1
-intervals [2] / [2,4,6]
-Current best fitness: 0.33333334
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 14
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2,4] / [2,4,6] (varies between runs)
-Current best fitness: 0.37083334
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 15
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2,4] / [2,4,6] (varies between runs)
-Current best fitness: 0.37083334
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 16
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,3,2,4,6] / [2,4,6] (varies between runs)
-Current best fitness: 0.37805557
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 17
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2,6] / [2,4,6] (varies between runs)
-Current best fitness: 0.41666663
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 18
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2] / [2,4,6] (varies between runs)
-Current best fitness: 0.42999998
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 19
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2] / [2,4,6] (varies between runs)
-Current best fitness: 0.42999998
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa/a -> a;1                                             n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aa/aaa -> aa;1                            n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4,6] / [2,4,6] (varies between runs)
+Current best fitness: 0.79
 Running Generation 20
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2] / [2,4,6] (varies between runs)
-Current best fitness: 0.42999998
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 21
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a  |  aaa -> a;1                               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a  |  aaa -> a;1                 n1
-n3         aaa      a -> forget;1  |  aaa* -> forget  |  a(a)? -> a;1   n1
-intervals [2,2] / [2,4,6] (varies between runs)
-Current best fitness: 0.42999998
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 22
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a  |  aaa -> a;1                                n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  a(a)? -> forget;1   n1
-intervals [2,4,4,6] / [2,4,6] (varies between runs)
-Current best fitness: 0.47388887
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 23
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a  |  aaa -> a;1                                n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  a(a)? -> forget;1   n1
-intervals [2,4,4,6] / [2,4,6] (varies between runs)
-Current best fitness: 0.47388887
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 24
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 25
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 26
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 27
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 28
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 29
-Neuron     Spikes   Rules                                             Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a               n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                            n1
-n3         aaa      a -> a;1  |  aaaa* -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 30
-Neuron     Spikes   Rules                                            Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a              n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                           n1
-n3         aaa      a -> a;1  |  aaa+ -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 31
-Neuron     Spikes   Rules                                            Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a              n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                           n1
-n3         aaa      a -> a;1  |  aaa+ -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 32
-Neuron     Spikes   Rules                                            Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a              n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                           n1
-n3         aa       a -> a;1  |  aaa+ -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 33
-Neuron     Spikes   Rules                                            Sends to
-n1         a        a -> a  |  aaa -> a;1  |  aaa* -> a              n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                           n1
-n3         aa       a -> a;1  |  aaa+ -> forget;1  |  a(a)? -> a;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 34
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a  |  aaa -> forget;1                            n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 35
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
+Neuron     Spikes   Rules                                                   Sends to
+n1 (out)   aa       aa+/a -> a;1                                            n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                           n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                               n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa -> forget   n3
+intervals [2,4] / [2,4,6] (varies between runs)
+Current best fitness: 0.7966667
 Running Generation 36
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 37
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 38
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 39
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 40
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 41
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 42
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 43
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 44
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 45
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 46
-Neuron     Spikes   Rules                                                 Sends to
-n1         a        a -> a                                                n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                               n1
-n3         aa       a -> a;1  |  aaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 47
-Neuron     Spikes   Rules                                                  Sends to
-n1         a        a -> a                                                 n2, n3
-n2 (out)   aa       aa -> a  |  aaaa -> a;1                                n1
-n3         aa       a -> a;1  |  aaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 48
-Neuron     Spikes   Rules                                                  Sends to
-n1         a        a -> a                                                 n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                 n1
-n3         aa       a -> a;1  |  aaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 49
-Neuron     Spikes   Rules                                                   Sends to
-n1         a        a -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                  n1
-n3         aa       a -> a;1  |  aaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 50
-Neuron     Spikes   Rules                                                   Sends to
-n1         a        a -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                  n1
-n3         aa       a -> a;1  |  aaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 51
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 52
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 53
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 54
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 55
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 56
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        aa? -> a                                                 n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 57
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        aa? -> a                                                 n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 58
-Neuron     Spikes   Rules                                                    Sends to
-n1         aa       aa? -> a                                                 n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 59
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 60
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 61
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 62
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 63
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 64
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 65
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                    n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 66
-Neuron     Spikes   Rules                                                     Sends to
-n1         aa       aa? -> a                                                  n2, n3
-n2 (out)   aa       aa+ -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aaa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 67
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 68
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 69
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 70
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 71
-Neuron     Spikes   Rules                                                    Sends to
-n1         a        a -> a                                                   n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                                   n1
-n3         aa       a -> a;1  |  aaaaaaa* -> forget  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 72
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa -> a  |  aaa -> a;1                              n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 73
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 74
-No improvement in 50 generations: 1 extra edit(s) per child, and 5 newcomers.
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 75
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 76
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 77
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 78
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 79
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 80
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 81
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 82
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 83
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 84
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 85
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 86
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaaa -> a;1                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 87
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 88
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 89
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a  |  aaa -> a;1                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 90
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a                                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 91
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a                                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 92
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a                                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 93
-Neuron     Spikes   Rules                                               Sends to
-n1         a        a -> a                                              n2, n3
-n2 (out)   aa       aa(aa)* -> a                                        n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(a)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 94
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 95
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 96
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 97
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 98
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 99
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 100
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 101
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 102
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 103
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 104
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 105
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 106
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 107
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 108
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 109
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 110
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 111
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 112
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 113
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 114
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 115
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 116
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 117
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 118
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 119
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 120
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 121
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 122
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 123
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Running Generation 124
-No improvement in 50 generations: 2 extra edit(s) per child, and 5 newcomers.
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
-intervals [2,4,4,4,4] / [2,4,6]
-Current best fitness: 0.72222227
-Evaluations: 2,500 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 2,500 in all.
+Neuron     Spikes   Rules                                                        Sends to
+n1 (out)   aa       aa+/a -> a;1                                                 n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                                n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                                    n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa/aaaa -> forget   n3
+intervals [2,4,6] / [2,4,6]
+Current best fitness: 1
+Testing the best fitness for repeated success.
+Fitness over 0.985, stopping . . .
+Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all.
 Saved the file to: <work>/runs/<run>/TargetNet-evaluations.txt
 Saved the file to: <work>/runs/<run>/TargetNet.csv
 
 The fittest network of each size:
 Neurons  Rules  Fitness
-      3      5  0.722   intervals [2,4,4,4,4] / [2,4,6]
+      4      4  0.417   intervals [2,3,5] / [2,4,6]
+      4      7  1.000   intervals [2,4,6] / [2,4,6]
 
 Saved the file to: <work>/runs/<run>/TargetNet-sizes.txt
 
-Best network found (fitness 0.72222227, intervals [2,4,4,4,4] / [2,4,6]):
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
+Best network found (fitness 1, intervals [2,4,6] / [2,4,6]):
+Neuron     Spikes   Rules                                                        Sends to
+n1 (out)   aa       aa+/a -> a;1                                                 n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                                n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                                    n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa/aaaa -> forget   n3
 
 ----------- Saving Network -----------
 Saved the file to: <work>/runs/<run>/TargetNet.json
@@ -898,151 +325,84 @@ Saved the file to: <work>/runs/<run>/TargetNet.html
 Saved to <work>/runs/<run>
 --- stderr
 --- file runs/<run>/TargetNet-evaluations.txt
-Evaluations: 2,500 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 2,500 in all.
+Evaluations: 740 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 745 in all.
 --- file runs/<run>/TargetNet-sizes.txt
 Neurons  Rules  Fitness
-      3      5  0.722   intervals [2,4,4,4,4] / [2,4,6]
+      4      4  0.417   intervals [2,3,5] / [2,4,6]
+      4      7  1.000   intervals [2,4,6] / [2,4,6]
 --- file runs/<run>/TargetNet.csv
-0,0,0,0,0,0,0,0,0,0,0,0.083333336,0.083333336,0,0,0,0,0,0,0.083333336
-0.083333336,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0,0.020000001,0,0.083333336,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0,0,0
-0.0058333334,0.083333336,0.024166668,0.083333336,0,0.083333336,0.020833334,0.083333336,0.083333336,0,0.083333336,0.0175,0,0,0,0.083333336,0.083333336,0.0175,0,0.018333334
-0.083333336,0,0.021666666,0,0.018333334,0,0,0,0,0,0,0.020833334,0.018333334,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0
-0,0,0,0,0,0.020000001,0.083333336,0.083333336,0,0,0.020000001,0,0,0.018333334,0,0.020833334,0.025833335,0.018333334,0.083333336,0.083333336
-0.0225,0.083333336,0.015833333,0.083333336,0,0.015833333,0,0,0.083333336,0.083333336,0,0,0.083333336,0,0.083333336,0,0.083333336,0.021666666,0.083333336,0
-0,0.083333336,0.083333336,0.083333336,0.021666666,0.083333336,0,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0,0.083333336,0.083333336,0.083333336,0.083333336,0.019166667,0
-0,0.083333336,0.083333336,0.083333336,0,0.0175,0.024166668,0.083333336,0.083333336,0.083333336,0,0.055555556,0.083333336,0.011666667,0.083333336,0.083333336,0,0.083333336,0,0.083333336
-0.083333336,0.083333336,0,0,0,0.016666668,0.083333336,0,0.083333336,0.020000001,0.083333336,0.010000001,0,0,0.083333336,0.023333333,0,0,0,0.019166667
-0.023333333,0.010000001,0,0,0.055555556,0.021666666,0.083333336,0,0,0.023333333,0.083333336,0.055555556,0.083333336,0,0,0,0.083333336,0,0.015833333,0.083333336
-0.083333336,0,0.011111111,0.083333336,0.083333336,0.083333336,0.083333336,0.021666666,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0,0.083333336,0,0,0.021666666,0
-0,0.083333336,0.083333336,0.016666668,0,0.021666666,0.0175,0.020000001,0.024166668,0.083333336,0.020833334,0,0.083333336,0.083333336,0.021666666,0.083333336,0.031666666,0.083333336,0.083333336,0
-0.083333336,0.020833334,0,0.083333336,0.083333336,0,0.083333336,0,0.083333336,0.083333336,0,0,0,0.083333336,0.33333334,0.083333336,0.020833334,0.020833334,0.083333336,0
-0,0,0.33333334,0.018333334,0.020000001,0,0,0.009444444,0.083333336,0,0.019166667,0.33333334,0,0.083333336,0.083333336,0.083333336,0.083333336,0.020833334,0.083333336,0
-0,0.33333334,0.083333336,0,0,0.37083334,0,0.33333334,0.33333334,0.07333334,0,0.083333336,0.023333333,0.083333336,0,0.33333334,0.055555556,0,0.33333334,0
-0.083333336,0.33333334,0.083333336,0,0,0,0.083333336,0,0,0,0,0,0.023333333,0,0.083333336,0,0.025833335,0.025,0,0
-0.37805557,0,0.083333336,0,0.020000001,0.083333336,0.083333336,0.020833334,0.083333336,0.33333334,0.006666667,0,0.14305556,0.016666668,0.030833334,0.024166668,0.083333336,0,0.023333333,0.041666668
-0.38555557,0.41666663,0.15305556,0.15166667,0,0,0,0.083333336,0,0.0625,0,0.083333336,0,0.083333336,0.33333334,0.05833333,0.17444445,0.16694446,0.33333334,0.033333335
-0,0.38888887,0.33333334,0,0.083333336,0,0.083333336,0.083333336,0.17333335,0,0.14388889,0.38888887,0.16444445,0,0.040000003,0,0.33333334,0.38888887,0.004530544,0.42999998
-0.083333336,0.18416667,0.38888887,0.083333336,0.015000001,0.1975,0.15194444,0.083333336,0.17694445,0.3969444,0.083333336,0.083333336,0.083333336,0,0,0.12722221,0.3763889,0.083333336,0,0.06222222
-0.14638889,0.16555557,0.33333334,0,0.033333335,0.083333336,0.4122222,0,0,0.083333336,0.33333334,0.083333336,0,0,0,0,0.0022222223,0.38055557,0.3863889,0.3958333
-0.33333334,0.04534722,0.083333336,0.16083334,0.083333336,0.033333335,0,0.33333334,0.083333336,0.16361111,0.07833333,0.050555553,0.15972222,0,0.14666668,0,0.39027777,0,0.11666667,0
-0.38888887,0.38888887,0.04388889,0.33333334,0.3863889,0.035,0,0.37,0.096666664,0,0.024583334,0,0.33333334,0.11444444,0.083333336,0.116444446,0.47388887,0.083333336,0.14333333,0.028055556
-0.033333335,0.33333334,0.002751323,0.16805556,0.0050000004,0.3775,0.45500004,0.06111111,0.38888887,0.15805556,0.115555555,0.013333334,0.02722222,0,0.1675,0.43777776,0.083333336,0.38416666,0.17250001,0.061944447
-0.014444444,0,0,0.083333336,0.016,0.06277778,0,0,0.14833334,0.3747222,0.06277778,0.16222222,0.064,0.45722222,0.72222227,0,0.19277778,0.46500003,0,0.0037710438
-0.15972222,0.44666666,0.055555556,0,0.07777777,0.17777778,0.083333336,0.083333336,0.083333336,0.33333334,0.15222223,0.38888887,0,0.18666667,0,0,0.083333336,0.083333336,0.42833334,0.083333336
-0.080000006,0.16027778,0.055555556,0.021666666,0.46222222,0,0,0.33333334,0.33333334,0.38444445,0,0,0.02138889,0,0.38888887,0.083333336,0,0.39388886,0.083333336,0.07444444
-0.17583334,0.083333336,0.3828889,0.13111112,0,0,0,0.009111111,0.0023809525,0.33333334,0,0.37972224,0.45166665,0.33333334,0.026476191,0.44,0,0.16333334,0.12055555,0
-0.083333336,0.06305556,0,0.19997223,0.055555556,0.083333336,0.083333336,0.10268254,0.18416668,0.45166665,0.45,0.17583334,0.41666666,0.033333335,0.030555556,0,0.0021693122,0.044444446,0.38888887,0.04227778
-0.083333336,0.083333336,0,0.16666667,0.38888887,0.42222226,0.72222227,0.48222226,0.026,0.46111113,0,0.45944446,0.020444445,0.055555556,0.72222227,0.083333336,0.33333334,0.33333334,0.0051111113,0.72222227
-0.4438889,0.33333334,0.083333336,0.055555556,0.33333334,0.083333336,0.33333334,0,0.46611112,0.15527779,0,0.33333334,0.33333334,0,0.015277778,0.026666667,0.43833333,0.72222227,0.3517778,0
-0,0,0.083333336,0.11611111,0.056805555,0.6666667,0.18694445,0,0.17694445,0.083333336,0,0,0,0.38888887,0.41111112,0.19330557,0,0.083333336,0.16611111,0
-0.17166667,0.083333336,0.44055557,0,0.083333336,0.083333336,0,0.124444455,0.44166666,0.083333336,0.083333336,0.083333336,0.083333336,0.083333336,0.083333336,0.083333336,0.083333336,0,0.17000002,0.72222227
-0.41666666,0.1525,0,0,0,0,0.4,0.033333335,0.33333334,0.21975,0.0033333334,0.083333336,0,0.1813889,0.083333336,0.083333336,0.4616667,0.017,0.41666666,0.083333336
-0.083333336,0.41666666,0.02005291,0,0,0.41666666,0.083333336,0.12083333,0.083333336,0.015833333,0.0036084657,0,0.15944445,0.4488889,0,0.39722222,0.72222227,0.72222227,0.083333336,0.007878558
-0.12655556,0.17305556,0,0,0.083333336,0.33333334,0,0.35833335,0.72222227,0.010019297,0.083333336,0.45833337,0,0.42944443,0,0.45222223,0.72222227,0,0.33333334,0.011904762
-0.44944447,0.060333334,0.35333335,0.3516667,0.083333336,0,0.083333336,0.21208334,0,0.34666666,0.38888887,0.01875,0,0.083333336,0.0073116133,0.33333334,0.45611113,0.083333336,0,0.41666666
-0.18777779,0.021527778,0.083333336,0.33333334,0.16580556,0.4295833,0.43805557,0.44055557,0.010095705,0.022777777,0.083333336,0.41666666,0.37805557,0.037892856,0.72222227,0.18888889,0.10111111,0.4338889,0,0.041666668
-0,0.19611113,0.46444446,0.033333335,0.013333334,0.0020899472,0.16666667,0.083333336,0.083333336,0.083333336,0,0.16833334,0,0,0,0.018000001,0.4538889,0.083333336,0,0.06722222
-0,0.083333336,0.36083335,0.083333336,0.33333334,0.019629631,0.47333336,0,0.18169445,0.35250002,0.19177778,0.38888887,0.47000003,0.009962184,0.118888885,0.07388889,0.064166665,0.0078093773,0.027777778,0
-0.46333337,0.019166667,0.46388888,0,0.13277778,0.38888887,0.145,0.35958332,0,0.027777778,0.083333336,0.17569445,0.19005556,0.083333336,0.17663889,0,0,0.45222223,0.083333336,0.19866668
-0,0,0.083333336,0.19280556,0.33333334,0.00625,0.096666664,0,0.083333336,0.009259259,0.15713888,0.002851852,0,0.33333334,0.083333336,0.33333334,0.083333336,0,0.083333336,0.023611112
-0,0.19575001,0,0,0.008813253,0,0.17111112,0,0.15666667,0.21305557,0.083333336,0.39277777,0.44111115,0.080000006,0,0.33333334,0.023809524,0.33333334,0.16950001,0.083333336
-0.019894179,0,0,0,0.07666667,0.4672222,0,0.083333336,0,0.18058334,0,0.15783334,0.011326112,0.115555555,0.1388889,0.018518519,0.083333336,0,0,0.41666666
-0.15333334,0.083333336,0.083333336,0,0.083333336,0.4583333,0.055555556,0.33333334,0,0,0.083333336,0.33333334,0.001,0.0032380954,0,0,0.14055556,0,0.083333336,0.083333336
-0.4666667,0.011359112,0.186,0.72222227,0.12222222,0.021,0.083333336,0.10833333,0.00012820512,0.41666666,0.083333336,0.15388888,0.00075998076,0.72222227,0.027777778,0.083333336,0.19705556,0.41666666,0.15777779,0.72222227
-0.083333336,0,0.083333336,0.083333336,0.4766667,0.42222226,0.12888889,0.17852779,0.43277776,0,0.12388889,0.083333336,0,0.41666666,0.1713889,0.4261111,0.15833335,0.43722224,0.44055557,0.19125001
-0.019375,0.008138528,0.35583335,0,0.45055556,0.0016185667,0.09111111,0.16291666,0.083333336,0.4438889,0.021666666,0.445,0,0,0.08011111,0.72222227,0,0.41666666,0.062,0.33333334
-0.083333336,0.33333334,0.33333334,0.16533333,0.01419192,0,0.46000004,0,0.43833333,0.17130557,0.20733334,0,0.36416668,0.72222227,0,0.72222227,0.023809524,0.055555556,0.083333336,0.083333336
-0.083333336,0.1835,0.14888889,0.72222227,0.002524641,0.19002779,0.16388889,0,0.083333336,0.72222227,0.41666666,0.02021164,0,0.16805556,0.033333335,0.0026190476,0.72222227,0.33333334,0.083333336,0.33333334
-0.083333336,0.2036389,0.33333334,0.0028768114,0.083333336,0.3541667,0.083333336,0.39944443,0,0,0.005888889,0,0.17075,0.083333336,0.0026170078,0.086666666,0.68000007,0.01994709,0.083333336,0.47555554
-0.72222227,0.011426756,0.4616667,0.061666667,0,0,0.0071422514,0,0.083333336,0.1746389,0.0025371092,0,0.079444446,0.169,0.47888893,0.41444445,0.12277777,0.083333336,0.083333336,0.19555557
-0.003225363,0.083333336,0,0,0.18566667,0.49305558,0,0.01984127,0.083333336,0.17255557,0.083333336,0.38888887,0.38888887,0.18866667,0.43444443,0.42833334,0,0,0,0.16666667
-0.083333336,0.002839552,0.68000007,0,0.48694444,0,0.33333334,0.16416667,0.086666666,0.07083333,0.18936111,0.055555556,0.083333336,0.041666668,0.012638889,0.43666667,0.33333334,0.118888885,0.083333336,0.103888884
-0.41500002,0.083333336,0,0.72222227,0.47777778,0.050912865,0.0017632414,0.16630556,0.041666668,0,0.083333336,0.083333336,0.18033335,0.0014285714,0.36666667,0.09722222,0.083333336,0.036041666,0,0.083333336
-0.083333336,0,0.48694444,0,0.47555554,0.37666667,0.14055556,0.025416667,0,0.16972223,0,0.18472223,0,0.18386112,0.083333336,0.35333335,0,0.41666666,0.00019367176,0.17255557
-0.0027582156,0.1883889,0,0.72222227,0.49305558,0,0,0,0.16972223,0,0.013376858,0,0.16708334,0,0.050555557,0.395,0.18777779,0.049222223,0,0.67944443
-0.002542827,0.083333336,0.002881523,0.49,0.083333336,0.00882732,0.002907961,0,0.17911112,0.45555556,0.33333334,0.0003030303,0.083333336,0,0.36944443,0.33333334,0.33333334,0.104444444,0.33333334,0.09722222
-0.49305558,0.0026666669,0.50222224,0,0.006666667,0.083333336,0.0988889,0.083333336,0.72222227,0.083333336,0.48694444,0.003809524,0.0007070707,0.33333334,0,0,0,0.16847223,0.43722224,0
-0.35750002,0.083333336,0,0.14333335,0,0.12777777,0.002778574,0.41666666,0.50222224,0.10736111,0.3675,0.18027778,0,0.083333336,0.45222223,0,0.013525965,0.17625001,0.72222227,0
-0.007916667,0.40333334,0.015151516,0,0,0.0225,0.13444445,0.083333336,0.17997223,0.33333334,0,0.111250006,0.17805557,0.41666666,0.06999999,0.41666666,0,0.17333335,0.41666666,0.027777778
-0.135,0.0029047602,0.083333336,0.011666667,0.19000001,0.41666666,0,0,0.06423611,0.4772222,0.083333336,0.002875541,0,0.72222227,0.192,0,0.033333335,0,0.083333336,0.72222227
-0.14222223,0,0,0,0.12833333,0.19444446,0.41666666,0,0.083333336,0,0.46944445,0.46611112,0.18088889,0.0026133591,0,0.41666666,0.16083334,0,0,0.055555556
-0.33333334,0.015076296,0,0,0.33333334,0.33333334,0,0.15505555,0.13666667,0,0.06277778,0.18522222,0.009803922,0.055555556,0,0,0.48694444,0.033333335,0,0.4527778
-0,0.16833334,0.49916667,0.033333335,0.083333336,0.0026688634,0.083333336,0.1261111,0.19588889,0.41666666,0.3516667,0.4716667,0.00084656087,0.33333334,0.083333336,0.33333334,0.033333335,0,0.046333335,0.06034722
-0.06111111,0,0,0.083333336,0.083333336,0.41666666,0.07583333,0.0066133784,0.36083335,0.33333334,0.41666666,0,0.083333336,0.096666664,0.083333336,0.096666664,0.083333336,0.083333336,0.18333334,0.17361112
-0.48694444,0.17347223,0.49916667,0,0.0026455028,0.4477778,0.41305554,0.083333336,0,0,0.11,0.41666666,0.72222227,0,0.49916667,0.06277778,0.41666666,0.72222227,0.33333334,0.3888889
-0,0.07666667,0,0,0.42277777,0,0,0.19616668,0.72222227,0.020833334,0.083333336,0.18830556,0,0.020833334,0.001077381,0.19183333,0.083333336,0.49916667,0,0.083333336
-0.33333334,0.49916667,0.020222222,0.12263889,0.33333334,0.41666666,0.33333334,0,0,0.38888887,0.14630556,0.17297223,0,0.0050000004,0.002567308,0.083333336,0.36666667,0,0.014245637,0.162
-0.063472226,0.03277778,0.33333334,0.33333334,0.38888887,0.49305558,0,0.19308335,0.083333336,0.08388889,0.49305558,0.48388886,0.01015386,0.17936112,0.33333334,0.18747222,0.36583334,0.375,0.08777778,0.35583335
-0.083333336,0.00034204643,0,0.33333334,0.16463889,0,0.16963889,0.09125,0.19486111,0.014196079,0.19086112,0,0.35583335,0.72222227,0.15372223,0,0.0013688048,0.041666668,0,0.0045833336
-0.099583335,0.17708334,0.48388886,0.72222227,0.41666666,0,0.33333334,0.48083335,0,0.027222224,0,0.0025474734,0.083333336,0.0028743432,0,0.4961111,0.0013333334,0.19488889,0,0.100277774
-0.055555556,0.13777778,0.013888889,0.20083334,0,0.72222227,0.72222227,0.11833333,0.003725634,0.72222227,0.72222227,0.72222227,0,0.46555555,0.36588097,0,0,0.023809524,0.1663889,0
-0,0,0.49,0.013838541,0.4961111,0,0.47777778,0,0.41666666,0.41666666,0.16111112,0.375,0.41666666,0.17186111,0.21083334,0,0,0.0028381692,0.35083336,0.72222227
-0.041666668,0.14222223,0.0026666669,0.083333336,0.083333336,0.16297223,0,0.13111112,0,0.17944446,0.083333336,0.083333336,0.12777777,0.010714286,0.083333336,0.4747222,0.055555556,0.083333336,0.060818337,0
-0,0,0,0,0,0.083333336,0.008333334,0.0025639173,0.04263889,0.36833334,0.02059189,0.42333335,0.0039930954,0,0.011111111,0.007782561,0.022083335,0.06666667,0.33333334,0
-0.010501203,0.35250002,0.46888888,0.35500002,0.083333336,0.015000001,0.033333335,0.009502492,0,0.0028210043,0.0060897693,0.42222226,0.083333336,0,0,0.022666667,0.036444444,0.3491667,0.34366667,0.089444436
-0.3958333,0,0.41666666,0,0.012484845,0.375,0,0,0.083333336,0.14194445,0,0.065222226,0.16694446,0.013942573,0.38888887,0.055,0,0.33333334,0,0.38888887
-0.10388889,0.0074603176,0.053432643,0.030555556,0.083333336,0.36583334,0,0.72222227,0,0.33333334,0.34458333,0.085,0.021597221,0.101111114,0,0.18088889,0,0,0.18594445,0.086388886
-0,0.002774294,0.107222214,0,0,0.15711111,0.3738889,0.19325,0.16116667,0.001,0,0.38888887,0.045027778,0.41666666,0.08555555,0.41666666,0.41000003,0.43166667,0.3958333,0.0811111
-0.015555556,0.33333334,0.14083333,0.72222227,0,0,0.041666668,0,0.0002159802,0.33333334,0.03666667,0.18536112,0.00949687,0.16638888,0.72222227,0,0.4722222,0,0.41666666,0.060069446
-0.019444445,0.48055553,0.33333334,0.026180556,0,0.7108333,0.11055555,0.1953889,0,0.11166667,0.33333334,0,0,0.083333336,0.0066666664,0.33333334,0.72222227,0.39999998,0,0.007777778
-0,0.7123611,0,0.72222227,0.35583335,0.41666666,0.33333334,0.083333336,0.045555554,0.41666666,0.19497223,0,0.15472223,0.027777778,0.007222222,0.006299145,0.083333336,0.018580616,0.083333336,0.083333336
-0,0,0.083333336,0.022584716,0,0.33333334,0,0,0,0.72222227,0,0.49,0,0,0.020833334,0,0,0.083333336,0,0
-0.20666666,0.35666668,0,0.083333336,0.14944445,0.006183105,0.01694803,0.4761111,0.027777778,0,0.44555557,0,0.17672223,0.06555556,0.0092222225,0.17416666,0,0.083333336,0,0.120000005
-0.16283333,0.083333336,0.72222227,0.21111113,0,0,0,0.083333336,0.027777778,0.33333334,0,0.03666667,6.666666E-05,0.38888887,0.41666666,0,0.72222227,0.00020665594,0.083333336,0.19697222
-0,0,0,0.020185372,0.112500004,0.72222227,0.016666668,0.083333336,0.18,0,0.09333333,0,0.023333333,0.038333334,0.027777778,0.017777778,0.043333337,0.018518519,0,0.083333336
-0,0,0.08552778,0.5052778,0.72222227,0.09888889,0.12722223,0.14833334,0.10361111,0.083333336,0,0.18647222,0.00023809524,0,0.33333334,0.72222227,0,0.01124825,0.055555556,0.083333336
-0.019046985,0.5113889,0.10111111,0.48083335,0.10222222,0.41666666,0,0,0.020555556,0.14333333,0.049444444,0,0,0.033333335,0.09722222,0.5297222,0.083333336,0.0025282826,0,0
-0.42722225,0.1413889,0,0,0.083333336,0.022708334,0,0.0027028895,0.083333336,0.33333334,0.052222222,0.50222224,0.083333336,0,0.19527778,0.0070857457,0.44722223,0,0.23666668,0.048333336
-0.44783333,0.00018518518,0.435,0.72222227,0.055555556,0,0.016666668,0,0.45499998,0.011047194,0.17777778,0.083333336,0.021111112,0.054444447,0.14146824,0.14333333,0.2088889,0,0,0.0026432257
-0.42222226,0.41666666,0,0.0011904762,0.43222225,0.008607402,0.041666668,0,0,0.5297222,0.004938054,0.45611113,0,0,0.72222227,0.14777777,0.03878514,0,0,0.38888887
-0.083333336,0,0.72222227,0,0.14750001,0,0.41666666,0.048793964,0.083333336,0.083333336,0.05462921,0.000548103,0.019166667,0.008333334,0.09861111,0.19861113,0,0.055555556,0.14333335,0.041666668
-0.010818362,0.014835373,0,0.083333336,0.41666666,0.013476892,0.38888887,0.15972222,0,0,0.023809524,0.41666666,0.00042328043,0,0.08427845,0.04970825,0,0.33333334,0.4361111,0
-0.09847731,0,0.005705517,0.38888887,0.083333336,0.15625,0,0.025297018,0,0.10688888,0,0,0.046482023,0.083333336,0.72222227,0.07998192,0.72222227,0.1946131,0,0.33333334
-0,0,0.083333336,0.5327778,0.10888888,0.041666668,0.019456308,0.14444444,0.0052857148,0.4722222,0.01875,0,0.14444445,0.41666666,0.013635252,0.00047619047,0,0.08444444,0.72222227,0
-0.0037500001,0,0.41666666,0.33333334,0.11383333,0.6666667,0,0.0026216998,0.009895014,0.0042857146,0.33333334,0.010645211,0.3516667,0.3425,0.41666666,0,0,0.09055375,0.5113889,0.016888889
-0.011167829,0,0.03788889,0.06333982,0.33333334,0.36361903,0.085,0,0,0.083333336,0.33333334,0.010815069,0,0.34777778,0,0.010793651,0,0.4479167,0,0.12625
-0.083333336,0,0.16666666,0,0.083333336,0.34458333,0.083333336,0.010555556,0.42333335,0,0,0.014565412,0.45833334,0.13833334,0,0.06877778,0.4,0.041666668,0.72222227,0.05260185
-0,0.15666667,0.175,0,0,0,0.12833335,0.72222227,0.041666668,0,0.045833334,0.088244215,0,0.014166667,0.00822239,0.083333336,0.083333336,0.5083333,0.0053125,0.17625001
-0.13092455,0.38888887,0,0.15055557,0.33333334,0.45027778,0,0.083333336,0.33333334,0.03575926,0.11125,0.022222223,0.04811111,0.24944445,0.012257937,0,0.69000006,0.0018896218,0.34611112,0.08558108
-0,0.06564418,0.020833334,0.34500003,0.01957605,0.10694444,0.025,0.09990074,0.09583333,0,0,0,0,0.0006613757,0,0.1261111,0,0.038197566,0,0
-0.083333336,0.027777778,0.72222227,0,0.0027574305,0.6666667,0.15666667,0.083333336,0.0045833336,0,0,0.035333335,0.13198516,0.05163487,0.3441667,0.0021164021,0,0.004166667,0.16116667,0
-0,0.37930554,0,0.38888887,0.07069445,0.037083335,0,0.09455556,0.05,0.45486113,0.24944445,0.0032183742,0,0.05626792,0.345,0,0,0.072753266,0.039777778,0.16583332
-0.014353038,0.3784722,0.016111111,0.012344641,0.5327778,0.72222227,0,0.6666667,0.0028755444,0,0,0.15916666,0.41666666,0,0.0725,0.083333336,0,0.38333333,0.11213802,0.34583336
-0.15041667,0.13722222,0.13875,0.5052778,0.033333335,0,0.005532898,0.12971428,0.38888887,0.046388887,0.083333336,0.10435379,0,0,0.42011112,0.105,0,0.07833333,0.026020564,0
-0.055555556,0.0017201087,0.38888887,0,0.065,0.061388887,0.008885883,0,0,0.72222227,0.023333333,0.0025760923,0.018888889,0,0.10069841,0.009444444,0.083333336,0.083333336,0,0
-0.041666668,0,0,0.4577778,0,0.5236111,0.027777778,0,0.09428247,0,0.08333333,0.08835317,0.020833334,0.01754091,0.42333335,0.08555555,0,0,0.055555556,0
-0.72222227,0.11746032,0.19694445,0.083333336,0.3441667,0.005189801,0,0.41666666,0,0.36,0.2036111,0.18666667,0.3938889,0,0.5175,0,0,0,0.052670926,0.0027936457
-0,0.077083334,0.19097222,0.33333334,0.6666667,0.00875,0.0030068574,0.0425,0.11,0.0037857746,0.083333336,0.4961111,0.025722222,0,0.52555555,0.07736111,0,0,0.365,0.030666666
-0.12305555,0.14444444,0.009190363,0.083333336,0.3466667,0,0,0.2591667,0,0.12361111,0,0,0,0.00033333336,0.048333332,0.064,0.38888887,0.38888887,0.17,0.41666666
-0.083333336,0.01652381,0,0.0025885298,0.72222227,0.0013456348,0.10313889,0,0.083333336,0,0.103750005,0,0,0,0.053263348,0,0.007542086,0.015833333,0.018397218,0.3783254
-0.41666666,0.033333335,0,0,0.1413889,0.13194445,0,0.055555556,0.044305556,0.11366667,0,0.13925,0.25583336,0.04641667,0,0,0,0,0,0.16399999
-0,0.4066667,0.08944444,0.07659073,0.048611112,0.080000006,0,0.035694443,0.15133995,0,0.048853178,0.08319444,0,0.0029028305,0.08793807,0.052111223,0.14333333,0.016555555,0.11777778,0.0275
-0.006265581,0.37114814,0.102,0.086666666,0.0625,0,0,0.07666667,0,0.15594444,0.019166667,0.26222223,0.0025693395,0.00037037037,0.022775132,0,0,0,0.365,0
-0,0,0.08626124,0.033333335,0.38888887,0.16055556,0.033333335,0.083333336,0.09888889,0.10277777,0.06359383,0.06456349,0.012777778,0.00735028,0.027777778,0.43,0,0,0.72222227,0
-0.078888886,0,0.015111111,0,0.033,0.11972288,0.5052778,0,0,0.027560666,0.03731718,0.06625,0,0.4577778,0,0.23027779,0.41666666,0.5113889,0.14333333,0.010833333
-0.04916667,0,0,0.37833333,0.016892428,0.046666667,0.018137436,0.72222227,0,0.105000004,0.09333333,0.055555556,0.72222227,0,0.34083334,0.060277775,0.48144442,0.33333334,0.05625,0.113566555
-0.1277639,0.23027779,0,0.083333336,0.055555556,0.027500002,0,0,0,0.0010846561,0.0550253,0,0.34500003,0.092826195,0.054263737,0.083333336,0.0038013917,0.038253967,0,0.34555554
-0,0,0.026944445,0.083333336,0,0.10722223,0,0.06999999,0.0027250114,0,0,0,0,0,0,0.083333336,0.14333333,0.083333336,0,0.15916666
-0,0,0,0.086666666,0.38888887,0.099999994,0.027777778,0.1563889,0,0,0.13138889,0,0.08815577,0.083333336,0.14388889,0.0034480903,0.012430556,0.055555556,0,0
-0.38888887,0.17194444,0,0,0,0.40555555,0.361,0.025,0,0,0.23666668,0.022726852,0.083333336,0,0.10208333,0.018888889,0.014,0,0.41666666,0.015
-0.035835184,0.33333334,0.1375,0.0017481246,0.38888887,0,0.375,0,0,0.083333336,0.036111113,0,0.053777706,0,0.0175,0.024166668,0.72222227,0,0,0.15166667
-0,0.053888887,0.041666668,0,0.24305557,0.23222223,0.72222227,0.058055557,0,0.3625,0.027500002,0,0.13277778,0,0,0,0.10903969,0.005666667,0,0.13833334
-0.075833336,0,0.083333336,0,0,0.0027642092,0.35333335,0,0.041666668,0.083333336,0.053333335,0.025426917,0,0.083333336,0.03497691,0,0.49,0,0,0
+0,0,0,0.38888887,0,0,0.093055554,0,0,0.016111111,0,0,0.083333336,0,0,0,0,0.38888887,0,0.083333336
+0.083333336,0.083333336,0.38888887,0.33333334,0.083333336,0.083333336,0.055555556,0,0.33333334,0.083333336,0,0,0.41666666,0,0,0,0.083333336,0.38888887,0.083333336,0
+0,0.083333336,0,0,0,0.41666666,0.33333334,0.33333334,0.083333336,0.083333336,0.083333336,0,0.083333336,0.41666666,0.083333336,0.083333336,0,0.083333336,0,0.083333336
+0.083333336,0,0.083333336,0.079166666,0.083333336,0,0,0.41666666,0.72222227,0.41666666,0.083333336,0.083333336,0.083333336,0.083333336,0,0.41666666,0.083333336,0.083333336,0,0.38888887
+0.125,0.083333336,0.11666667,0.083333336,0.083333336,0.33333334,0.083333336,0.108333334,0.38888887,0.70511115,0.41666666,0,0.41666666,0.083333336,0,0.083333336,0.083333336,0.104166664,0.38888887,0.14388889
+0.72222227,0.41666666,0,0,0.079166666,0,0.14194444,0.083333336,0.15972222,0.0875,0.055555556,0.083333336,0.1475,0.1561111,0.024166668,0.09166666,0.41666666,0.68188894,0.083333336,0.083333336
+0.16305555,0.09722222,0,0.083333336,0.38888887,0.12083333,0.16305555,0.083333336,0.16777778,0.083333336,0.72222227,0,0.17972222,0.41666666,0.083333336,0.38888887,0.06916667,0,0.104166664,0.083333336
+0,0.083333336,0.16138889,0.6666667,0.086666666,0.6666667,0.72222227,0,0.1625,0.72222227,0,0.083333336,0.07083333,0,0.17861111,0.33333334,0.15527777,0.083333336,0.12083333,0.72222227
+0,0,0.72222227,0.14916666,0.72222227,0.025833335,0,0.38888887,0.7266667,0.41666666,0,0.083333336,0.083333336,0.41666666,0.16027778,0.083333336,0,0.72222227,0.083333336,0
+0,0.083333336,0,0.16611111,0.083333336,0.055555556,0.6666667,0.055555556,0.41666666,0.17277777,0.73333335,0.7266667,0.083333336,0.41666666,0.083333336,0.41666666,0.16305555,0.083333336,0.083333336,0.73
+0.083333336,0.18111111,0.083333336,0.38888887,0.14166667,0,0.14722222,0,0.020833334,0.17666666,0,0.17222223,0.38888887,0.41666666,0.7366667,0.7,0,0,0.7833333,0.7
+0.7633333,0.71333337,0.1411111,0.16277778,0.41666666,0.09583333,0.38888887,0,0,0.055555556,0.375,0,0.41666666,0.083333336,0,0,0.083333336,0.7733333,0.17027777,0.175
+0.15722223,0.083333336,0,0.34888887,0.083333336,0.083333336,0.6666667,0.79,0,0.15305555,0,0.38888887,0.0875,0,0.4895833,0,0.15166667,0.0095833335,0.7166667,0.38888887
+0.38888887,0.083333336,0.38888887,0.11222222,0.083333336,0,0.38888887,0.41666666,0.09166666,0,0,0.083333336,0,0.104166664,0.079166666,0.71000004,0.6666667,0.6666667,0.13777778,0.5233334
+0.38888887,0.11305555,0,0.7633333,0,0.16097222,0.020000001,0.125,0,0.38888887,0.5133333,0.73,0.08333333,0.7266667,0.38888887,0,0,0.53333336,0.083333336,0.083333336
+0.040000003,0,0.05916667,0.11666667,0.18111111,0.18222223,0.083333336,0.50333333,0.125,0.7866667,0.013888889,0.38888887,0,0.083333336,0.7866667,0.083333336,0.083333336,0.56666666,0.46000004,0.7633333
+0.108333334,0.083333336,0.51055557,0.4766667,0.083333336,0.083333336,0.5,0.38888887,0.35777777,0.083333336,0.38888887,0.16777778,0.51666665,0.41666666,0.15194444,0.021666666,0,0,0.73,0.38888887
+0.72222227,0,0.16833334,0.38888887,0.7833333,0.083333336,0.175,0.17666666,0,0.08333333,0.41666666,0,0,0.51,0.108333334,0.05888889,0,0,0,0.49333334
+0,0.7633333,0.7866667,0,0,0.76666665,0.38888887,0,0.22472222,0,0.78,0.083333336,0.020277778,0.083333336,0.055833336,0.50666666,0.41666666,0.20333333,0.55333334,0.12
+0,0.120000005,0.19222222,0.41666666,0.037529763,0.18527777,0,0.7833333,0.38888887,0.78,0.48333335,0.15213889,0.77,0.41666666,0.50333333,0,0.0175,0.18472223,0.41666666,0.17611112
+0,0.019444445,0.19944444,0.0225,0.7866667,0.7633333,0.7966667,0,0.14666668,0.0050000004,0.7733333,0.15666667,0,0.75666666,0,0.33333334,0,0.083333336,0.19333333,0.26
+0.375,0.5261111,0,0.083333336,0.77,0.15194444,0.18888889,0.064166665,0.7,0.017777778,0.5266667,0.7366667,0,0.06125,0.083333336,0.15333334,0.01,0,0.18333334,0.15666667
+0,0.083333336,0,0,0.01188889,0.14472222,0.016111111,0.19861111,0.021904763,0.021111112,0,0,0.08583333,0.41666666,0.38888887,0.33333334,0,0.016130952,0.38888887,0
+0,0.4577778,0,0,0.08416667,0.083333336,0.16805556,0.23,0.083333336,0.32,0.41666666,0.41666666,0.008888889,0,0.16333334,0.15833333,0.083333336,0.18694444,0.77666664,0.043333333
+0.7833333,0.41666666,0.105,0.083333336,0,0.38888887,0,0.17361112,0.019166667,0.41666666,0.18555556,0.12666667,0.017777778,0.77,0.79333335,0.735,0.7833333,0.33333334,0,0.7966667
+0.18583333,0.3536111,0.1725,0.15083334,0.6975,0.38888887,0,0.5366667,0.13333334,0.1125,0.021944445,0.15083334,0.08583333,0.20916668,0.083333336,0.38888887,0.76666665,0.34777778,0,0.2238889
+0.36583334,0.15583333,0,0.7866667,0.18583333,0.21527778,0.38888887,0.083333336,0.7833333,0.33333334,0,0.39527774,0,0.7633333,0.77,0.19055556,0,0.14333333,0.38888887,0.1411111
+0.17666668,0.3558898,0.41666666,0,0.055555556,0,0.7966667,0.090833336,0.083333336,0.055555556,0,0.77,0.19861111,0,0.41666666,0.7733333,0,0.50666666,0.79,0.6666667
+0.033333335,0.72222227,0.77,0.79,0.7733333,0.41666666,0.51,0.5233334,0,0,0.083333336,0.53333336,0.018888889,0.41666666,0.17,0,0.17583333,0.79333335,0.38888887,0.14333333
+0.7866667,0.0225,0.041666668,0.35396123,0.083333336,0.35625792,0.022222223,0.33333334,0.1875,0.16944444,0.23,0.55,0.38888887,0.38888887,0.20777778,0.14583334,0.5566667,0.14333333,0.18166667,0
+0.021666666,0.08166666,0.0113888895,0.38888887,0.7833333,0,0.3517341,0,0.41666666,0.21,0.13583334,0.16083334,0.18666667,0.53000003,0.38888887,0.12,0.4766667,0.38888887,0.7833333,0.015972223
+0.35993648,0.17833334,0.083333336,0.46888888,0,0.17222223,0.79333335,0.09888889,0.023055555,0.022222223,0.055555556,0.020638889,0.38888887,0.38888887,0,0.16833334,0.099999994,0.6775,0.009444444,0.41666666
+0.021805556,0.7833333,0.0225,0,0.41666666,0.019444445,0.15833333,0.17222223,0.41666666,0.083333336,0.055555556,0.17055556,0.76,0,0.345,0.72222227,0.41666666,0.010833333,0.18555556,0
+0.16805556,0.083333336,0,0.35337448,0.13250001,0,0,0.041666668,0.021388888,0.03277778,0.357377,0.019444445,0.1563889,0.19666667,0.41666666,0,0.1688889,0.17861111,0.004166667,0.7733333
+0.14361112,0.41666666,0.022777777,0.17388889,0.49333334,0.49666667,0.41666666,0.021944445,0.35578734,0.17666668,0.39611107,0,0.7633333,0.18277778,0.33333334,0.35618293,0,0.083333336,0,0.17833334
+0,0.15333334,0,0.19333333,0.33333334,0.35813496,0.083333336,0.38888887,0,0.41666666,0,0.18666667,0.023988096,0.055555556,0.35859126,0,0,0.020555556,0.4108333,0.2013889
+0.58,0.16569445,0.11361111,0.14583334,0.021388888,0.38888887,0.38888887,0.09479365,0.34833336,0.16083334,0.12305556,0.13083334,0.7,0.006666667,0.10111111,0.39722222,0.35686716,0.024583334,1,0
 --- file runs/<run>/TargetNet.json
 {
   "Neurons": [
     {
       "Rules": [
         {
-          "RuleExpression": "a",
-          "Delay": 0,
+          "RuleExpression": "aa+",
+          "Delay": 1,
           "Fire": true,
+          "Consume": 1,
           "Produce": 1
         }
       ],
-      "SpikeCount": 1,
+      "SpikeCount": 2,
       "Connections": [
         2,
+        3,
+        4
+      ],
+      "IsOutput": true,
+      "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaa",
+          "Delay": 1,
+          "Fire": true,
+          "Consume": 1,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 4,
+      "Connections": [
+        1,
         3
       ],
       "IsOutput": false,
@@ -1051,38 +411,18 @@ Neurons  Rules  Fitness
     {
       "Rules": [
         {
-          "RuleExpression": "aa(aa)*",
-          "Delay": 0,
-          "Fire": true,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 2,
-      "Connections": [
-        1
-      ],
-      "IsOutput": true,
-      "IsInput": false
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
+          "RuleExpression": "aa",
           "Delay": 1,
           "Fire": true,
+          "Consume": 2,
           "Produce": 1
         },
         {
-          "RuleExpression": "aaaaaaa*",
-          "Delay": 0,
-          "Fire": true,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa(aa)?",
+          "RuleExpression": "aaa",
           "Delay": 1,
-          "Fire": false,
-          "Produce": 1
+          "Fire": true,
+          "Consume": 3,
+          "Produce": 2
         }
       ],
       "SpikeCount": 2,
@@ -1091,12 +431,44 @@ Neurons  Rules  Fitness
       ],
       "IsOutput": false,
       "IsInput": false
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaa(a)?",
+          "Delay": 1,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 1,
+          "Fire": true,
+          "Consume": 2,
+          "Produce": 1
+        },
+        {
+          "RuleExpression": "aaa",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 4,
+          "Produce": 2
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [
+        3
+      ],
+      "IsOutput": false,
+      "IsInput": false
     }
   ]
 }
 --- (no newline at end of file)
 --- file runs/<run>/TargetNet.txt
-Neuron     Spikes   Rules                                                Sends to
-n1         a        a -> a                                               n2, n3
-n2 (out)   aa       aa(aa)* -> a                                         n1
-n3         aa       a -> a;1  |  aaaaaaa* -> a  |  aa(aa)? -> forget;1   n1
+Neuron     Spikes   Rules                                                        Sends to
+n1 (out)   aa       aa+/a -> a;1                                                 n2, n3, n4
+n2         aaaa     aaa/a -> aa;1                                                n1, n3
+n3         aa       aa -> a;1  |  aaa -> aa;1                                    n1
+n4         -        aaa(a)?/aa -> a;1  |  aaa/aa -> a;1  |  aaa/aaaa -> forget   n3

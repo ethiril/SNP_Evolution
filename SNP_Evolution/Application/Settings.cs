@@ -29,8 +29,8 @@ namespace SnpEvolution.Application
         public int SolvedRetestCount { get; set; } = 5;
         public OutputTarget Target { get; set; } = OutputTarget.Set(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         public bool ExperimentalRules { get; set; } = true;
-        public RuleForm RuleForm { get; set; } = RuleForm.Legacy;
-        public OutputTiming OutputTiming { get; set; } = OutputTiming.Legacy;
+        public RuleForm RuleForm { get; set; } = RuleForm.Standard;
+        public OutputTiming OutputTiming { get; set; } = OutputTiming.Interval;
         public int MaxNeurons { get; set; } = 7;
         public int MaxDelay { get; set; } = 1;
         public int MaxProduce { get; set; } = 2;
