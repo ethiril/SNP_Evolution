@@ -4,6 +4,8 @@ namespace SnpEvolution.Tests.Compilation
 {
     public class RegisterProgramTests
     {
+        private const string EvensProgram = "ADD r0 -> 1\nADD r0 -> 0 | 2\nHALT";
+
         [Fact]
         public void ProgramsReadAndWriteTheSameWay()
         {
@@ -16,7 +18,7 @@ namespace SnpEvolution.Tests.Compilation
         [Fact]
         public void ProgramsGenerateEveryNumberAlongEveryChoice()
         {
-            RegisterProgram evens = RegisterProgram.Parse("ADD r0 -> 1\nADD r0 -> 0 | 2\nHALT");
+            RegisterProgram evens = RegisterProgram.Parse(EvensProgram);
 
             (IReadOnlyList<int> outputs, bool complete, _) = evens.Generate(maxSteps: 20);
 
@@ -35,7 +37,7 @@ namespace SnpEvolution.Tests.Compilation
         [Fact]
         public void TheOutputLimitLosesNothingBelowIt()
         {
-            RegisterProgram evens = RegisterProgram.Parse("ADD r0 -> 1\nADD r0 -> 0 | 2\nHALT");
+            RegisterProgram evens = RegisterProgram.Parse(EvensProgram);
 
             (IReadOnlyList<int> outputs, bool complete, _) = evens.Generate(outputLimit: 7);
 

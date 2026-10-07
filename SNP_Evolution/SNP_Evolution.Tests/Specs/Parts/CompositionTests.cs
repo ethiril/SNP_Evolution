@@ -24,8 +24,9 @@ namespace SnpEvolution.Tests.Specs.Parts
 
                 Assert.InRange(composition.Glue.Count, 1, seed % 3 + 3);
 
-                Assert.Equal(composition, Composition.Recover(flat, library));
-                Assert.Equal(NetworkFiles.ToJson(flat), NetworkFiles.ToJson(Composition.Recover(flat, library)!.Flatten(library)));
+                Composition? recovered = Composition.Recover(flat, library);
+                Assert.Equal(composition, recovered);
+                Assert.Equal(NetworkFiles.ToJson(flat), NetworkFiles.ToJson(recovered!.Flatten(library)));
             }
         }
 
@@ -33,7 +34,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void TheTwoIncrementChainIsACompositionThatFlattensToTheSameNetwork()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
             var first = new Network(increment.Part!.Part.Network.Neurons.Select(neuron => neuron.WithModule(new ModuleTag(increment.Id, 1))).ToList());
             Network chained = ModuleEdits.Insert(first, increment, 2, 24, library, new Random(1));
             PartCopy copy = PartWiring.Copies(chained, library).Single(each => each.Tag.Instance == 1);
@@ -88,6 +89,5 @@ namespace SnpEvolution.Tests.Specs.Parts
             Assert.False(bypassing.ThroughPorts(library));
             Assert.Equal(composition, bypassing.OnlyThroughPorts(library));
         }
-
     }
 }

@@ -223,13 +223,11 @@ namespace SnpEvolution.Tests.Specs.Tasks
         }
 
         [Fact]
-        public void AFailingGapProposesATimerAndFailingCasesASubContract()
+        public void FailingCasesProposeASubContract()
         {
-            var sequence = new SequenceTask("gaps", new[] { 2, 5, 3 });
             var task = new ContractTask(FirstParts.Named("increment"));
             int caseThree = FirstParts.Values.ToList().IndexOf(3);
 
-            Assert.Equal("delay 5", sequence.Propose(new[] { 1, 2 })!.Name);
             Contract sub = task.Propose(new[] { ContractTask.CheckIndex(caseThree, ContractRule.DoneOnce) })!;
             Assert.Equal("increment on n=3", sub.Name);
             Assert.Equal(4, sub.Cases.Single().Outputs["out"]);

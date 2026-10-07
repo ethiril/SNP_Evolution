@@ -1,7 +1,6 @@
 using SnpEvolution.Search.Fitness;
 using SnpEvolution.Simulation;
 using SnpEvolution.Specs.Accounting;
-using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 using static SnpEvolution.Tests.Fixtures.TestNetworks;
@@ -44,10 +43,8 @@ namespace SnpEvolution.Tests.Specs.Tasks
         public void PrefixesKeepTheOpeningValues()
         {
             var sequence = new SequenceTask("fib", new[] { 1, 1, 2, 3, 5 });
-            var word = new SpikeWordTask("w", new[] { true, false, true, true });
 
             Assert.Equal(new[] { 1, 1, 2 }, ((SequenceTask)sequence.Prefix(3)).Expected);
-            Assert.Equal(new[] { true, false }, ((SpikeWordTask)word.Prefix(2)).Expected);
             Assert.True(sequence.Prefix(3).StepsNeeded < sequence.StepsNeeded);
         }
 
@@ -72,7 +69,7 @@ namespace SnpEvolution.Tests.Specs.Tasks
         public void SequenceChecksScoreEachGapInPlaceEvenAfterAMistake()
         {
             var task = new SequenceTask("test", new[] { 2, 1, 2 });
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(20, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
+            var evaluator = Runs.SamplingEvaluator(task, new Random(1), maxSteps: 20);
 
             FitnessResult result = evaluator.Evaluate(PingPong());
 
@@ -85,17 +82,22 @@ namespace SnpEvolution.Tests.Specs.Tasks
         public void ATriggeredPartCountsItsGapsFromTheTrigger()
         {
             var task = (TriggeredSequenceTask)new SequenceTask("test", new[] { 1, 2, 2, 2, 7 }).Triggered(1)!;
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
+            var evaluator = Runs.SamplingEvaluator(task, new Random(1), maxSteps: 30);
 
             FitnessResult result = evaluator.Evaluate(TriggeredTwos());
-            Cut cut = ModuleCuts.Whole(TriggeredTwos());
 
             Assert.Equal(new[] { 2, 2, 2 }, task.Expected);
             Assert.Equal(1, task.InputCount);
             Assert.Equal(new[] { 1f, 1f, 1f }, result.Checks);
             Assert.True(Solved.Solves(result.Fitness));
-            Assert.Equal(3, cut.Body.Neurons.Count);
-            Assert.Equal(new[] { 0 }, cut.Inputs);
+        }
+
+        [Fact]
+        public void AFailingGapProposesATimer()
+        {
+            var sequence = new SequenceTask("gaps", new[] { 2, 5, 3 });
+
+            Assert.Equal("delay 5", sequence.Propose(new[] { 1, 2 })!.Name);
         }
     }
 }

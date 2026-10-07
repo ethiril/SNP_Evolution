@@ -14,7 +14,7 @@ using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 
 namespace SnpEvolution.Tests.Application
 {
-    public sealed class ComposeSessionTests : IDisposable
+    public sealed class EvolutionSessionTests : IDisposable
     {
         private readonly TempFolder temp = new TempFolder("snp-compose");
         private readonly List<string> log = new List<string>();
@@ -28,7 +28,7 @@ namespace SnpEvolution.Tests.Application
             Task = task,
             RuleForm = RuleForm.Standard,
             OutputTiming = OutputTiming.Interval,
-            Engine = Catalog.Engines.Single(engine => engine.Name == "CPU, single thread"),
+            Engine = CatalogEntries.SingleThreadEngine,
             Algorithm = SearchCatalog.CompositionMapElites,
             Repetitions = 2,
             PopulationSize = 40,
@@ -42,7 +42,19 @@ namespace SnpEvolution.Tests.Application
 
         private static CatalogEntry<Settings, BenchmarkTask> SuiteTask(string name) => Catalog.Tasks.Single(task => task.Name == name);
 
-        // The done-when through the session the compose command runs: solved, promoted, saved, and the add loop reported as reused.
+        private Settings OneIncrementTowardsAGap()
+        {
+            var library = new ModuleLibrary();
+            library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
+            PartLibraryFiles.Save(library, Path.Combine(folder, "parts"));
+            Settings settings = Composing(Catalog.TargetTask);
+            settings.Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 6, 1 });
+            settings.IterativeEvolution = false;
+            settings.PopulationSize = 12;
+            settings.StagnationPatience = 4;
+            return settings;
+        }
+
         [Fact]
         [Slow]
         public void ASolvedContractIsPromotedSavedAndItsReuseReported()
@@ -67,15 +79,8 @@ namespace SnpEvolution.Tests.Application
         [Slow]
         public void TheRunLogListsEachProposalWithItsOutcome()
         {
-            var library = new ModuleLibrary();
-            library.AddPart(Verified(ReferenceParts.Increment()), "a test");
-            PartLibraryFiles.Save(library, Path.Combine(folder, "parts"));
-            Settings settings = Composing(Catalog.TargetTask);
-            settings.Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 6, 1 });
-            settings.IterativeEvolution = false;
-            settings.PopulationSize = 12;
+            Settings settings = OneIncrementTowardsAGap();
             settings.MaxGenerations = 40;
-            settings.StagnationPatience = 4;
             settings.ProposalBudget = 5_000;
             var evaluations = new EvaluationBudget();
 
@@ -89,50 +94,27 @@ namespace SnpEvolution.Tests.Application
         }
 
         [Fact]
-        public void AContractRunJustShortOfAPerfectScoreIsNotSolved()
-        {
-            var individual = new Individual(TestNetworks.AlwaysOutputsOne());
-            individual.Record(new FitnessResult(0.99f, Array.Empty<int>(), "", Exact: true));
-            var run = new FixedPopulation(individual);
-
-            Assert.True(RunLayers.IsSolved(run));
-            Assert.False(RunLayers.IsSolved(run, new ContractTask(PartFixtures.RegisterContract())));
-        }
-
-        private sealed class FixedPopulation(Individual best) : IGeneticAlgorithm
-        {
-            public IReadOnlyList<Individual> Population => new[] { best };
-
-            public int Generation => 1;
-
-            public Individual? Best => best;
-
-            public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => Array.Empty<IReadOnlyList<float>>();
-
-            public void NextGeneration() { }
-
-            public void Immigrate(IReadOnlyList<Network> newcomers) { }
-
-            public void Rescore() { }
-        }
-
-        [Fact]
         public void ProposalsCanBeTurnedOff()
         {
-            var library = new ModuleLibrary();
-            library.AddPart(Verified(ReferenceParts.Increment()), "a test");
-            PartLibraryFiles.Save(library, Path.Combine(folder, "parts"));
-            Settings settings = Composing(Catalog.TargetTask);
-            settings.Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 6, 1 });
-            settings.IterativeEvolution = false;
-            settings.PopulationSize = 12;
+            Settings settings = OneIncrementTowardsAGap();
             settings.MaxGenerations = 20;
-            settings.StagnationPatience = 4;
             settings.ProposeParts = false;
 
             IGeneticAlgorithm run = Run(settings, seed: 3);
 
             Assert.Empty(RunLayers.Proposals(run)!.Proposals);
+        }
+
+        [Fact]
+        public void OnlyOrderedTargetsEvolveIteratively()
+        {
+            var sequence = new Settings { Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 1, 2, 3, 5, 8 }), Task = Catalog.TargetTask };
+            var set = new Settings { Target = OutputTarget.Set(new[] { 2, 4, 6, 8 }), Task = Catalog.TargetTask };
+
+            Assert.True(EvolutionSession.IsIterative(sequence, sequence.SelectedTask, out _));
+            Assert.False(EvolutionSession.IsIterative(set, set.SelectedTask, out _));
+            sequence.IterativeEvolution = false;
+            Assert.False(EvolutionSession.IsIterative(sequence, sequence.SelectedTask, out _));
         }
     }
 }

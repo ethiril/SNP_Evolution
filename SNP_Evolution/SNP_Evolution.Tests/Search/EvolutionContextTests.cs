@@ -18,36 +18,26 @@ namespace SnpEvolution.Tests.Search
             return Factories.Networks(ProfileSpace, random);
         }
 
-        [Fact]
-        public void NetworksMadeUnderTheProfileFitItWithoutBeingConformed()
+        public static TheoryData<string> ProfileAlgorithms => new TheoryData<string>(
+            SearchCatalog.Evolution.Where(search => search is not CompositionSearch).Select(search => search.Name));
+
+        [Theory]
+        [MemberData(nameof(ProfileAlgorithms))]
+        public void NoNetworkMadeOrMutatedByAnyAlgorithmUnderTheProfileBreaksIt(string name)
         {
-            NetworkFactory factory = Factory(1);
+            EvolutionSearch choice = SearchCatalog.Evolution.Single(search => search.Name == name);
+            NetworkFactory factory = Factory(choice.Name.Length);
+            var evaluator = Evaluator();
+            IGeneticAlgorithm algorithm = choice.Create(new EvolutionContext(20, 1f, factory.Random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: true));
 
-            for (int network = 0; network < 300; network++)
+            for (int generation = 0; generation < 15; generation++)
             {
-                Network made = factory.NewNetwork();
-                Assert.Empty(HardwareProfile.Problems(made));
+                algorithm.NextGeneration();
             }
-        }
 
-        [Fact]
-        public void NoNetworkMadeOrMutatedByAnyAlgorithmUnderTheProfileBreaksIt()
-        {
-            foreach (EvolutionSearch choice in SearchCatalog.Evolution.Where(search => search is not CompositionSearch))
-            {
-                NetworkFactory factory = Factory(choice.Name.Length);
-                var evaluator = Evaluator();
-                IGeneticAlgorithm algorithm = choice.Create(new EvolutionContext(20, 1f, factory.Random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: true));
-
-                for (int generation = 0; generation < 15; generation++)
-                {
-                    algorithm.NextGeneration();
-                }
-
-                Assert.True(evaluator.Seen.Count > 100, choice.Name);
-                Network? broken = evaluator.Seen.FirstOrDefault(network => !HardwareProfile.Fits(network));
-                Assert.True(broken == null, $"{choice.Name} made a network outside the profile: {string.Join(" ", broken == null ? new string[0] : HardwareProfile.Problems(broken))}");
-            }
+            Assert.True(evaluator.Seen.Count > 100, choice.Name);
+            Assert.All(evaluator.Seen, network =>
+                Assert.True(HardwareProfile.Fits(network), $"{choice.Name} made a network outside the profile: {string.Join(" ", HardwareProfile.Problems(network))}"));
         }
 
         [Fact]

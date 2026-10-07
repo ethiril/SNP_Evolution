@@ -22,7 +22,7 @@ namespace SnpEvolution.Tests.Search.Modules
             var library = new ModuleLibrary();
             foreach (Part part in HandBuiltParts.All())
             {
-                library.AddPart(ModuleFixtures.Verified(part), "a test");
+                library.AddPart(PartFixtures.Verified(part), "a test");
             }
             (Composition loop, PortBinding binding) = HandBuiltMachines.AddLoop(library);
             Contract contract = ArithmeticParts.AddLoop();
@@ -53,25 +53,20 @@ namespace SnpEvolution.Tests.Search.Modules
             output.WriteLine(string.Join(Environment.NewLine, log));
         }
 
-        private static BenchmarkSettings Settings(ModuleLibrary library) => BenchmarkSettings.Default with
-        {
-            Seeds = 1,
-            PopulationSize = 40,
-            Repetitions = 2,
-            Lexicase = true,
-            CreateEngine = () => new SequentialCpuEngine(),
-            Parts = library.Parts.Select(module => module.Part!).ToList(),
-        };
-
-        private static BenchmarkTask Multiply => TaskSuite.Contracts.Single(task => task.Name == "Contract multiply");
-
-        private static EvolutionSearch MapElites => SearchCatalog.CompositionMapElites;
-
         [Fact]
         [Slow]
         public void CompositionSearchSolvesMultiplicationByReusingThePromotedAddLoop()
         {
-            RunOutcome outcome = Benchmark.RunOnce(MapElites, Multiply, seed: 3, budget: 3_000, Settings(HandBuiltMachines.Library()));
+            BenchmarkTask multiply = TaskSuite.Contracts.Single(task => task.Name == "Contract multiply");
+            BenchmarkSettings settings = BenchmarkFixtures.WithParts(HandBuiltMachines.Library()) with
+            {
+                PopulationSize = 40,
+                Repetitions = 2,
+                Lexicase = true,
+                CreateEngine = () => new SequentialCpuEngine(),
+            };
+
+            RunOutcome outcome = Benchmark.RunOnce(SearchCatalog.CompositionMapElites, multiply, seed: 3, budget: 3_000, settings);
 
             output.WriteLine($"Solved in {outcome.Evaluations} evaluations; parts in best: {string.Join(", ", outcome.Reuse!.Select(count => $"{count.Contract} {count.Direct} ({count.Nested})"))}");
             Assert.True(outcome.Solved);

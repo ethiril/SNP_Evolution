@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>snp-evolution</ToolCommandName>
     <PackageId>SNP_Evolution</PackageId>

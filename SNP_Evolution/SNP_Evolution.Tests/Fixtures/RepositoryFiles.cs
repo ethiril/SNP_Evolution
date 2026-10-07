@@ -16,5 +16,7 @@ namespace SnpEvolution.Tests.Fixtures
         public static string PartFile(string folder, string file) => Path.Combine(Root, folder, file);
 
         public static LibraryPart ReadPart(string folder, string file) => PartLibraryFiles.Read(File.ReadAllText(PartFile(folder, file)), file);
+
+        public static Part Part(string folder, string file) => ReadPart(folder, file).Part;
     }
 }

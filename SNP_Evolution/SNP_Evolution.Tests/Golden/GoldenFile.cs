@@ -25,6 +25,5 @@ namespace SnpEvolution.Tests.Golden
                     $"If the change is intended, rerun with {UpdateFlag}=1 and say why in the pull request.");
             }
         }
-
     }
 }

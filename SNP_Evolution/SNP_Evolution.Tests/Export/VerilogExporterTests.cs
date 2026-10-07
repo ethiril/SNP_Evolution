@@ -11,8 +11,9 @@ namespace SnpEvolution.Tests.Export
 {
     public class VerilogExporterTests
     {
-        private static LibraryPart LibraryDelay() =>
-            RepositoryFiles.ReadPart("parts", "delay-2.json");
+        private const int RandomNetworksToExport = 25;
+        private const int MostRandomNetworksTried = 2000;
+        private const int RandomInputSteps = 40;
 
         // Runs every case of the part under iverilog and returns what it printed and what our engine says it should.
         private static (string Simulated, string Expected) CoSimulate(Part part)
@@ -22,15 +23,14 @@ namespace SnpEvolution.Tests.Export
             List<InputSpikes> inputs = cases.Select(@case => @case.Input).ToList();
             List<int> steps = cases.Select(@case => @case.Steps).ToList();
             using var temp = new TempFolder("snp-verilog");
-            string folder = temp.Path;
-            return (Iverilog.Simulate(design, VerilogTestbench.For(design, inputs, steps), folder), VerilogTestbench.ExpectedOutput(part.Network, inputs, steps));
+            return (Iverilog.Simulate(design, VerilogTestbench.For(design, inputs, steps), temp.Path), VerilogTestbench.ExpectedOutput(part.Network, inputs, steps));
         }
 
         public static TheoryData<string> Parts() => new TheoryData<string> { "library delay 2", "register", "add", "increment" };
 
         private static Part Named(string name) => name switch
         {
-            "library delay 2" => LibraryDelay().Part,
+            "library delay 2" => RepositoryFiles.Part("parts", "delay-2.json"),
             "register" => PartFixtures.Register(),
             "add" => ReferenceParts.Add(),
             _ => ReferenceParts.Increment(),
@@ -66,7 +66,7 @@ namespace SnpEvolution.Tests.Export
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0, 1, 1, 4, 9 }, new[] { 2, 3, 7 } });
             int exported = 0;
             var delays = new HashSet<DelayKind>();
-            for (int attempt = 0; exported < 25 && attempt < 2000; attempt++)
+            for (int attempt = 0; exported < RandomNetworksToExport && attempt < MostRandomNetworksTried; attempt++)
             {
                 Network network = random.Next(3) == 0 ? AxonalCopy(factory.NewNetwork(), random) : factory.NewNetwork();
                 if (SpikeTrace.Choices(network).Count > 0)
@@ -75,15 +75,14 @@ namespace SnpEvolution.Tests.Export
                 }
                 exported++;
                 delays.UnionWith(network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Delay > 0).Select(rule => rule.DelayKind));
-                long mostHeld = SpikeTrace.Run(network, input, 40).MostHeld;
+                long mostHeld = SpikeTrace.Run(network, input, RandomInputSteps).MostHeld;
                 VerilogDesign design = VerilogExporter.Export(network, $"random {attempt}", NetworkPort.Plain(network), mostHeld);
                 using var temp = new TempFolder("snp-verilog");
-                string folder = temp.Path;
-                string simulated = Iverilog.Simulate(design, VerilogTestbench.For(design, new[] { input }, new[] { 40 }), folder);
-                string expected = VerilogTestbench.ExpectedOutput(network, new[] { input }, new[] { 40 });
+                string simulated = Iverilog.Simulate(design, VerilogTestbench.For(design, new[] { input }, new[] { RandomInputSteps }), temp.Path);
+                string expected = VerilogTestbench.ExpectedOutput(network, new[] { input }, new[] { RandomInputSteps });
                 Assert.True(expected == simulated, $"{NetworkNotation.Format(network)}\ndiffers from our engine. {TextDifference.FirstDifference(expected, simulated)}");
             }
-            Assert.Equal(25, exported);
+            Assert.Equal(RandomNetworksToExport, exported);
             Assert.Equal(new[] { DelayKind.Closing, DelayKind.Holding, DelayKind.Axonal }, delays.OrderBy(kind => kind));
         }
 
@@ -95,14 +94,6 @@ namespace SnpEvolution.Tests.Export
             var refusal = Assert.Throws<ArgumentException>(() => VerilogExporter.Export(network, "choice", NetworkPort.Plain(network), 3));
 
             Assert.Contains("Neuron 1 could apply rule 1 (a+/a -> a) or rule 2 (aa(a)*/aa -> a) when it holds 2 spike(s)", refusal.Message);
-        }
-
-        [Fact]
-        public void FindsRulesThatOnlyCompeteOnceTheNeuronHoldsWhatTheyConsume()
-        {
-            var network = new Network(new[] { OutputNeuron(0, Standard("a+", 5), Standard("a+", 5, produce: 2)) });
-
-            Assert.Contains("when it holds 5 spike(s)", Assert.Single(SpikeTrace.Choices(network)));
         }
 
         [Fact]
@@ -128,6 +119,5 @@ namespace SnpEvolution.Tests.Export
 
         private static Network AxonalCopy(Network network, Random random) =>
             new Network(network.Neurons.Select(neuron => neuron.WithRules(neuron.Rules.Select(rule => rule.Delay > 0 && random.Next(2) == 0 ? rule.WithAxonal(true) : rule))).ToList());
-
     }
 }

@@ -2,7 +2,6 @@ using SnpEvolution.Search;
 using SnpEvolution.Search.Fitness;
 using SnpEvolution.Specs.Accounting;
 using SnpEvolution.Specs.Tasks;
-using SnpEvolution.Tests.Golden;
 
 namespace SnpEvolution.Tests.Search
 {
@@ -53,18 +52,6 @@ namespace SnpEvolution.Tests.Search
             Assert.Contains("exit 0", output);
             Assert.Contains($"Compute n   {RandomSampling.SearchName}", output);
             Assert.Contains(SearchCatalog.FromScratch, search => search.Name == RandomSampling.SearchName);
-        }
-
-        [Fact]
-        public void ABenchmarkOfCompositionSearchBuildsFromThePartLibrary()
-        {
-            using var run = new CommandRun();
-            run.CopyFolder("parts");
-
-            string output = run.Run("benchmark", "--algorithm", SearchCatalog.CompositionMapElites.Name, "--task", "Compute n", "--seeds", "1", "--budget", "20",
-                "--population", "5", "--library", "parts");
-
-            Assert.Contains("Composition search builds from", output);
         }
 
         [Fact]

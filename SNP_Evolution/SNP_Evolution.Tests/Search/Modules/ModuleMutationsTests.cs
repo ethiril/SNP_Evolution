@@ -8,6 +8,7 @@ using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 using static SnpEvolution.Tests.Fixtures.PartWiringFixtures;
+using static SnpEvolution.Tests.Fixtures.WellFormedNetworks;
 
 namespace SnpEvolution.Tests.Search.Modules
 {
@@ -18,7 +19,7 @@ namespace SnpEvolution.Tests.Search.Modules
         public void AnInsertedPartIsWiredToTheTasksOwnPorts()
         {
             var library = new ModuleLibrary();
-            library.AddPart(Verified(ReferenceParts.Register()), "a test");
+            library.AddPart(PartFixtures.Verified(ReferenceParts.Register()), "a test");
             var task = new ContractTask(FirstParts.Named("register"));
             var glue = new Network(Enumerable.Range(1, 4).Select(position => new Neuron(new[] { Rule.Standard("a", 1) }, 0, Array.Empty<int>(), false, isInput: position <= 2)).ToList());
             var insert = new InsertModule(library, new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Standard, MaxNeurons: MaxNeurons), task.Boundary);
@@ -53,15 +54,31 @@ namespace SnpEvolution.Tests.Search.Modules
                     Network next = edit.Edit.Mutate(network, random);
                     Assert.True(edit.Edit is DissolveModule or SwapPart || ModuleEdits.KeepsModules(network, next), edit.Name);
                     network = next;
-                    Assert.Single(network.Neurons, neuron => neuron.IsOutput);
-                    Assert.InRange(network.Neurons.Count, 1, factory.Space.MaxNeurons);
-                    for (int position = 1; position <= network.Neurons.Count; position++)
-                    {
-                        Assert.DoesNotContain(position, network.Neurons[position - 1].Connections);
-                        Assert.All(network.Neurons[position - 1].Connections, target => Assert.InRange(target, 1, network.Neurons.Count));
-                    }
+                    AssertWellFormed(network, factory.Space);
                 }
             }
+        }
+
+        [Fact]
+        public void ProtectingModulesRefusesEditsToTheirInsidesAndDissolvingUntagsThem()
+        {
+            var library = new ModuleLibrary();
+            Module module = ModuleOf(library, Chain());
+            Network network = ModuleEdits.Insert(TestNetworks.PingPong(), module, 1, 10, library, new Random(1));
+            int last = network.Neurons.Count - 1;
+            Network rewired = network.WithRule(last, 0, network.Neurons[last].Rules[0].WithDelay(2));
+
+            Assert.Same(network, new ProtectModules(new DelegateMutation(_ => rewired)).Mutate(network, new Random(1)));
+            Assert.All(new DissolveModule().Mutate(network, new Random(1)).Neurons, neuron => Assert.Null(neuron.Module));
+        }
+
+        private sealed class DelegateMutation : IMutation
+        {
+            private readonly Func<Network, Network> edit;
+
+            public DelegateMutation(Func<Network, Network> edit) => this.edit = edit;
+
+            public Network Mutate(Network network, Random random) => edit(network);
         }
     }
 }

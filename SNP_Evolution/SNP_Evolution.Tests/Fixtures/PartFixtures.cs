@@ -11,12 +11,31 @@ namespace SnpEvolution.Tests.Fixtures
     {
         public static readonly PartOrigin ATest = new PartOrigin(1, "a test", 0);
 
+        public static readonly PartOrigin ByHand = new PartOrigin(0, "by hand", 0);
+
         // The hand-built parts by their place in HandBuiltParts.All(), for a theory over each.
         public static TheoryData<int> HandBuilt => new TheoryData<int>(Enumerable.Range(0, HandBuiltParts.All().Count));
 
         // Measured on the exhaustive engine and recorded as a library part would be.
         public static LibraryPart Measured(Part part, PartOrigin? origin = null) =>
             Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, origin ?? ATest);
+
+        // Measured, and required to pass, so a test never builds on a part that fails its own contract.
+        public static LibraryPart Verified(Part part)
+        {
+            PartMeasurement measurement = Verifier.Measure(part, new EvaluationBudget());
+            Assert.True(measurement.Verdict is Verdict.Passed, measurement.Description);
+            return measurement.ToLibraryPart(part, ATest);
+        }
+
+        public static Part HandBuiltRegister() => HandBuiltParts.All().Single(part => part.Contract.Name == "register");
+
+        // A library folder whose one part file is not JSON, for the typed load error.
+        public static void WriteBrokenLibrary(string folder)
+        {
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "delay-2.json"), "{ not json");
+        }
 
         public static Contract DelayContract(int k) => CatalogueEntry.OneCase(Specifications.Delay(k)).Contract;
 
@@ -55,10 +74,17 @@ namespace SnpEvolution.Tests.Fixtures
             return increment with { Network = new Network(increment.Network.Neurons.Append(new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false)).ToList()) };
         }
 
+        // The reference delay with a neuron that holds nothing and does nothing: the same behaviour at a higher cost.
+        public static Part PaddedDelay(int k)
+        {
+            Part delay = ReferenceParts.Delay(k);
+            return delay with { Network = new Network(delay.Network.Neurons.Append(new Neuron(new Rule[0], 0, new int[0], false)).ToList()) };
+        }
+
         // The hand-built register, except that a store holding 41 spikes (n = 20 and start) sends two spikes instead of one.
         public static Part RegisterFailingAtTwenty()
         {
-            Part register = HandBuiltParts.All().Single(part => part.Contract.Name == "register");
+            Part register = HandBuiltRegister();
             const int Store = 4;
             List<Neuron> neurons = register.Network.Neurons.ToList();
             neurons[Store] = new Neuron(

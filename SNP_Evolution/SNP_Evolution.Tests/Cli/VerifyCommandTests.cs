@@ -18,7 +18,7 @@ namespace SnpEvolution.Tests.Cli
 
             int exit = CommandLine.Run(new[] { "verify", "--library", folder, "--seconds", "10" });
 
-            Assert.Equal(0, exit);
+            Assert.Equal((int)ExitCode.Success, exit);
             ProvenBound? proven = PartLibraryFiles.Load(folder).Parts.Single().Part!.Proven;
             Assert.True(proven?.AllInputs);
         }
@@ -38,7 +38,7 @@ namespace SnpEvolution.Tests.Cli
 
             int exit = CommandLine.Run(new[] { "verify", "--library", folder, "--only", "DELAY", "--seconds", "10" });
 
-            Assert.Equal(0, exit);
+            Assert.Equal((int)ExitCode.Success, exit);
             Dictionary<string, ProvenBound?> proven = PartLibraryFiles.Load(folder).Parts.Select(module => module.Part!).ToDictionary(part => part.Contract.Name, part => part.Proven);
             Assert.NotNull(proven["delay 2"]);
             Assert.Null(proven["sequencer 2"]);
@@ -51,7 +51,7 @@ namespace SnpEvolution.Tests.Cli
             using var temp = new TempFolder("snp-verify").Made();
             string file = Path.Combine(temp.Path, "register.json");
             Part broken = PartFixtures.RegisterFailingAtTwenty();
-            File.WriteAllText(file, PartLibraryFiles.ToJson(PartFixtures.Measured(broken, new PartOrigin(0, "by hand", 0))));
+            File.WriteAllText(file, PartLibraryFiles.ToJson(PartFixtures.Measured(broken, PartFixtures.ByHand)));
 
             int exit = CommandLine.Run(new[] { "verify", "--part", file, "--bound", "24" });
 

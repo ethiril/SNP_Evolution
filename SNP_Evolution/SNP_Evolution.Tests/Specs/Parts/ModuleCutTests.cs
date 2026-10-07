@@ -41,5 +41,14 @@ namespace SnpEvolution.Tests.Specs.Parts
             Assert.Equal(new[] { 3 }, ModuleCuts.Changed(parent, grown));
             Assert.Equal(new[] { 1, 0, 2 }, ModuleCuts.AroundChanges(nudged, new[] { 1 }, 6));
         }
+
+        [Fact]
+        public void AWholeTriggeredPartKeepsItsTriggerAsTheInput()
+        {
+            Cut cut = ModuleCuts.Whole(TriggeredTwos());
+
+            Assert.Equal(3, cut.Body.Neurons.Count);
+            Assert.Equal(new[] { 0 }, cut.Inputs);
+        }
     }
 }

@@ -28,33 +28,39 @@ namespace SnpEvolution.Tests.Search.Algorithms
             Assert.Equal(newcomers, algorithm.Population.Skip(3).Select(individual => individual.Genes));
         }
 
-        [Fact]
-        public void AsManyImmigrantsAsThePopulationStillLeaveTheEliteInPlace()
+        public static TheoryData<string> EliteKeepers => new TheoryData<string>("Generational", "Speciated");
+
+        public static TheoryData<string> BatchRunners => new TheoryData<string>("MAP-Elites", "Mu plus lambda");
+
+        private static IGeneticAlgorithm Create(string name, Random random, NetworkFactory factory, RecordingEvaluator evaluator) => name switch
+        {
+            "Generational" => Generational(6, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(1, factory)),
+            "Speciated" => new SpeciatedAlgorithm(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
+            "MAP-Elites" => new MapElites(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
+            "Mu plus lambda" => new MuPlusLambdaStrategy(2, 6, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(1, factory)),
+            _ => throw new ArgumentException(name),
+        };
+
+        [Theory]
+        [MemberData(nameof(EliteKeepers))]
+        public void AsManyImmigrantsAsThePopulationStillLeaveTheEliteInPlace(string name)
         {
             var random = new Random(4);
             NetworkFactory factory = Factories.StandardRules(random);
-            var evaluator = new RecordingEvaluator(network => 1f / network.Neurons.Count);
-            var algorithms = new IGeneticAlgorithm[]
-            {
-                Generational(6, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(1, factory)),
-                new SpeciatedAlgorithm(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
-            };
-            foreach (IGeneticAlgorithm algorithm in algorithms)
-            {
-                algorithm.NextGeneration();
-                Network elite = algorithm.Population[0].Genes;
+            IGeneticAlgorithm algorithm = Create(name, random, factory, new RecordingEvaluator(network => 1f / network.Neurons.Count));
+            algorithm.NextGeneration();
+            Network elite = algorithm.Population[0].Genes;
 
-                algorithm.Immigrate(Enumerable.Range(0, 6).Select(_ => NeverOutputs()).ToList());
+            algorithm.Immigrate(Enumerable.Range(0, 6).Select(_ => NeverOutputs()).ToList());
 
-                Assert.Same(elite, algorithm.Population[0].Genes);
-                Assert.Equal(6, algorithm.Population.Count);
-            }
+            Assert.Same(elite, algorithm.Population[0].Genes);
+            Assert.Equal(6, algorithm.Population.Count);
         }
 
         [Fact]
         public void NewcomersAreMadeOnlyFromScoredHosts()
         {
-            var scored = new Individual(TestNetworks.Identity());
+            var scored = new Individual(Identity());
             scored.Record(new FitnessResult(-1, Array.Empty<int>()));
             var unscored = new Individual(NeverOutputs());
 
@@ -63,29 +69,23 @@ namespace SnpEvolution.Tests.Search.Algorithms
             Assert.Same(scored.Genes, Assert.Single(made));
         }
 
-        [Fact]
-        public void ArchiveAndStrategyImmigrantsJoinTheNextBatch()
+        [Theory]
+        [MemberData(nameof(BatchRunners))]
+        public void ArchiveAndStrategyImmigrantsJoinTheNextBatch(string name)
         {
             var random = new Random(5);
             NetworkFactory factory = Factories.StandardRules(random);
             var evaluator = new RecordingEvaluator(network => 1f / network.Neurons.Count);
-            var algorithms = new IGeneticAlgorithm[]
-            {
-                new MapElites(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
-                new MuPlusLambdaStrategy(2, 6, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(1, factory)),
-            };
-            foreach (IGeneticAlgorithm algorithm in algorithms)
-            {
-                algorithm.NextGeneration();
-                Network newcomer = NeverOutputs();
-                algorithm.Immigrate(new[] { newcomer });
-                evaluator.Seen.Clear();
+            IGeneticAlgorithm algorithm = Create(name, random, factory, evaluator);
+            algorithm.NextGeneration();
+            Network newcomer = NeverOutputs();
+            algorithm.Immigrate(new[] { newcomer });
+            evaluator.Seen.Clear();
 
-                algorithm.NextGeneration();
+            algorithm.NextGeneration();
 
-                Assert.Contains(newcomer, evaluator.Seen);
-                Assert.Equal(6, evaluator.Seen.Count);
-            }
+            Assert.Contains(newcomer, evaluator.Seen);
+            Assert.Equal(6, evaluator.Seen.Count);
         }
     }
 }

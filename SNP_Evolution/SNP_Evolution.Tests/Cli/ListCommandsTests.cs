@@ -1,5 +1,4 @@
 using SnpEvolution.Search.Benchmarking;
-using SnpEvolution.Tests.Golden;
 
 namespace SnpEvolution.Tests.Cli
 {

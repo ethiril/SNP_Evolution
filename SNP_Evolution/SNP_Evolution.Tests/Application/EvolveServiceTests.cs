@@ -10,7 +10,7 @@ namespace SnpEvolution.Tests.Application
         {
             using var temp = new TempFolder("snp-evolve").Made();
             string folder = temp.Path;
-            File.WriteAllText(Path.Combine(folder, "delay-2.json"), "{ not json");
+            PartFixtures.WriteBrokenLibrary(folder);
             var settings = new Settings { Algorithm = SearchCatalog.CompositionTournament, PartLibraryFolder = folder };
 
             EvolveResult result = EvolveService.Run(new EvolveRequest(settings, new Random(1), "Composed", Folder: folder), _ => { });

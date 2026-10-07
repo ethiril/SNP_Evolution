@@ -15,7 +15,7 @@ namespace SnpEvolution.Tests.Simulation
             {
                 Neuron(1, new[] { 3 }, Axonal("a+", 2)),
                 Neuron(3, new[] { 1 }, Standard("a+", 1)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -35,7 +35,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[]
             {
                 Neuron(1, new[] { 2 }, Axonal("a", 3)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -77,15 +77,5 @@ namespace SnpEvolution.Tests.Simulation
             Assert.True(gpu.Runs(Trial.Generate(plain), new SimulationOptions(10, 1)));
             Assert.False(gpu.Runs(Trial.Generate(delayed), new SimulationOptions(10, 1)));
         }
-
-        [Fact]
-        public void AnAxonalRuleIsADifferentRuleFromTheSameRuleThatHoldsTheNeuron()
-        {
-            var network = new Network(new[] { Neuron(0, new[] { 2 }, Axonal("a+", 2)), Neuron(0, Array.Empty<int>(), new Rule("a+", 2, true)) });
-
-            Assert.NotEqual(network.Neurons[0].Rules[0].Key, network.Neurons[1].Rules[0].Key);
-            Assert.Equal(2, SnpEvolution.Specs.Parts.HardwareCost.Of(network).DistinctRules);
-        }
-
     }
 }

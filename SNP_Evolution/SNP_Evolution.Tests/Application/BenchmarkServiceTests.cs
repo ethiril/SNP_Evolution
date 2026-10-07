@@ -18,7 +18,7 @@ namespace SnpEvolution.Tests.Application
             Assert.StartsWith("Composition search builds from 0 part(s)", BenchmarkService.Plan(settings, settings.BenchmarkSettings, composing).Value!.PartsNote);
 
             temp.Made();
-            File.WriteAllText(Path.Combine(folder, "delay-2.json"), "{ not json");
+            PartFixtures.WriteBrokenLibrary(folder);
 
             Assert.Contains("delay-2.json", BenchmarkService.Plan(settings, settings.BenchmarkSettings, composing).Error);
         }

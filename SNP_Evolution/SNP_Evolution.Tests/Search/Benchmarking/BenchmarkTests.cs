@@ -31,17 +31,14 @@ namespace SnpEvolution.Tests.Search.Benchmarking
 
         [Fact]
         [Slow]
-        public void SelectorHalvesTheCandidatesUntilOneIsLeft()
+        public void ABenchmarkRunOfCompositionSearchBuildsFromTheGivenParts()
         {
-            List<EvolutionSearch> candidates = SearchCatalog.Evolution.Take(3).ToList();
+            ModuleLibrary library = CompositionFixtures.Library();
+            EvolutionSearch algorithm = SearchCatalog.CompositionMapElites;
 
-            SelectionResult<EvolutionSearch> result = AlgorithmSelector.Select(candidates, TaskSuite.Generators[0], OneSeed, initialBudget: 60);
+            RunOutcome outcome = Benchmark.RunOnce(algorithm, TaskSuite.Functions.First(task => task.Name == "Compute n + 1"), seed: 1, budget: 400, WithParts(library));
 
-            Assert.Contains(result.Winner, candidates);
-            Assert.Equal(new[] { 3, 2 }, result.Rounds.Select(round => round.Standings.Count));
-            Assert.Equal(new[] { 60L, 120L }, result.Rounds.Select(round => round.Budget));
-            Assert.Equal(result.Rounds[0].Standings.Take(2).Select(row => row.Algorithm), result.Rounds[0].Advancing);
-            Assert.NotNull(result.BestFound);
+            Assert.Contains(outcome.Best!.Genes.Neurons, neuron => neuron.Module != null);
         }
 
         [Fact]

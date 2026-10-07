@@ -5,7 +5,7 @@ namespace SnpEvolution.Tests.Compilation
 {
     public class RegisterMachineCompilerTests
     {
-        // Outputs a, then (a, b) becomes (b, a + b): every Sequences.Fibonacci number, with r4 only there to make the choice.
+        // Outputs a, then (a, b) becomes (b, a + b): every Fibonacci number, with r4 only there to make the choice.
         private const string FibonacciProgram = @"
             0: ADD r1 -> 1
             1: ADD r2 -> 2
@@ -42,7 +42,9 @@ namespace SnpEvolution.Tests.Compilation
             RegisterProgram program = RegisterProgram.Parse(FibonacciProgram);
             (IReadOnlyList<int> outputs, _, int steps) = program.Generate(outputLimit: 21, valueLimit: 100);
 
-            IReadOnlyList<int> generated = Generated(RegisterMachineCompiler.Compile(program), 4 * (steps + 2) + 31);
+            // A generous bound on the network steps the compiled program needs to output 21 and count down its halt.
+            int networkSteps = 4 * (steps + 2) + 31;
+            IReadOnlyList<int> generated = Generated(RegisterMachineCompiler.Compile(program), networkSteps);
 
             Assert.Equal(new[] { 1, 2, 3, 5, 8, 13, 21 }, outputs);
             Assert.Equal(outputs, generated.Where(number => number <= 21));

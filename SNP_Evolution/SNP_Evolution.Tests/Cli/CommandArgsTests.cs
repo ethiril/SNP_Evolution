@@ -14,13 +14,12 @@ namespace SnpEvolution.Tests.Cli
             return error;
         }
 
+        private static CommandArgs Parsed(params string[] line) =>
+            CommandArgs.Parse(CommandRegistry.Find(line[0])!, line, out string error) ?? throw new ArgumentException(error);
+
         // The settings evolve would run with, from the menu's defaults and the options given.
-        private static Settings Evolving(params string[] options)
-        {
-            string[] line = new[] { "evolve", "--target", "1,2" }.Concat(options).ToArray();
-            CommandArgs args = CommandArgs.Parse(CommandRegistry.Find("evolve")!, line, out string error) ?? throw new ArgumentException(error);
-            return TargetArgs.Settings(args, SettingOptions.Evolve)!;
-        }
+        private static Settings Evolving(params string[] options) =>
+            TargetArgs.Settings(Parsed(new[] { "evolve", "--target", "1,2" }.Concat(options).ToArray()), SettingOptions.Evolve)!;
 
         [Fact]
         public void AnUnknownOptionIsRefusedByName() =>
@@ -108,8 +107,7 @@ namespace SnpEvolution.Tests.Cli
         [Fact]
         public void OptionsGivenOverrideTheAdvisorsSuggestions()
         {
-            string[] line = { "evolve", "--target", "1,2", "--advise", "on", "--population", "3" };
-            CommandArgs args = CommandArgs.Parse(CommandRegistry.Find("evolve")!, line, out string error) ?? throw new ArgumentException(error);
+            CommandArgs args = Parsed("evolve", "--target", "1,2", "--advise", "on", "--population", "3");
 
             Assert.Equal(3, EvolveCommand.Configured(args, _ => { })!.PopulationSize);
         }

@@ -21,9 +21,11 @@ namespace SnpEvolution.Tests.Fixtures
             new FitnessEvaluator(engine ?? new ExhaustiveCpuEngine(), task, options ?? new SimulationOptions(1, 5, OutputTiming.Interval), solvedRetestCount, new Random(0), new EvaluationBudget())
                 .Evaluate(network);
 
-        // Scores sequence targets on the sampling engine, as the compile and shrink runs do.
-        public static FitnessEvaluator SequenceEvaluator(IReadOnlyList<int> values) =>
-            new FitnessEvaluator(new SequentialCpuEngine(), new SequenceTask("target", values), new SimulationOptions(50, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
+        // Scores on the single-threaded sampling engine, whose draws follow the random source given.
+        public static FitnessEvaluator SamplingEvaluator(ITask task, Random random, int maxSteps, int repetitions = 2) =>
+            new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(maxSteps, repetitions, OutputTiming.Interval), 1, random, new EvaluationBudget());
+
+        public static FitnessEvaluator SequenceEvaluator(IReadOnlyList<int> values) => SamplingEvaluator(new SequenceTask("target", values), new Random(1), maxSteps: 50);
 
         // Every number the network outputs, over all its computations.
         public static IReadOnlyList<int> Generated(Network network, int maxSteps = 400) =>

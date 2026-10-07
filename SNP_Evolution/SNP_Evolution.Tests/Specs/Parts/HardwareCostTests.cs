@@ -1,11 +1,14 @@
 using SnpEvolution.Model;
+using SnpEvolution.Search;
 using SnpEvolution.Search.Algorithms;
 using SnpEvolution.Search.Fitness;
 using SnpEvolution.Search.Genome;
+using SnpEvolution.Search.Operators;
 using SnpEvolution.Simulation;
 using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Specs.Parts
 {
@@ -27,8 +30,7 @@ namespace SnpEvolution.Tests.Specs.Parts
             Assert.Equal(new HardwareCost(Neurons: 2, Synapses: 1, DistinctRules: 2, Rules: 2, RegisterWidth: 1, LassoTable: 5), Measure(delay.Task(), delay.Network));
         }
 
-        // The store holds 2n from the count port and one more from start, so 25 spikes for n = 12. Five "a" rules take three
-        // lasso entries each, two "aa" four each, and "a(aa)+" four.
+        // The store holds 2n from the count port and one more from start, so 25 spikes for n = 12.
         [Fact]
         public void TheReferenceRegisterNeedsAStoreTwiceAsWideAsItsLargestCount()
         {
@@ -79,9 +81,9 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void HardwareCostCanBeAMapElitesCell()
         {
             var random = new Random(1);
-            var factory = Factories.Networks(new GenomeSpace(MaxNeurons: 5), random, ExpressionGenerator.SimpleTemplates, length: 3);
-            var elites = new MapElites(10, random, factory.NewNetwork, new ConstantEvaluator(), new SnpEvolution.Search.Operators.NeuronCrossover(),
-                SnpEvolution.Search.WeightedMutation.Structural(1, factory), cells: HardwareCost.Cell);
+            var factory = Factories.Networks(new GenomeSpace(MaxNeurons: 5), random, ExpressionGenerator.SimpleTemplates, maxSpikeGroupSize: 3);
+            var elites = new MapElites(10, random, factory.NewNetwork, new DelegateEvaluator(_ => new FitnessResult(0.5f, Array.Empty<int>())),
+                new NeuronCrossover(), WeightedMutation.Structural(1, factory), cells: HardwareCost.Cell);
 
             elites.NextGeneration();
             elites.NextGeneration();
@@ -90,10 +92,13 @@ namespace SnpEvolution.Tests.Specs.Parts
             Assert.Equal(cells.Count, cells.Distinct().Count());
         }
 
-        private sealed class ConstantEvaluator : IPopulationEvaluator
+        [Fact]
+        public void AnAxonalRuleIsADifferentRuleFromTheSameRuleThatHoldsTheNeuron()
         {
-            public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) =>
-                networks.Select(_ => new FitnessResult(0.5f, Array.Empty<int>())).ToList();
+            var network = new Network(new[] { Neuron(0, new[] { 2 }, Axonal("a+", 2)), Neuron(0, Array.Empty<int>(), new Rule("a+", 2, true)) });
+
+            Assert.NotEqual(network.Neurons[0].Rules[0].Key, network.Neurons[1].Rules[0].Key);
+            Assert.Equal(2, HardwareCost.Of(network).DistinctRules);
         }
     }
 }

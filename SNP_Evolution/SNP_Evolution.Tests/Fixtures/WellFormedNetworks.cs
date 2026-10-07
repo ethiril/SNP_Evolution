@@ -7,7 +7,7 @@ namespace SnpEvolution.Tests.Fixtures
     {
         // Up to six neurons of any rule form, with duplicated neurons allowed, so every structural edit has room.
         public static NetworkFactory SmallFactory(int seed, int inputCount = 1, RuleForm form = RuleForm.Mixed) =>
-            Factories.Networks(new GenomeSpace(InputCount: inputCount, RuleForm: form, MaxNeurons: 6, DuplicateNeurons: true), new Random(seed), expressions: new Random(seed));
+            Factories.Networks(new GenomeSpace(InputCount: inputCount, RuleForm: form, MaxNeurons: 6, DuplicateNeurons: true), new Random(seed));
 
         // What every network a factory or an edit makes must satisfy.
         public static void AssertWellFormed(Network network, GenomeSpace space)

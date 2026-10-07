@@ -1,7 +1,6 @@
 namespace SnpEvolution.Tests.Fixtures
 {
-    // Points the process-wide console at strings until disposed, so a command's output stays out of the test log. Every
-    // test running at the time shares the console, so a test using this belongs to ProcessStateCollection.
+    // Every test running at the time shares the console, so a test using this belongs to ProcessStateCollection.
     internal sealed class ConsoleCapture : IDisposable
     {
         private readonly TextWriter output = Console.Out;

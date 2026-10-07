@@ -35,5 +35,13 @@ namespace SnpEvolution.Tests.Specs.Tasks
             Assert.Equal(1f, result.Fitness);
             Assert.Equal("spikes 010101010101 / 010101010101", result.Description);
         }
+
+        [Fact]
+        public void PrefixesKeepTheOpeningBits()
+        {
+            var word = new SpikeWordTask("w", new[] { true, false, true, true });
+
+            Assert.Equal(new[] { true, false }, ((SpikeWordTask)word.Prefix(2)).Expected);
+        }
     }
 }

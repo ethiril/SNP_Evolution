@@ -12,7 +12,7 @@ namespace SnpEvolution.Tests.Application
         [Fact]
         public void SuggestsFixingAFibonacciTypo()
         {
-            Settings settings = ForSequence(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233);
+            Settings settings = ForSequence(Sequences.FibonacciWithTypo.Take(13).ToArray());
 
             Suggestion? typo = For(RunAdvisor.Advise(settings), "Target");
             typo!.Apply(settings);
@@ -36,7 +36,7 @@ namespace SnpEvolution.Tests.Application
         [Fact]
         public void HasNothingMoreToSayOnceItsAdviceIsTaken()
         {
-            Settings settings = ForSequence(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233);
+            Settings settings = ForSequence(Sequences.FibonacciWithTypo.Take(13).ToArray());
             settings.PopulationSize = 4;
             settings.MaxNeurons = 100;
             settings.StagnationRecovery = false;
@@ -68,18 +68,6 @@ namespace SnpEvolution.Tests.Application
             RunAdvisor.Advise(settings);
 
             Assert.Equal(4, settings.PopulationSize);
-        }
-
-        [Fact]
-        public void OnlyOrderedTargetsEvolveIteratively()
-        {
-            Settings sequence = ForSequence(1, 1, 2, 3, 5, 8);
-            var set = new Settings { Target = OutputTarget.Set(new[] { 2, 4, 6, 8 }), Task = Catalog.TargetTask };
-
-            Assert.True(EvolutionSession.IsIterative(sequence, sequence.SelectedTask, out _));
-            Assert.False(EvolutionSession.IsIterative(set, set.SelectedTask, out _));
-            sequence.IterativeEvolution = false;
-            Assert.False(EvolutionSession.IsIterative(sequence, sequence.SelectedTask, out _));
         }
     }
 }

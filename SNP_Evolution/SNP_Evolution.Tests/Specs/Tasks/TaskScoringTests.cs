@@ -22,11 +22,12 @@ namespace SnpEvolution.Tests.Specs.Tasks
         }
 
         [Fact]
-        public void TheShareOfRunsIsExact()
+        public void ShareOfRunsIsTheFractionPassing()
         {
             int[] runs = { 1, 1, 1 };
 
             Assert.Equal(1f, TaskScoring.ShareOfRuns(runs, run => run == 1));
+            Assert.Equal(0.5f, TaskScoring.ShareOfRuns(new[] { 1, 0, 1, 0 }, run => run == 1));
             Assert.Equal(0f, TaskScoring.ShareOfRuns(Array.Empty<int>(), _ => true));
         }
 
@@ -37,6 +38,5 @@ namespace SnpEvolution.Tests.Specs.Tasks
             Assert.Equal(1, TaskScoring.CorrectPrefix(new[] { 1 }, new[] { 1, 2 }));
             Assert.Equal(2, TaskScoring.CorrectPrefix(new[] { 1, 2, 3 }, new[] { 1, 2 }));
         }
-
     }
 }

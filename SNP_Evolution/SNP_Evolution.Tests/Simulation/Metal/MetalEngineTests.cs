@@ -1,6 +1,7 @@
 using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 using SnpEvolution.Simulation.Metal;
+using SnpEvolution.Tests.Simulation;
 using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation.Metal
@@ -118,6 +119,16 @@ namespace SnpEvolution.Tests.Simulation.Metal
             IReadOnlyList<TrialResult> second = engine.Run(trials, options, new Random(9));
 
             Assert.Equal(first.Select(result => result.Outputs), second.Select(result => result.Outputs));
+        }
+
+        [MetalFact]
+        public void MetalEngineRunsPortsReadoutsOnTheCpu()
+        {
+            var trials = Enumerable.Repeat(PortTrials.LoopTrial(), 50).ToList();
+
+            IReadOnlyList<TrialResult> results = MetalEngine.OrCpu(gpuThreshold: 0).Run(trials, PortTrials.Options, new Random(1));
+
+            Assert.All(results, result => Assert.Equal(new[] { new Firing(2, 1) }, result.PortRuns.First().Firings[1]));
         }
     }
 }

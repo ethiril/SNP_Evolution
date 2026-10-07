@@ -41,7 +41,7 @@ namespace SnpEvolution.Tests.Search
         {
             var random = new Random(4);
             var factory = Factories.Networks(new GenomeSpace(InputCount: 1, MaxDelay: 3, HardwareProfile: true), random);
-            (var crossover, var edits) = ShrinkSearch.Operators(factory);
+            var (crossover, edits) = ShrinkSearch.Operators(factory);
             Network network = factory.NewNetwork();
 
             for (int step = 0; step < 300; step++)

@@ -12,35 +12,35 @@ namespace SnpEvolution.Tests.Export
     public class NirExporterTests
     {
         // Parts evolve-parts --profile hardware found, kept in the repository next to parts/.
-        private static Part ProfilePart(string file)
-        {
-            return RepositoryFiles.ReadPart("parts-profile", file).Part;
-        }
+        private const string ProfileFolder = "parts-profile";
+
+        private static readonly string[] ProfilePartFiles = { "delay-2.json", "sequencer-2.json" };
+
+        public static TheoryData<string> ProfileFiles => new TheoryData<string>(ProfilePartFiles);
 
         private static string Check(NirDescription description)
         {
             using var temp = new TempFolder("snp-nir");
-            string folder = temp.Path;
-            return NirExporter.WriteAndCheck(description, folder);
+            return NirExporter.WriteAndCheck(description, temp.Path);
         }
 
-        [Fact]
-        public void TheProfilePartsMeetTheirContractsAndFitTheProfile()
+        [Theory]
+        [MemberData(nameof(ProfileFiles))]
+        public void TheProfilePartsMeetTheirContractsAndFitTheProfile(string file)
         {
-            foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
-            {
-                Part part = ProfilePart(file);
-                Assert.True(Verifier.Measure(part, new EvaluationBudget()).Verdict is Verdict.Passed, file);
-                Assert.Empty(HardwareProfile.Problems(part.Network));
-            }
+            Part part = RepositoryFiles.Part(ProfileFolder, file);
+
+            Assert.True(Verifier.Measure(part, new EvaluationBudget()).Verdict is Verdict.Passed, file);
+            Assert.Empty(HardwareProfile.Problems(part.Network));
         }
 
+        // Stays a loop over the files, since the attribute that skips it without the NIR tools is a fact.
         [NirFact]
         public void ProfilePartsLoadInNirAndMatchOurTracesInNorse()
         {
-            foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
+            foreach (string file in ProfilePartFiles)
             {
-                string report = Check(NirExporter.Export(ProfilePart(file)));
+                string report = Check(NirExporter.Export(RepositoryFiles.Part(ProfileFolder, file)));
 
                 Assert.Contains("matches SN P on all 1 case(s)", report);
             }

@@ -1,4 +1,3 @@
-using SnpEvolution.Application;
 using SnpEvolution.Model;
 using SnpEvolution.Search;
 using SnpEvolution.Simulation;
@@ -10,9 +9,15 @@ namespace SnpEvolution.Tests.Search
     public class PartSearchTests
     {
         [Fact]
+        public void HardwareProfileIsOffUnlessAskedFor()
+        {
+            Assert.False(new PartSearchSettings(1, 1, 1, SearchCatalog.Evolution[0], () => null!).HardwareProfile);
+        }
+
+        [Fact]
         public void PartSearchUnderTheProfileFindsAndShrinksAProfilePart()
         {
-            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine(), HardwareProfile: true);
+            var settings = new PartSearchSettings(5_000, 1_000, 30, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine(), HardwareProfile: true);
 
             PartOutcome outcome = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings, new EvaluationBudget(), _ => { });
 
@@ -24,7 +29,7 @@ namespace SnpEvolution.Tests.Search
         [Slow]
         public void ARobustShrinkKeepsAVerifiedPartAtLeastAsRobustAsTheOneFound()
         {
-            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine(), RobustJitter: 1);
+            var settings = new PartSearchSettings(5_000, 1_000, 30, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine(), RobustJitter: 1);
 
             PartOutcome outcome = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings, new EvaluationBudget(), _ => { });
 

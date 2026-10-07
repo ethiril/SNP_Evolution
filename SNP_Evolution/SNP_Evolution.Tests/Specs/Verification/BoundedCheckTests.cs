@@ -5,14 +5,12 @@ using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Specs.Verification;
-using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Specs.Verification
 {
     public class BoundedCheckTests
     {
         private static readonly ProofLimits AMinute = new ProofLimits(TimeSpan.FromMinutes(1));
-
 
         [Fact]
         [Slow]
@@ -125,14 +123,6 @@ namespace SnpEvolution.Tests.Specs.Verification
             });
         }
 
-        [Fact]
-        public void InputsAtABoundHaveThatLargestValueAndIntervalsStartAtOne()
-        {
-            Assert.Equal(16 - 9, BoundedInputs.WithLargest(FirstParts.Named("add"), 3).Count());
-            Assert.Empty(BoundedInputs.WithLargest(FirstParts.Named("interval to count"), 0));
-            Assert.Equal(new[] { 1 }, BoundedInputs.WithLargest(FirstParts.Named("interval to count"), 1).Select(inputs => inputs["n"]));
-        }
-
         // CEGIS adds a counterexample's case to the cases a search scores on.
         [Fact]
         [Slow]
@@ -144,18 +134,6 @@ namespace SnpEvolution.Tests.Specs.Verification
             Contract withIt = broken.Contract with { Cases = broken.Contract.Cases.Append(counterexample.Case).ToList(), MaxLatency = counterexample.Contract.MaxLatency };
 
             Assert.IsType<Verdict.Failed>(new Verifier(new ContractTask(withIt, broken.Binding), new EvaluationBudget()).Check(broken.Network));
-        }
-
-        [Fact]
-        [Slow]
-        public void ALibraryFileWithACounterexampleIsRefused()
-        {
-            Part broken = PartFixtures.RegisterFailingAtTwenty();
-            LibraryPart part = PartFixtures.Measured(broken, new PartOrigin(0, "by hand", 0)) with { Proven = BoundedCheck.Prove(broken, AMinute, new EvaluationBudget()).Proven };
-
-            var refusal = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "register.json"));
-
-            Assert.Contains("n=20", refusal.Message);
         }
     }
 }

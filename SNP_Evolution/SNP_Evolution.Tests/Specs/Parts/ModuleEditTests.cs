@@ -1,8 +1,5 @@
 using SnpEvolution.Model;
-using SnpEvolution.Search.Modules;
-using SnpEvolution.Search.Operators;
 using SnpEvolution.Specs.Parts;
-using SnpEvolution.Storage;
 using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
@@ -45,17 +42,6 @@ namespace SnpEvolution.Tests.Specs.Parts
             Assert.False(ModuleEdits.KeepsModules(network, rewired));
             Assert.True(ModuleEdits.KeepsModules(network, refilled));
             Assert.True(ModuleEdits.KeepsModules(network, hostChanged));
-            Assert.Same(network, new ProtectModules(new DelegateMutation(_ => rewired)).Mutate(network, new Random(1)));
-            Assert.All(new DissolveModule().Mutate(network, new Random(1)).Neurons, neuron => Assert.Null(neuron.Module));
-        }
-
-        private sealed class DelegateMutation : IMutation
-        {
-            private readonly Func<Network, Network> edit;
-
-            public DelegateMutation(Func<Network, Network> edit) => this.edit = edit;
-
-            public Network Mutate(Network network, Random random) => edit(network);
         }
 
         [Fact]
@@ -78,19 +64,5 @@ namespace SnpEvolution.Tests.Specs.Parts
             }
             Assert.InRange(takeovers, 1, 19);
         }
-
-        [Fact]
-        public void ModuleTagsSurviveSavingAndAreShownInTheNotation()
-        {
-            var library = new ModuleLibrary();
-            Network network = ModuleEdits.Insert(PingPong(), ModuleOf(library, Chain()), 3, 10, library, new Random(1));
-
-            Network loaded = NetworkFiles.FromJson(NetworkFiles.ToJson(network))!;
-
-            Assert.Equal(network.Neurons.Select(neuron => neuron.Module), loaded.Neurons.Select(neuron => neuron.Module));
-            Assert.Contains("[module 1]", NetworkNotation.Format(network));
-            Assert.DoesNotContain("Module", NetworkFiles.ToJson(PingPong()));
-        }
-
     }
 }

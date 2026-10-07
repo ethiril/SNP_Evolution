@@ -7,10 +7,12 @@ namespace SnpEvolution.Tests.Compilation
 {
     public class RecurrenceCompilerTests
     {
+        private const int FittedValues = 16;
+
         [Fact]
         public void FitsFibonacciAsTheSumOfTheTwoValuesBefore()
         {
-            Recurrence? recurrence = Recurrence.Fit(Sequences.Fibonacci.Take(16).ToList());
+            Recurrence? recurrence = Recurrence.Fit(Sequences.Fibonacci.Take(FittedValues).ToList());
 
             Assert.NotNull(recurrence);
             Assert.Equal(new[] { 1, 1 }, recurrence!.Coefficients);
@@ -27,7 +29,7 @@ namespace SnpEvolution.Tests.Compilation
         [Fact]
         public void CompiledFibonacciMakesExactlyTheGapsAndContinuesPastTheTarget()
         {
-            Recurrence recurrence = Recurrence.Fit(Sequences.Fibonacci.Take(16).ToList())!;
+            Recurrence recurrence = Recurrence.Fit(Sequences.Fibonacci.Take(FittedValues).ToList())!;
             Network network = RecurrenceCompiler.Compile(recurrence);
 
             FitnessResult result = SequenceEvaluator(Sequences.Fibonacci).Evaluate(network);

@@ -1,7 +1,6 @@
 using SnpEvolution.Model;
 using SnpEvolution.Search;
 using SnpEvolution.Search.Algorithms;
-using SnpEvolution.Search.Benchmarking;
 using SnpEvolution.Search.Fitness;
 using SnpEvolution.Search.Genome;
 using SnpEvolution.Search.Modules;
@@ -16,7 +15,7 @@ using static SnpEvolution.Tests.Fixtures.CompositionFixtures;
 
 namespace SnpEvolution.Tests.Search
 {
-    public class CompositionSearchTests
+    public class CompositionSpaceTests
     {
         private sealed class FixedEdit : IMutation
         {
@@ -82,38 +81,6 @@ namespace SnpEvolution.Tests.Search
             Assert.Same(network, new CompositionEdit(space, new FixedEdit(reading), glueOnly: true).Mutate(network, random));
         }
 
-        [Fact]
-        public void RemovingAPartDropsItsWiresAndKeepsTheRest()
-        {
-            ModuleLibrary library = Library();
-            for (int seed = 0; seed < 20; seed++)
-            {
-                var random = new Random(seed);
-                Network network = RandomComposition.Of(library, GlueFactory(0, random), 3, random).Flatten(library);
-                Composition before = Composition.Recover(network, library)!;
-
-                Composition after = Composition.Recover(new RemovePart(library).Mutate(network, random), library)!;
-
-                Assert.True(after.Parts.Count >= before.Parts.Count - 1);
-                Assert.All(after.Parts, part => Assert.Contains(part, before.Parts));
-                Assert.All(after.Wires, wire => Assert.Contains(wire, before.Wires));
-                Assert.Equal(before.Glue.Count, after.Glue.Count);
-            }
-        }
-
-        [Fact]
-        [Slow]
-        public void ABenchmarkRunOfCompositionSearchBuildsFromTheGivenParts()
-        {
-            ModuleLibrary library = Library();
-            BenchmarkSettings settings = BenchmarkSettings.Default with { Seeds = 1, Parts = library.Parts.Select(module => module.Part!).ToList() };
-            EvolutionSearch algorithm = SearchCatalog.CompositionMapElites;
-
-            RunOutcome outcome = Benchmark.RunOnce(algorithm, TaskSuite.Functions.First(task => task.Name == "Compute n + 1"), seed: 1, budget: 400, settings);
-
-            Assert.Contains(outcome.Best!.Genes.Neurons, neuron => neuron.Module != null);
-        }
-
         // Every network a composition run keeps is exactly glue and library parts: no part neuron is ever changed.
         [Theory]
         [Slow]
@@ -125,7 +92,7 @@ namespace SnpEvolution.Tests.Search
             var random = new Random(5);
             NetworkFactory factory = GlueFactory(1, random);
             var task = FunctionTask.Of("n + 2", n => n + 2, new[] { 1, 2, 3 });
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, random, new EvaluationBudget());
+            var evaluator = Runs.SamplingEvaluator(task, random, maxSteps: 30);
             IGeneticAlgorithm run = (mapElites ? SearchCatalog.CompositionMapElites : SearchCatalog.CompositionTournament)
                 .Create(new EvolutionContext(16, 0.5f, random, factory.NewNetwork, evaluator, factory, _ => { }, Parts: library));
 

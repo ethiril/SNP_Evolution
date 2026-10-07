@@ -13,7 +13,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[]
             {
                 Neuron(5, new[] { 2 }, Standard("a+", 2, produce: 3)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -28,7 +28,7 @@ namespace SnpEvolution.Tests.Simulation
             var network = new Network(new[]
             {
                 Neuron(3, new[] { 2 }, StandardForget("aaa", 2)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 
@@ -45,7 +45,7 @@ namespace SnpEvolution.Tests.Simulation
             {
                 Neuron(1, new[] { 3 }, Standard("a", 1, delay: 2)),
                 Neuron(3, new[] { 1 }, Standard("a+", 1)),
-                Neuron(0, Array.Empty<int>(), Standard("a{100}", 100)),
+                Sink(),
             });
             NetworkSimulation simulation = Simulate(network);
 

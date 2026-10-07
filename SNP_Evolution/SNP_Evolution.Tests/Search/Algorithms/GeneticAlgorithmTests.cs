@@ -8,7 +8,6 @@ namespace SnpEvolution.Tests.Search.Algorithms
 {
     public class GeneticAlgorithmTests
     {
-        // One output neuron holding a spike, with the one rule.
         private static Network LoneOutputNeuron(string expression) => new Network(new[]
         {
             TestNetworks.OutputNeuron(1, new Rule(expression, 0, true)),

@@ -7,7 +7,7 @@ namespace SnpEvolution.Tests.Application
         [Fact]
         public void FindsTheTypoInAFibonacciTarget()
         {
-            SuspectedTypo? typo = TargetPatterns.Find(new[] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 377, 610, 987 });
+            SuspectedTypo? typo = TargetPatterns.Find(Sequences.FibonacciWithTypo.Take(16).ToArray());
 
             Assert.NotNull(typo);
             Assert.Equal((11, 114, 144), (typo!.Index, typo.Found, typo.Expected));

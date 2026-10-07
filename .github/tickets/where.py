@@ -4,7 +4,8 @@
     python3 .github/tickets/where.py            open issues, asked of GitHub with gh
     python3 .github/tickets/where.py 46 112     only these issue numbers
 
-A path is a backticked token holding a slash or a file extension. It is looked up from the solution folder
+A path is a backticked token holding a slash or ending in a file extension the repository uses, so dotted type and
+member names are not mistaken for paths. It is looked up from the solution folder
 `SNP_Evolution/` first, as the tickets README says, then from the repository root (for `tools/`, `README.md` and the
 like). A path written after "new" is one the ticket creates, so only the folder it goes in must exist.
 """
@@ -13,6 +14,8 @@ import pathlib
 import re
 import subprocess
 import sys
+
+EXTENSIONS = r"\.(cs|csproj|props|slnx|md|py|sh|metal|json|yml)$"
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOLUTION = ROOT / "SNP_Evolution"
@@ -34,9 +37,9 @@ def tickets(numbers):
 
 
 def paths(where):
-    for match in re.finditer(r"(\bnew\s+)?`([^`]+)`", where):
+    for match in re.finditer(r"(\bnew\s+(?:folder\s+)?)?`([^`]+)`", where):
         token = match.group(2)
-        if "/" in token or re.search(r"\.\w+$", token):
+        if "/" in token or re.search(EXTENSIONS, token):
             yield token, match.group(1) is not None
 
 
@@ -54,8 +57,10 @@ def main():
     numbers = {int(arg) for arg in sys.argv[1:]} or open_issues()
     missing = 0
     checked = 0
+    found = 0
     for number, path, text in tickets(numbers):
-        where = re.search(r"^Where:(.*)$", text, re.M)
+        found += 1
+        where = re.search(r"^Where:(.*?)(?:\n\s*\n|\Z)", text, re.M | re.S)
         if not where:
             continue
         for token, new in paths(where.group(1)):
@@ -63,7 +68,7 @@ def main():
             if not exists(token, new):
                 missing += 1
                 print(f"#{number} {path.relative_to(ROOT)}: {'new ' if new else ''}{token}")
-    print(f"{checked} paths in {len(numbers)} tickets, {missing} missing")
+    print(f"{checked} paths in {found} tickets, {missing} missing")
     return 1 if missing else 0
 
 

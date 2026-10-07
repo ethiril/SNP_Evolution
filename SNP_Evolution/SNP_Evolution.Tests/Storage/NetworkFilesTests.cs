@@ -1,5 +1,7 @@
 using SnpEvolution.Model;
+using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
+using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Storage
@@ -42,7 +44,7 @@ namespace SnpEvolution.Tests.Storage
         [Fact]
         public void SavesSpikeCountsAsNumbers()
         {
-            string json = NetworkFiles.ToJson(new Network(new[] { TestNetworks.OutputNeuron(5_000_000_000, new Rule("a+", 0, true)) }));
+            string json = NetworkFiles.ToJson(new Network(new[] { OutputNeuron(5_000_000_000, new Rule("a+", 0, true)) }));
 
             Assert.Contains("\"SpikeCount\": 5000000000", json);
             Assert.Equal(5_000_000_000, NetworkFiles.FromJson(json)?.Neurons[0].InitialSpikes);
@@ -100,6 +102,19 @@ namespace SnpEvolution.Tests.Storage
             Assert.False(loaded.Neurons[1].Rules[0].Axonal);
             Assert.Single(json.Split("Axonal").Skip(1));
             Assert.Equal("a+ -> a;2 axonal", NetworkNotation.Rule(loaded.Neurons[0].Rules[0]));
+        }
+
+        [Fact]
+        public void ModuleTagsSurviveSavingAndAreShownInTheNotation()
+        {
+            var library = new ModuleLibrary();
+            Network network = ModuleEdits.Insert(PingPong(), ModuleOf(library, Chain()), 3, 10, library, new Random(1));
+
+            Network loaded = NetworkFiles.FromJson(NetworkFiles.ToJson(network))!;
+
+            Assert.Equal(network.Neurons.Select(neuron => neuron.Module), loaded.Neurons.Select(neuron => neuron.Module));
+            Assert.Contains("[module 1]", NetworkNotation.Format(network));
+            Assert.DoesNotContain("Module", NetworkFiles.ToJson(PingPong()));
         }
     }
 }

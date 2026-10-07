@@ -26,7 +26,7 @@ namespace SnpEvolution.Tests.Layering
 
             IEnumerable<string> above = file.Descendants("ProjectReference")
                 .Select(reference => Path.GetFileNameWithoutExtension(reference.Attribute("Include")!.Value.Replace('\\', '/')))
-                .Where(referenced => Array.IndexOf(Layers.Projects, referenced) is int at && (at < 0 || at >= Array.IndexOf(Layers.Projects, project)));
+                .Where(referenced => Layers.IsAtOrAbove(referenced, project));
 
             Assert.Empty(above);
         }
@@ -45,16 +45,25 @@ namespace SnpEvolution.Tests.Layering
             Assert.Empty(elsewhere);
         }
 
+        // The compiler drops a reference whose types go unused, so this catches what the project files cannot show: a raw assembly reference.
         [Fact]
         public void TheCompiledAssembliesReferenceOnlyLayersBelow()
         {
-            IEnumerable<string> upwards = Layers.Projects.SelectMany((project, at) => Layers.Assembly(project).GetReferencedAssemblies()
+            IEnumerable<string> upwards = Layers.Projects.SelectMany(project => Layers.Assembly(project).GetReferencedAssemblies()
                 .Select(reference => reference.Name!)
                 .Where(name => name.StartsWith("SnpEvolution.", StringComparison.Ordinal))
-                .Where(name => Array.IndexOf(Layers.Projects, name["SnpEvolution.".Length..]) >= at)
+                .Where(name => Layers.IsAtOrAbove(name["SnpEvolution.".Length..], project))
                 .Select(name => $"{project} -> {name}"));
 
             Assert.Empty(upwards);
         }
+
+        [Theory]
+        [InlineData("Model", "Simulation", false)]
+        [InlineData("Simulation", "Simulation", true)]
+        [InlineData("Cli", "Application", true)]
+        [InlineData("Plugins", "Cli", true)]
+        public void AReferenceCountsAsAboveUnlessItIsAnEarlierLayer(string referenced, string project, bool above) =>
+            Assert.Equal(above, Layers.IsAtOrAbove(referenced, project));
     }
 }

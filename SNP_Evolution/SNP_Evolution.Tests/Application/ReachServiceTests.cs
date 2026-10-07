@@ -11,7 +11,7 @@ namespace SnpEvolution.Tests.Application
 
         private static Settings Budgeted(string folder, long budget) => new Settings
         {
-            Target = new OutputTarget(TargetKind.Sequence, new[] { 1, 1, 2, 3, 5, 8, 13 }),
+            Target = new OutputTarget(TargetKind.Sequence, Sequences.Fibonacci.Take(7).ToArray()),
             Task = Catalog.TargetTask,
             Repetitions = 3,
             PopulationSize = Population,

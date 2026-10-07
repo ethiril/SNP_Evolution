@@ -1,4 +1,4 @@
-using SnpEvolution.Search;
+using SnpEvolution.Model;
 using SnpEvolution.Search.Genome;
 using static SnpEvolution.Tests.Fixtures.WellFormedNetworks;
 
@@ -7,10 +7,22 @@ namespace SnpEvolution.Tests.Search.Genome
     public class NetworkFactoryTests
     {
         [Fact]
-        public void IsOffUnlessAskedFor()
+        public void HardwareProfileIsOffUnlessAskedFor()
         {
             Assert.False(new GenomeSpace().HardwareProfile);
-            Assert.False(new PartSearchSettings(1, 1, 1, SearchCatalog.Evolution[0], () => null!).HardwareProfile);
+        }
+
+        [Fact]
+        public void NetworksMadeUnderTheProfileFitItWithoutBeingConformed()
+        {
+            var space = new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Mixed, MaxNeurons: 8, MaxDelay: 3, DuplicateNeurons: true, HardwareProfile: true);
+            NetworkFactory factory = Factories.Networks(space, new Random(1));
+
+            for (int sample = 0; sample < 300; sample++)
+            {
+                Network made = factory.NewNetwork();
+                Assert.Empty(HardwareProfile.Problems(made));
+            }
         }
 
         [Fact]

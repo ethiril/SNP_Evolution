@@ -53,7 +53,7 @@ namespace SnpEvolution.Tests.Search.Operators
         public void DuplicationIsOnlyOfferedWhenAllowed()
         {
             NetworkFactory allowed = SmallFactory(1);
-            var notAllowed = Factories.Networks(allowed.Space with { DuplicateNeurons = false }, new Random(1), ExpressionGenerator.SimpleTemplates, expressions: new Random(1));
+            var notAllowed = Factories.Networks(allowed.Space with { DuplicateNeurons = false }, new Random(1), ExpressionGenerator.SimpleTemplates);
 
             Assert.Contains(WeightedMutation.Structural(1, allowed).Edits, edit => edit.Edit is DuplicateNeuron);
             Assert.DoesNotContain(WeightedMutation.Structural(1, notAllowed).Edits, edit => edit.Edit is DuplicateNeuron);
@@ -85,6 +85,5 @@ namespace SnpEvolution.Tests.Search.Operators
             Assert.Equal(new[] { 2 }, split.Neurons[2].Connections);
             Assert.Equal("a -> a", NetworkNotation.Rule(split.Neurons[2].Rules[0]));
         }
-
     }
 }

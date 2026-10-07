@@ -5,16 +5,6 @@ namespace SnpEvolution.Tests.Model
 {
     public class StandardRuleTests
     {
-        [Theory]
-        [InlineData("a(aa)*", 2, 3, true)]
-        [InlineData("a(aa)*", 2, 1, false)]
-        [InlineData("a(aa)*", 2, 4, false)]
-        [InlineData("a+", 3, 3, true)]
-        public void AppliesOnlyWhenTheExpressionMatchesAndEnoughSpikesAreThere(string expression, long consume, long spikes, bool applies)
-        {
-            Assert.Equal(applies, Standard(expression, consume).Applies(spikes));
-        }
-
         [Fact]
         public void LegacyRulesAreNotStandardAndProduceOneSpike()
         {
@@ -50,37 +40,6 @@ namespace SnpEvolution.Tests.Model
         public void LeastHeldIsWhatAStandardRuleConsumes()
         {
             Assert.Equal((2L, 0L), (Standard("a+", 2).LeastHeld, new Rule("a+", 0, true).LeastHeld));
-        }
-
-        [Theory]
-        [InlineData("a(aa)*", 1L, 1, 0, true, "a(aa)*/a -> a")]
-        [InlineData("aaa", 3L, 2, 0, true, "aaa -> aa")]
-        [InlineData("a+", 2L, 1, 2, true, "a+/aa -> a;2")]
-        [InlineData("aa", 2L, 1, 0, false, "aa -> forget")]
-        public void IsWrittenInSnpNotation(string expression, long consume, int produce, int delay, bool fire, string notation)
-        {
-            Assert.Equal(notation, NetworkNotation.Rule(new Rule(expression, delay, fire, consume, produce)));
-        }
-
-        [Fact]
-        public void ALegacyRuleIsWrittenSendingOneWhateverItsProduce()
-        {
-            Assert.Equal("a+ -> a", NetworkNotation.Rule(new Rule("a+", 0, true, produce: 3)));
-        }
-
-        [Fact]
-        public void TableMarksInputNeurons()
-        {
-            Assert.StartsWith("n1 (in)", NetworkNotation.Format(Identity()).Split(Environment.NewLine)[1]);
-        }
-
-        [Fact]
-        public void SizeCountsNeuronsRulesAndSynapses()
-        {
-            Network network = ReferenceNetworks.NaturalNumbers();
-
-            Assert.Equal((4, 8, 9), (network.Neurons.Count, network.RuleCount, network.SynapseCount));
-            Assert.Equal(400 + 80 + 9, network.Size);
         }
     }
 }

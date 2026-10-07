@@ -44,6 +44,5 @@ namespace SnpEvolution.Tests.Application
             Assert.IsType<SequenceTask>(new OutputTarget(TargetKind.Sequence, new[] { 1, 1, 2 }).CreateTask(fitness));
             Assert.IsType<SpikeWordTask>(new OutputTarget(TargetKind.BinaryWord, new[] { 0, 1 }).CreateTask(fitness));
         }
-
     }
 }

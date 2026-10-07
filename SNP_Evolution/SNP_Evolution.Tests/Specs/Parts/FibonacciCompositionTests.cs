@@ -9,7 +9,7 @@ using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 
 namespace SnpEvolution.Tests.Specs.Parts
 {
-    // Sequences.Fibonacci built by hand from verified parts, typed wires and glue, as a size for composition search to beat; it stays a test because in the app it would be a seed by another name.
+    // Kept as a test rather than a seed, since a hand-built Fibonacci machine is only a size for composition search to beat.
     public class FibonacciCompositionTests
     {
         private readonly ITestOutputHelper output;
@@ -17,9 +17,6 @@ namespace SnpEvolution.Tests.Specs.Parts
         public FibonacciCompositionTests(ITestOutputHelper output) => this.output = output;
 
         private sealed record Machine(Network Network, ModuleLibrary Library, PartCopy X1, PartCopy Y1, PartCopy X2, PartCopy Y2, int Output, int FirstRound, int Relay1, int Relay2);
-
-        // The hand-built register is checked against the catalogue's register contract, as a library part would be.
-        private static Part Register() => ReferenceParts.Register();
 
         private static PartCopy Place(List<Neuron> neurons, Module module, int instance)
         {
@@ -38,8 +35,8 @@ namespace SnpEvolution.Tests.Specs.Parts
         private static Machine Build()
         {
             var library = new ModuleLibrary();
-            Module register = library.AddPart(Verified(Register()), "hand-built");
-            Module add = library.AddPart(Verified(ReferenceParts.Add()), "hand-built");
+            Module register = library.AddPart(PartFixtures.Verified(ReferenceParts.Register()), "hand-built");
+            Module add = library.AddPart(PartFixtures.Verified(ReferenceParts.Add()), "hand-built");
             var neurons = new List<Neuron>();
             PartCopy x1 = Place(neurons, register, 1), y1 = Place(neurons, add, 2), x2 = Place(neurons, register, 3), y2 = Place(neurons, add, 4);
             int output = neurons.Count + 1, firstRound = output + 2, relay1 = output + 3, relay2 = output + 4;
@@ -105,7 +102,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void ItMakesTheFirstSixteenFibonacciGapsExactlyOnTheExhaustiveEngine()
         {
             Network network = Build().Network;
-            var task = new SequenceTask("Sequences.Fibonacci", Sequences.Fibonacci.Take(16).ToList());
+            var task = new SequenceTask("Fibonacci", Sequences.Fibonacci.Take(16).ToList());
             var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(task.StepsNeeded, 20, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
 
             FitnessResult result = evaluator.Evaluate(network);
@@ -122,6 +119,17 @@ namespace SnpEvolution.Tests.Specs.Parts
 
             Assert.Equal(Sequences.Fibonacci, steps.Zip(steps.Skip(1), (earlier, later) => later - earlier).Take(Sequences.Fibonacci.Length));
             output.WriteLine("Output spikes on steps " + string.Join(", ", steps));
+        }
+
+        private const int FirstTracedStep = 4;
+        private const int GapOfFiveStartStep = 8;
+        private const int LastTracedStep = 13;
+
+        private static string Cell(Network network, IReadOnlyList<long> held, int position)
+        {
+            long spikes = held[position - 1];
+            bool fires = network.Neurons[position - 1].Rules.Any(rule => rule.Fire && rule.Applies(spikes));
+            return spikes == 0 ? "" : fires ? $"{spikes}*" : $"{spikes}";
         }
 
         // Prints what each neuron holds at the start of each step, * where it fires, as the table RESEARCH.md shows.
@@ -141,24 +149,18 @@ namespace SnpEvolution.Tests.Specs.Parts
             var held = new List<IReadOnlyList<long>>();
             output.WriteLine("| step | " + string.Join(" | ", named.Select(pair => pair.Name)) + " |");
             output.WriteLine("|---|" + string.Concat(named.Select(_ => "---|")));
-            for (int step = 0; step <= 13; step++)
+            for (int step = 0; step <= LastTracedStep; step++)
             {
                 held.Add(simulation.Spikes);
-                string Cell(int position)
+                if (step >= FirstTracedStep)
                 {
-                    long spikes = held[step][position - 1];
-                    bool fires = network.Neurons[position - 1].Rules.Any(rule => rule.Fire && rule.Applies(spikes));
-                    return spikes == 0 ? "" : fires ? $"{spikes}*" : $"{spikes}";
-                }
-                if (step >= 4)
-                {
-                    output.WriteLine($"| {step} | " + string.Join(" | ", named.Select(pair => Cell(pair.Position))) + " |");
+                    output.WriteLine($"| {step} | " + string.Join(" | ", named.Select(pair => Cell(network, held[step], pair.Position))) + " |");
                 }
                 simulation.Step();
             }
 
             // When the gap of 5 starts (A = 3, B = 5), bank 2 holds A - 2 and B - 3, each spike stored as two.
-            Assert.Equal(new[] { 2L, 4L }, new[] { Store(machine.X2), Store(machine.Y2) }.Select(position => held[8][position - 1]));
+            Assert.Equal(new[] { 2L, 4L }, new[] { Store(machine.X2), Store(machine.Y2) }.Select(position => held[GapOfFiveStartStep][position - 1]));
         }
     }
 }

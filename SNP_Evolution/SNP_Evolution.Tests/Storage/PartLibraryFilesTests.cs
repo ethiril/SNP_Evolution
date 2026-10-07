@@ -1,7 +1,12 @@
+using Newtonsoft.Json.Linq;
 using SnpEvolution.Model;
+using SnpEvolution.Search.Modules;
+using SnpEvolution.Specs.Accounting;
 using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Verification;
 using SnpEvolution.Storage;
+using static SnpEvolution.Tests.Fixtures.CompositionFixtures;
 
 namespace SnpEvolution.Tests.Storage
 {
@@ -15,11 +20,9 @@ namespace SnpEvolution.Tests.Storage
 
         private static readonly PartOrigin Evolved = new PartOrigin(7, "evolve-parts --seed 1", 1234);
 
-        private static Part FirstPartRegister()
-        {
-            Part register = ReferenceParts.Register();
-            return register with { Contract = FirstParts.Named("register") };
-        }
+        private static readonly PartOrigin Promoted = new PartOrigin(1, "a test", 0);
+
+        private static Part FirstPartRegister() => ReferenceParts.Register() with { Contract = FirstParts.Named("register") };
 
         private static ModuleLibrary Library(params Part[] parts)
         {
@@ -74,7 +77,7 @@ namespace SnpEvolution.Tests.Storage
             Part delay = ReferenceParts.Delay(2);
             string json = PartLibraryFiles.ToJson(PartFixtures.Measured(delay, Evolved));
 
-            string network = Newtonsoft.Json.Linq.JObject.Parse(json)["Network"]!.ToString();
+            string network = JObject.Parse(json)["Network"]!.ToString();
 
             Assert.Equal(NetworkNotation.Format(delay.Network), NetworkNotation.Format(NetworkFiles.FromJson(network)!));
         }
@@ -113,12 +116,74 @@ namespace SnpEvolution.Tests.Storage
         public void ALibraryFileKeepsItsProvenBound()
         {
             Part delay = ReferenceParts.Delay(2);
-            LibraryPart part = PartFixtures.Measured(delay, new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
+            LibraryPart part = PartFixtures.Measured(delay, PartFixtures.ByHand) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
 
             LibraryPart read = PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "delay-2.json");
 
             Assert.Equal(part.Proven, read.Proven);
             Assert.Contains("\"Stopped\": \"every input checked\"", PartLibraryFiles.ToJson(part));
+        }
+
+        [Fact]
+        [Slow]
+        public void ALibraryFileWithACounterexampleIsRefused()
+        {
+            Part broken = PartFixtures.RegisterFailingAtTwenty();
+            LibraryPart part = PartFixtures.Measured(broken, PartFixtures.ByHand) with { Proven = BoundedCheck.Prove(broken, new ProofLimits(TimeSpan.FromMinutes(1)), new EvaluationBudget()).Proven };
+
+            var refusal = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "register.json"));
+
+            Assert.Contains("n=20", refusal.Message);
+        }
+
+        // The file names its children and wiring, so a change to a child shows in the child's file alone.
+        [Fact]
+        public void APromotedPartIsStoredAsItsChildrenAndWiringRatherThanANetwork()
+        {
+            (ModuleLibrary library, Module increment) = Increments();
+            (Composition chain, PortBinding binding) = ChainOfCopies(library, increment, 2);
+            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Promoted, new EvaluationBudget(), _ => { });
+
+            PartLibraryFiles.Save(library, folder);
+            string file = File.ReadAllText(Path.Combine(folder, "add-2.json"));
+
+            Assert.Contains("\"Recipe\"", file);
+            Assert.DoesNotContain("\"Network\"", file);
+            Assert.Contains("\"Contract\": \"increment\"", file);
+            Assert.Contains("\"2.out\"", file);
+        }
+
+        // add 4 is two add 2s, each two increments, and its file sorts before the files it needs.
+        [Fact]
+        public void PartsBuiltFromPromotedPartsLoadAfterTheirChildren()
+        {
+            (ModuleLibrary library, Module increment) = Increments();
+            (Composition two, PortBinding twoBinding) = ChainOfCopies(library, increment, 2);
+            Module addTwo = Promotion.Promote(two, ArithmeticParts.AddTwo(), twoBinding, library, Promoted, new EvaluationBudget(), _ => { }).Module!;
+            (Composition four, PortBinding fourBinding) = ChainOfCopies(library, addTwo, 2);
+            Promotion.Promote(four, CatalogueEntry.Of(Specifications.AddConstant(4), FirstParts.Each(FirstParts.Values)).Contract, fourBinding, library, Promoted, new EvaluationBudget(), _ => { });
+
+            PartLibraryFiles.Save(library, folder);
+            ModuleLibrary loaded = PartLibraryFiles.Load(folder);
+
+            Assert.Equal(new[] { "add 2", "add 4", "increment" }, loaded.Parts.Select(module => module.Part!.Contract.Name).Order());
+            Assert.Equal(
+                NetworkFiles.ToJson(library.PartFor("add 4")!.Part!.Part.Network),
+                NetworkFiles.ToJson(loaded.PartFor("add 4")!.Part!.Part.Network));
+        }
+
+        [Fact]
+        public void APromotedPartWhoseChildIsMissingIsRefusedByName()
+        {
+            (ModuleLibrary library, Module increment) = Increments();
+            (Composition chain, PortBinding binding) = ChainOfCopies(library, increment, 2);
+            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Promoted, new EvaluationBudget(), _ => { });
+            PartLibraryFiles.Save(library, folder);
+            File.Delete(Path.Combine(folder, "increment.json"));
+
+            InvalidDataException refused = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Load(folder));
+
+            Assert.Contains("'add-2.json' is built from parts the folder does not have: increment", refused.Message);
         }
     }
 }

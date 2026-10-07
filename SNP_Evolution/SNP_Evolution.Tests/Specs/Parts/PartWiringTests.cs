@@ -44,7 +44,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void TwoVerifiedIncrementsWiredByTypeAddTwoWithNoEvolution()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
 
             for (int seed = 0; seed < 5; seed++)
             {
@@ -60,7 +60,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void AThirdCopyIsFedByAnEarlierOneButNeverDoublesUpAnInPort()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
 
             for (int seed = 0; seed < 10; seed++)
             {
@@ -76,7 +76,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void APartInANetworkWithNoOtherPartIsWiredToUntypedNeurons()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
 
             Network network = ModuleEdits.Insert(PingPong(), increment, 1, MaxNeurons, library, new Random(1));
 
@@ -90,7 +90,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void APartWhoseInsideWasEditedIsNoLongerTyped()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(ReferenceParts.Increment()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(ReferenceParts.Increment()), "a test");
             Network network = Chained(library, increment, 1);
 
             Network edited = network.WithNeuron(4, network.Neurons[4].WithRules(new[] { Standard("a", 1) }));
@@ -103,7 +103,7 @@ namespace SnpEvolution.Tests.Specs.Parts
         public void APortThatTakesTheOutputSendsNowhereAndAnOldOutputInACopyFeedsNoOtherPort()
         {
             var library = new ModuleLibrary();
-            Module increment = library.AddPart(Verified(IncrementWithOutput()), "a test");
+            Module increment = library.AddPart(PartFixtures.Verified(IncrementWithOutput()), "a test");
             int takeovers = 0;
 
             for (int seed = 0; seed < 20; seed++)
@@ -126,6 +126,5 @@ namespace SnpEvolution.Tests.Specs.Parts
             }
             Assert.InRange(takeovers, 1, 19);
         }
-
     }
 }

@@ -1,4 +1,5 @@
 using SnpEvolution.Model;
+using SnpEvolution.Search.Algorithms;
 using SnpEvolution.Search.Modules;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
@@ -9,21 +10,43 @@ namespace SnpEvolution.Tests.Search.Modules
 {
     public class ModularEvolutionTests
     {
+        // Stalls after two generations and hands a side run five more.
+        private static readonly ModulePolicy QuickStall = new ModulePolicy(Patience: 2, SideGenerations: 5, CompositeFraction: 0.5, IncubationGenerations: 0);
+
+        private static readonly SequenceTask Target = new SequenceTask("test", new[] { 2, 2, 5, 2 });
+
+        // A main run whose best networks never improve, so it stalls.
+        private static StubAlgorithm StalledMain()
+        {
+            var main = new StubAlgorithm();
+            main.Individuals.AddRange(new[] { Scored(PingPong(), 0.5f, 1, 1, 0, 0), Scored(Chain(), 0.4f, 1, 0, 0, 0) });
+            return main;
+        }
+
+        private static StubAlgorithm SolvedSideRun()
+        {
+            var side = new StubAlgorithm();
+            side.Individuals.Add(Scored(AlwaysOutputsOne(), 1));
+            return side;
+        }
+
+        // Each side run records the task it was given and solves it at once.
+        private static Func<ITask, IReadOnlyList<Network>?, IGeneticAlgorithm> RecordingSideRuns(List<ITask> tasks) => (task, _) =>
+        {
+            tasks.Add(task);
+            return SolvedSideRun();
+        };
+
+        private static ModularEvolution Modular(StubAlgorithm main, ModuleLibrary library, Func<ITask> task, Func<ITask, IReadOnlyList<Network>?, IGeneticAlgorithm> sideRuns, ModulePolicy policy) =>
+            new ModularEvolution(main, library, null, task, sideRuns, policy, populationSize: 4, maxNeurons: 10, new Random(1), _ => { });
+
         [Fact]
         public void AStallBuildsAModuleOnTheSideAndOffersItToTheBestNetworks()
         {
             var library = new ModuleLibrary();
-            var task = new SequenceTask("test", new[] { 2, 2, 5, 2 });
-            var main = new StubAlgorithm();
-            main.Individuals.AddRange(new[] { Scored(PingPong(), 0.5f, 1, 1, 0, 0), Scored(Chain(), 0.4f, 1, 0, 0, 0) });
+            StubAlgorithm main = StalledMain();
             var focusTasks = new List<ITask>();
-            var modular = new ModularEvolution(main, library, null, () => task, (focus, _) =>
-            {
-                focusTasks.Add(focus);
-                var side = new StubAlgorithm();
-                side.Individuals.Add(Scored(AlwaysOutputsOne(), 1));
-                return side;
-            }, new ModulePolicy(Patience: 2, SideGenerations: 5, CompositeFraction: 0.5, IncubationGenerations: 0), 4, 10, new Random(1), _ => { });
+            ModularEvolution modular = Modular(main, library, () => Target, RecordingSideRuns(focusTasks), QuickStall);
 
             for (int generation = 0; generation < 3; generation++)
             {
@@ -40,17 +63,8 @@ namespace SnpEvolution.Tests.Search.Modules
         [Fact]
         public void EveryOtherSideRunBuildsAPartThatWaitsForATrigger()
         {
-            var task = new SequenceTask("test", new[] { 2, 2, 5, 2 });
-            var main = new StubAlgorithm();
-            main.Individuals.AddRange(new[] { Scored(PingPong(), 0.5f, 1, 1, 0, 0), Scored(Chain(), 0.4f, 1, 0, 0, 0) });
             var parts = new List<ITask>();
-            var modular = new ModularEvolution(main, new ModuleLibrary(), null, () => task, (part, _) =>
-            {
-                parts.Add(part);
-                var side = new StubAlgorithm();
-                side.Individuals.Add(Scored(AlwaysOutputsOne(), 1));
-                return side;
-            }, new ModulePolicy(Patience: 2, SideGenerations: 5, CompositeFraction: 0.5, IncubationGenerations: 0), 4, 10, new Random(1), _ => { });
+            ModularEvolution modular = Modular(StalledMain(), new ModuleLibrary(), () => Target, RecordingSideRuns(parts), QuickStall);
 
             for (int generation = 0; generation < 5; generation++)
             {
@@ -66,26 +80,21 @@ namespace SnpEvolution.Tests.Search.Modules
         public void NetworksGivenAModuleIncubateAndASolvedPartIsNotEvolvedAgain()
         {
             var library = new ModuleLibrary();
-            var task = new SequenceTask("test", new[] { 2, 2, 5, 2 });
-            var main = new StubAlgorithm();
-            main.Individuals.AddRange(new[] { Scored(PingPong(), 0.5f, 1, 1, 0, 0), Scored(Chain(), 0.4f, 1, 0, 0, 0) });
+            StubAlgorithm main = StalledMain();
             var parts = new List<ITask>();
             var incubated = new List<IReadOnlyList<Network>>();
-            var modular = new ModularEvolution(main, library, null, () => task, (sideTask, seeds) =>
+            ModularEvolution modular = Modular(main, library, () => Target, (sideTask, seeds) =>
             {
-                var side = new StubAlgorithm();
                 if (seeds == null)
                 {
                     parts.Add(sideTask);
-                    side.Individuals.Add(Scored(AlwaysOutputsOne(), 1));
+                    return SolvedSideRun();
                 }
-                else
-                {
-                    incubated.Add(seeds);
-                    side.Individuals.AddRange(seeds.Select(seed => Scored(seed, 0.6f)));
-                }
+                incubated.Add(seeds);
+                var side = new StubAlgorithm();
+                side.Individuals.AddRange(seeds.Select(seed => Scored(seed, 0.6f)));
                 return side;
-            }, new ModulePolicy(Patience: 2, SideGenerations: 5, CompositeFraction: 0.5, Triggered: false, IncubationGenerations: 4), 4, 10, new Random(1), _ => { });
+            }, QuickStall with { Triggered = false, IncubationGenerations = 4 });
 
             for (int generation = 0; generation < 5; generation++)
             {
@@ -106,8 +115,7 @@ namespace SnpEvolution.Tests.Search.Modules
             var library = new ModuleLibrary();
             var main = new StubAlgorithm();
             main.Individuals.Add(Scored(PingPong(), 1));
-            var modular = new ModularEvolution(main, library, null, () => new SequenceTask("twos", new[] { 2, 2 }), (_, _) => new StubAlgorithm(),
-                new ModulePolicy(), 4, 10, new Random(1), _ => { });
+            ModularEvolution modular = Modular(main, library, () => new SequenceTask("twos", new[] { 2, 2 }), (_, _) => new StubAlgorithm(), new ModulePolicy());
 
             modular.Rescore();
 

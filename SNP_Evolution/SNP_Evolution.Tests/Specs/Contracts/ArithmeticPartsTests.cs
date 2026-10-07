@@ -1,8 +1,4 @@
-using SnpEvolution.Search.Benchmarking;
-using SnpEvolution.Specs.Accounting;
 using SnpEvolution.Specs.Contracts;
-using SnpEvolution.Specs.Parts;
-using SnpEvolution.Specs.Verification;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Specs.Contracts
@@ -62,25 +58,6 @@ namespace SnpEvolution.Tests.Specs.Contracts
         {
             Assert.All(ArithmeticParts.Binary.SelectMany(contract => contract.DataIn), port => Assert.Equal(4, port.Width));
             Assert.Equal(8, ArithmeticParts.Named("multiply 4-bit").DataOut.Single().Width);
-        }
-
-        [Fact]
-        public void EveryArithmeticContractIsATaskInTheSuite()
-        {
-            List<string> names = TaskSuite.All.Select(task => task.Name).ToList();
-
-            Assert.All(ArithmeticParts.Contracts, contract => Assert.Contains("Contract " + contract.Name, names));
-        }
-
-        [Theory]
-        [MemberData(nameof(PartFixtures.HandBuilt), MemberType = typeof(PartFixtures))]
-        public void EveryHandBuiltPartMeetsItsContract(int index)
-        {
-            Part part = HandBuiltParts.All()[index];
-
-            PartMeasurement measurement = Verifier.Measure(part, new EvaluationBudget());
-
-            Assert.True(measurement.Verdict is Verdict.Passed, $"{part.Contract.Name}: {measurement.Description}");
         }
 
         [Fact]

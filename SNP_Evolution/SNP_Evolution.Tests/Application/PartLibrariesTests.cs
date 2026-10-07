@@ -25,7 +25,7 @@ namespace SnpEvolution.Tests.Application
         {
             using var temp = new TempFolder("snp-broken").Made();
             string folder = temp.Path;
-            File.WriteAllText(Path.Combine(folder, "delay-2.json"), "{ not json");
+            PartFixtures.WriteBrokenLibrary(folder);
 
             Loaded<ModuleLibrary> loaded = PartLibraries.Load(folder, handBuilt: false, addLoop: false);
 

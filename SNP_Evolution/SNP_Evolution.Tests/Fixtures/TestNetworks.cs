@@ -10,7 +10,6 @@ namespace SnpEvolution.Tests.Fixtures
         public static Neuron OutputNeuron(long initialSpikes, params Rule[] rules) =>
             new Neuron(rules, initialSpikes, Array.Empty<int>(), true);
 
-        // The output neuron fires at step one, a delayed feeder refills it, and it fires again at step two: always outputs 1.
         public static Neuron InputNeuron(int[] connections, params Rule[] rules) =>
             new Neuron(rules, 0, connections, false, isInput: true);
 
@@ -27,6 +26,7 @@ namespace SnpEvolution.Tests.Fixtures
             new Neuron(new[] { Standard("a", 1) }, 0, Array.Empty<int>(), true),
         });
 
+        // The output neuron fires at step one, a delayed feeder refills it, and it fires again at step two: always outputs 1.
         public static Network AlwaysOutputsOne() => new Network(new[]
         {
             Neuron(1, new[] { 2 }, new Rule("a", 1, true)),
@@ -45,6 +45,17 @@ namespace SnpEvolution.Tests.Fixtures
             OutputNeuron(1, new Rule("a", 0, false)),
         });
 
+        // Keeps every spike it is sent, since its one rule needs a hundred.
+        public static Neuron Sink() => Neuron(0, Array.Empty<int>(), Standard("a{100}", 100));
+
         public static Rule Axonal(string expression, int delay) => new Rule(expression, delay, true, axonal: true);
+
+        // The two reference networks by name, so a theory over them names the one that failed.
+        public static Network Reference(string name) => name switch
+        {
+            "natural numbers" => ReferenceNetworks.NaturalNumbers(),
+            "even numbers" => ReferenceNetworks.EvenNumbers(),
+            _ => throw new ArgumentException($"No reference network named {name}."),
+        };
     }
 }

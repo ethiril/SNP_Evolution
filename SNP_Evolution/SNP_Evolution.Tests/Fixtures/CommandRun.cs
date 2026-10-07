@@ -5,7 +5,7 @@ using SnpEvolution.Cli;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
 
-namespace SnpEvolution.Tests.Golden
+namespace SnpEvolution.Tests.Fixtures
 {
     // Swaps the process-wide console, working directory and culture, so tests using it belong to ProcessStateCollection.
     internal sealed partial class CommandRun : IDisposable
@@ -91,9 +91,9 @@ namespace SnpEvolution.Tests.Golden
         private string Normalise(string text)
         {
             // On macOS the temporary folder is reached through /private as well.
-            foreach (string folder in new[] { Path.Combine("/private", Folder.TrimStart('/')), Folder })
+            foreach (string spelling in new[] { Path.Combine("/private", Folder.TrimStart('/')), Folder })
             {
-                text = text.Replace(folder, "<work>");
+                text = text.Replace(spelling, "<work>");
             }
             text = RunFolder().Replace(text, "runs/<run>");
             text = Seconds().Replace(text, "in <time> s");
