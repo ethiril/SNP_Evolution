@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Application;
 
 namespace SnpEvolution.Cli
 {
@@ -8,6 +9,7 @@ namespace SnpEvolution.Cli
     internal static class MenuPrompts
     {
         internal const string NotPositiveInteger = "Number was not a positive integer.";
+        internal const string NotNonNegativeInteger = "Number was not a whole number of 0 or more.";
 
         internal static string Automatic(int value) => value > 0 ? value.ToString() : "automatic";
 
@@ -25,7 +27,7 @@ namespace SnpEvolution.Cli
         }
 
         internal static void PromptFor<T>(string request, string invalidMessage, InputParser<T> parse, Action<T> assign) =>
-            ConsoleUi.PromptUntilAccepted(request, invalidMessage, input =>
+            ConsoleInput.PromptUntilAccepted(request, invalidMessage, input =>
             {
                 if (!parse(input, out T value))
                 {

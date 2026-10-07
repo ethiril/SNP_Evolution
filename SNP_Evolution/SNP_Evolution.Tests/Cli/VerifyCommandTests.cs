@@ -74,7 +74,7 @@ namespace SnpEvolution.Tests.Cli
 
                 int exit = CommandLine.Run(new[] { "verify", "--part", file, "--bound", "24" });
 
-                Assert.Equal(VerifyCommand.Refuted, exit);
+                Assert.Equal((int)ExitCode.Refuted, exit);
                 Assert.Contains("\"FailsAt\": \"n=20\"", File.ReadAllText(file));
             }
             finally

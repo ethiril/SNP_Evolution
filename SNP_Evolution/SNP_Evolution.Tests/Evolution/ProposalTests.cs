@@ -1,4 +1,4 @@
-using SnpEvolution.Cli;
+using SnpEvolution.Application;
 using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
@@ -109,7 +109,7 @@ namespace SnpEvolution.Tests.Evolution
             var space = new CompositionSpace(library, factory, new CompositionMix(), random);
             var context = new EvolutionContext(12, 0.5f, random, space.NewNetwork, evaluator, factory, _ => { }, Parts: library);
             IGeneticAlgorithm search = SearchCatalog.CompositionMapElites.Create(context);
-            var settings = new PartSearchSettings(30_000, 0, PartsSession.Population, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine());
+            var settings = new PartSearchSettings(30_000, 0, PartsService.Population, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine());
             var log = new List<string>();
             var proposals = new PartProposals(search, space, () => task, contract => PartSearch.Evolve(contract, 1, settings, new EvaluationBudget(), log.Add),
                 new ProposalPolicy(Patience: 2, MaxProposals: 1), new EvaluationBudget(), 12, log.Add);

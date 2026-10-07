@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Application;
 using static SnpEvolution.Cli.MenuPrompts;
 
 namespace SnpEvolution.Cli
@@ -40,7 +41,7 @@ namespace SnpEvolution.Cli
             string invalid = kind == TargetKind.BinaryWord
                 ? "Use only 0s and 1s, with at least one 1."
                 : "Use positive whole numbers separated by commas or spaces.";
-            ConsoleUi.PromptUntilAccepted($"Enter the {labels[choice].Split(':')[0].ToLowerInvariant()} to match", invalid, input =>
+            ConsoleInput.PromptUntilAccepted($"Enter the {labels[choice].Split(':')[0].ToLowerInvariant()} to match", invalid, input =>
             {
                 if (input.Trim().Length == 0 && settings.Target.Kind == kind)
                 {
@@ -78,7 +79,7 @@ namespace SnpEvolution.Cli
         {
             const int DefaultGenerations = 1000;
             bool accepted = false;
-            ConsoleUi.PromptUntilAccepted("Maximum number of generations", NotPositiveInteger, input =>
+            ConsoleInput.PromptUntilAccepted("Maximum number of generations", NotPositiveInteger, input =>
             {
                 if (input.Trim().Length == 0)
                 {
