@@ -35,7 +35,7 @@ namespace SnpEvolution.Cli
         }
 
         // Returns null when the user presses ESC.
-        public static string? ReadLineWithCancel()
+        private static string? ReadLineWithCancel()
         {
             var buffer = new StringBuilder();
             while (true)

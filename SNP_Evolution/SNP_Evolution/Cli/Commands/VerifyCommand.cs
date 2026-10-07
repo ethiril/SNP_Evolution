@@ -6,7 +6,6 @@ using SnpEvolution.Evolution.Verification;
 
 namespace SnpEvolution.Cli
 {
-    // Exits with 2 when a part has a counterexample.
     internal sealed class VerifyCommand : Command
     {
         private static readonly Option<long> Seconds = new Option<long>("seconds", ValueKinds.PositiveLong, "time to spend on each part; 60 unless given");
@@ -25,7 +24,7 @@ namespace SnpEvolution.Cli
             var settings = new Settings();
             SettingOptions.Library.ApplyFrom(args, settings);
             Loaded<IReadOnlyList<PartFile>> loaded = args.Find(CommonOptions.Part) is string file
-                ? One(file)
+                ? PartLibraries.ReadPart(file).Select<IReadOnlyList<PartFile>>(part => new[] { part })
                 : PartLibraries.PartsIn(settings.PartLibraryFolder);
             if (loaded.Value is not IReadOnlyList<PartFile> parts)
             {
@@ -33,7 +32,7 @@ namespace SnpEvolution.Cli
             }
             if (args.Find(CommonOptions.Only) is string[] names)
             {
-                parts = parts.Where(each => names.Any(name => each.Part.Contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))).ToList();
+                parts = parts.Where(each => CommonOptions.OnlyMatches(names, each.Part.Contract.Name)).ToList();
             }
             if (parts.Count == 0)
             {
@@ -49,12 +48,6 @@ namespace SnpEvolution.Cli
                 }
             });
             return verified.Any(part => part.Counterexample != null) ? ExitCode.Refuted : ExitCode.Success;
-        }
-
-        private static Loaded<IReadOnlyList<PartFile>> One(string file)
-        {
-            Loaded<PartFile> part = PartLibraries.ReadPart(file);
-            return part.Value != null ? Loaded<IReadOnlyList<PartFile>>.Of(new[] { part.Value }) : Loaded<IReadOnlyList<PartFile>>.Failed(part.Error!);
         }
     }
 }

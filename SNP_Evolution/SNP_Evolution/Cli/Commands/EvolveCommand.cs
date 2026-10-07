@@ -6,8 +6,6 @@ using SnpEvolution.Evolution.Benchmarking;
 
 namespace SnpEvolution.Cli
 {
-    // With --advise on the advisor's suggestions are applied first and the options given after them, and with --pilot on a
-    // quick pilot picks the algorithm.
     internal sealed class EvolveCommand : Command
     {
         private static readonly Option<bool> Advise = new Option<bool>("advise", ValueKinds.Switch, "apply the advisor's suggestions before the options given");
@@ -25,16 +23,9 @@ namespace SnpEvolution.Cli
 
         public override ExitCode Run(CommandArgs args)
         {
-            if (TargetArgs.Settings(args, SettingOptions.Evolve) is not Settings settings)
+            if (Configured(args, Console.WriteLine) is not Settings settings)
             {
                 return ExitCode.Usage;
-            }
-            if (args.Get(Advise, false))
-            {
-                Advice advice = RunAdvisor.Advise(settings);
-                RunAdvisor.Format(advice).ToList().ForEach(Console.WriteLine);
-                RunAdvisor.ApplyAll(settings, advice);
-                SettingOptions.Apply(settings, args, SettingOptions.Evolve);
             }
             if (args.Get(Pilot, false))
             {
@@ -43,8 +34,24 @@ namespace SnpEvolution.Cli
             BenchmarkTask task = settings.SelectedTask;
             Console.WriteLine("Evolving a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
             RunNotes.For(settings, task).ToList().ForEach(Console.WriteLine);
-            EvolveResult result = EvolveService.Run(new EvolveRequest(settings, RunSeed.For(CommonOptions.SeedFrom(args)), "TargetNet"), Console.WriteLine);
-            return result.Error is string error ? Refuse(error) : result.Solved ? ExitCode.Success : ExitCode.Unsolved;
+            return Ended(EvolveService.Run(new EvolveRequest(settings, RunSeed.For(CommonOptions.SeedFrom(args)), "TargetNet"), Console.WriteLine));
+        }
+
+        // With --advise on, the options given override the advisor's suggestions; null when the target is not of its kind.
+        internal static Settings? Configured(CommandArgs args, Action<string> log)
+        {
+            if (TargetArgs.Settings(args, SettingOptions.Evolve) is not Settings settings)
+            {
+                return null;
+            }
+            if (args.Get(Advise, false))
+            {
+                Advice advice = RunAdvisor.Advise(settings);
+                RunAdvisor.Format(advice).ToList().ForEach(log);
+                RunAdvisor.ApplyAll(settings, advice);
+                SettingOptions.Apply(settings, args, SettingOptions.Evolve);
+            }
+            return settings;
         }
     }
 }

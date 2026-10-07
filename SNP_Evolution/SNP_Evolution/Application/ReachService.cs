@@ -17,9 +17,6 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Application
 {
-    // Error says why nothing ran; otherwise Report is the comparison saved, with the outcomes, to Folder.
-    internal sealed record ReachResult(IReadOnlyList<ReachService.Outcome> Outcomes, string? Report, string? Folder, string? Error = null);
-
     // Runs each setup on seeds 1..N with the same budget and compares how far into the target they get. A run's reach is
     // how many of the target's checks its best network gets right, in order, before the first it misses.
     internal static class ReachService
@@ -48,17 +45,17 @@ namespace SnpEvolution.Application
             }),
         };
 
-        // Runs go in parallel, each on one CPU thread, so wall times are comparable. command is the command line, for the report.
-        public static ReachResult Run(Settings settings, IReadOnlyList<Setup> setups, int seeds, bool chargeParts, string command, Action<string> log)
+        // Runs go in parallel, each on one CPU thread, so wall times are comparable; returns why nothing ran, or null.
+        public static string? Run(Settings settings, IReadOnlyList<Setup> setups, int seeds, bool chargeParts, string command, Action<string> log)
         {
             if (settings.MaxEvaluations <= 0)
             {
-                return Failed("reach needs an evaluation budget (--evaluations N), since the setups are compared on it.");
+                return "reach needs an evaluation budget (--evaluations N), since the setups are compared on it.";
             }
             Loaded<ModuleLibrary> library = PartLibraries.Load(settings.PartLibraryFolder, handBuilt: false, addLoop: false);
             if (library.Value == null)
             {
-                return Failed(library.Error!);
+                return library.Error;
             }
             long partCost = library.Value.PartEvaluations;
             var jobs = (from setup in setups from seed in Enumerable.Range(1, seeds) select (setup, seed)).ToList();
@@ -74,15 +71,12 @@ namespace SnpEvolution.Application
             string report = Report(settings, setups, outcomes, partCost, chargeParts, command);
             log("");
             log(report);
-            string folder = RunFolders.NewOutputFolder();
-            Directory.CreateDirectory(folder);
+            string folder = RunFolders.CreateOutputFolder();
             NetworkFiles.SaveText(report, Path.Combine(folder, "reach.md"));
             NetworkFiles.SaveText(Csv(outcomes), Path.Combine(folder, "reach.csv"));
             log($"Saved to {folder}");
-            return new ReachResult(outcomes, report, folder);
+            return null;
         }
-
-        private static ReachResult Failed(string error) => new ReachResult(Array.Empty<Outcome>(), null, null, error);
 
         // With the parts charged, composition search's budget is cut by what they cost so every setup spends the same in all.
         internal static Outcome RunOnce(Settings settings, Setup setup, int seed, long partCost)

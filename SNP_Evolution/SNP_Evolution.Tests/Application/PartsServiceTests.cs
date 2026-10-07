@@ -78,10 +78,11 @@ namespace SnpEvolution.Tests.Application
             string library = Path.Combine(folder, "broken");
             Directory.CreateDirectory(library);
             File.WriteAllText(Path.Combine(library, "delay-2.json"), "{ not json");
-            var log = new List<string>();
 
-            Assert.Equal(1, Run("broken", log.Add));
-            Assert.Contains(log, line => line.Contains("delay-2.json"));
+            PartsResult result = PartsService.Run(Library("broken"), Request(), _ => { });
+
+            Assert.Contains("delay-2.json", result.Error);
+            Assert.Empty(result.Rows);
         }
 
         [Fact]

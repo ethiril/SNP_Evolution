@@ -22,7 +22,7 @@ namespace SnpEvolution.Application
     internal sealed record EvolveRequest(Settings Settings, Random Random, string FileStem, RunStart Start = RunStart.Scratch, string? Folder = null);
 
     // Run is null, with Error saying why, when the run could not start.
-    internal sealed record EvolveResult(IGeneticAlgorithm? Run, bool Solved, string? Folder, BudgetReport? Evaluations, string? Error = null)
+    internal sealed record EvolveResult(IGeneticAlgorithm? Run, bool Solved, string? Error = null)
     {
         // How the run went, in a few words.
         public string Outcome
@@ -44,7 +44,7 @@ namespace SnpEvolution.Application
         // The reference networks are generators, so they evolve towards the target whatever task is selected.
         public static BenchmarkTask TaskFor(Settings settings, RunStart start) => start == RunStart.Scratch
             ? settings.SelectedTask
-            : Catalog.TargetTask.Create(settings) with { RuleForm = settings.RuleForm, Timing = settings.OutputTiming };
+            : Catalog.TargetTask.Create(settings);
 
         public static string Title(RunStart start) => start switch
         {
@@ -63,16 +63,14 @@ namespace SnpEvolution.Application
                 Loaded<ModuleLibrary> loaded = PartLibraries.Load(settings, log);
                 if (loaded.Value == null)
                 {
-                    return new EvolveResult(null, false, null, null, loaded.Error);
+                    return new EvolveResult(null, false, loaded.Error);
                 }
                 parts = loaded.Value;
             }
             EvaluationBudget evaluations = settings.RunBudget();
             IGeneticAlgorithm run = EvolutionSession.Evolve(settings, task, StartingNetwork(request.Start), request.Random, log, evaluations, parts);
-            string folder = request.Folder ?? RunFolders.NewOutputFolder();
-            BudgetReport report = evaluations.Report();
-            RunOutput.Save(run, folder, request.FileStem, log, report);
-            return new EvolveResult(run, RunLayers.IsSolved(run, task.Task), folder, report);
+            RunOutput.Save(run, request.Folder ?? RunFolders.NewOutputFolder(), request.FileStem, log, evaluations.Report());
+            return new EvolveResult(run, RunLayers.IsSolved(run, task.Task));
         }
 
         // Starting networks always use the simple rule template; the reference networks get random expressions.

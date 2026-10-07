@@ -21,7 +21,7 @@ namespace SnpEvolution.Cli
 
         public static readonly ValueKind<float> Probability = new ValueKind<float>(InputParsing.TryProbability, "a number between 0 and 1", "Number was not a rate between 0 and 1.", "X");
 
-        public static readonly ValueKind<bool> Switch = new ValueKind<bool>(TrySwitch, "on or off", "Give on or off.", "on|off");
+        public static readonly ValueKind<bool> Switch = Words(("on", true), ("off", false));
 
         public static readonly ValueKind<string> Text = new ValueKind<string>(TryText, "a value", "Give a value.", "TEXT");
 
@@ -29,16 +29,18 @@ namespace SnpEvolution.Cli
         public static readonly ValueKind<string[]> List = new ValueKind<string[]>(TryList, "names separated by commas", "Give names separated by commas.", "A,B");
 
         // One of the words given, ignoring case; the value is the word as declared.
-        public static ValueKind<string> Choice(params string[] words) => new ValueKind<string>(
-            (string input, out string value) => (value = words.FirstOrDefault(word => string.Equals(word, input.Trim(), StringComparison.OrdinalIgnoreCase))!) != null,
-            string.Join(" or ", words), $"Give {string.Join(" or ", words)}.", string.Join("|", words));
+        public static ValueKind<string> Choice(params string[] words) => Words(words.Select(word => (word, word)).ToArray());
 
-        public static ValueKind<string> Named(string placeholder) => Text with { Placeholder = placeholder };
-
-        private static bool TrySwitch(string input, out bool value)
+        // One of the words given, ignoring case, read as the value it stands for.
+        public static ValueKind<T> Words<T>(params (string Word, T Value)[] words)
         {
-            value = string.Equals(input.Trim(), "on", StringComparison.OrdinalIgnoreCase);
-            return value || string.Equals(input.Trim(), "off", StringComparison.OrdinalIgnoreCase);
+            string expected = string.Join(" or ", words.Select(each => each.Word));
+            return new ValueKind<T>((string input, out T value) =>
+            {
+                int index = Array.FindIndex(words, each => string.Equals(each.Word, input.Trim(), StringComparison.OrdinalIgnoreCase));
+                value = index >= 0 ? words[index].Value : default!;
+                return index >= 0;
+            }, expected, $"Give {expected}.", string.Join("|", words.Select(each => each.Word)));
         }
 
         private static bool TryText(string input, out string value)

@@ -10,9 +10,15 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Application
 {
-    // A network's outputs over the settings' runs. A network with inputs is scored on the selected task; one without
-    // has one run's output spike train, as the steps it spiked at.
-    internal sealed record NetworkRun(IReadOnlyList<int> Outputs, BenchmarkTask? Task, FitnessResult? Score, IReadOnlyList<int>? SpikeSteps);
+    // A network's outputs over the settings' runs.
+    internal abstract record NetworkRun(IReadOnlyList<int> Outputs)
+    {
+        // A network with inputs, scored on the selected task.
+        public sealed record Scored(IReadOnlyList<int> Outputs, BenchmarkTask Task, FitnessResult Score) : NetworkRun(Outputs);
+
+        // A network without inputs, with one run's output spike train as the steps it spiked at.
+        public sealed record SpikeTrain(IReadOnlyList<int> Outputs, IReadOnlyList<int> SpikeSteps) : NetworkRun(Outputs);
+    }
 
     // Runs one network with the settings' engine and simulation options, for the menu's Run a network.
     internal static class NetworkRunService
@@ -25,11 +31,11 @@ namespace SnpEvolution.Application
             {
                 BenchmarkTask task = settings.SelectedTask;
                 FitnessResult score = new FitnessEvaluator(engine, task.Task, settings.SimulationOptions, 1, random, new EvaluationBudget()).Evaluate(network);
-                return new NetworkRun(outputs, task, score, null);
+                return new NetworkRun.Scored(outputs, task, score);
             }
             var trial = new Trial(network, InputSpikes.None, Readout.SpikeTrain);
             IReadOnlyList<int> spikeSteps = engine.Run(new[] { trial }, settings.SimulationOptions with { Repetitions = 1 }, random)[0].SpikeTrains[0];
-            return new NetworkRun(outputs, null, null, spikeSteps);
+            return new NetworkRun.SpikeTrain(outputs, spikeSteps);
         }
     }
 }

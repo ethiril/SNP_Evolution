@@ -9,7 +9,7 @@ namespace SnpEvolution.Application
     {
         public Func<ISimulationEngine> Factory => Sampled ? () => new SequentialCpuEngine() : () => new ExhaustiveCpuEngine(MaxConfigurations);
 
-        // How a part's origin records the engine it was evolved on; the exhaustive engine is the default and goes unsaid.
-        public string Option => Sampled ? " --engine sampled" : "";
+        // The exhaustive engine is the default, so it goes unsaid.
+        public string CommandLineFlag => Sampled ? " --engine sampled" : "";
     }
 }

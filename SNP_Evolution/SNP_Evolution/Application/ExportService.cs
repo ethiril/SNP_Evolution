@@ -31,29 +31,15 @@ namespace SnpEvolution.Application
     // is installed.
     internal static class ExportService
     {
-        public static Loaded<ExportSource> Part(string file)
+        public static Loaded<ExportSource> Part(string file) => PartLibraries.ReadPart(file).Select(loaded =>
         {
-            Loaded<PartFile> loaded = PartLibraries.ReadPart(file);
-            if (loaded.Value == null)
-            {
-                return Loaded<ExportSource>.Failed(loaded.Error!);
-            }
-            Part part = loaded.Value.Part.Part;
-            return Loaded<ExportSource>.Of(new ExportSource(part.Contract.Name, part.Network, part, NetworkPort.ForPart(part), SpikeTrace.Cases(part.Contract)));
-        }
+            Part part = loaded.Part.Part;
+            return new ExportSource(part.Contract.Name, part.Network, part, NetworkPort.ForPart(part), SpikeTrace.Cases(part.Contract));
+        });
 
-        public static Loaded<ExportSource> Network(string file, int steps)
-        {
-            try
-            {
-                Network network = NetworkFiles.Load(file) ?? throw new InvalidDataException($"{file} holds no network.");
-                return Loaded<ExportSource>.Of(new ExportSource(Path.GetFileNameWithoutExtension(file), network, null, NetworkPort.Plain(network), new[] { ("no input", InputSpikes.None, steps) }));
-            }
-            catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
-            {
-                return Loaded<ExportSource>.Failed(exception.Message);
-            }
-        }
+        public static Loaded<ExportSource> Network(string file, int steps) => NetworkFiles.Load(file) is Network network
+            ? Loaded<ExportSource>.Of(new ExportSource(Path.GetFileNameWithoutExtension(file), network, null, NetworkPort.Plain(network), new[] { ("no input", InputSpikes.None, steps + 1) }))
+            : Loaded<ExportSource>.Failed($"Could not load a network from {file}.");
 
         // Co-simulates under iverilog when check is set and it is installed.
         public static ExportResult Verilog(ExportSource source, string folder, bool check)

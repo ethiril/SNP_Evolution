@@ -4,12 +4,9 @@ using SnpEvolution.Application;
 
 namespace SnpEvolution.Cli
 {
-    // The export commands read a part or a saved network and write files to --out. Each exits with 1 when the input
-    // cannot be read or exported, and with 3 when the outside tool's check differs from our engine.
+    // The export commands read a part or a saved network and write files to --out.
     internal abstract class ExportCommand : Command
     {
-        protected const string DefaultFolder = "export";
-
         public override ExitCode Run(CommandArgs args)
         {
             Loaded<ExportSource>? source = args.Find(CommonOptions.Part) is string part ? ExportService.Part(part)
@@ -23,19 +20,21 @@ namespace SnpEvolution.Cli
             {
                 return Refuse(source.Error!);
             }
-            ExportResult result = Export(source.Value, args, args.Get(CommonOptions.Out, DefaultFolder));
+            ExportResult result = Export(source.Value, args, args.Get(CommonOptions.Out, "export"));
             Console.Write(result.Report);
             if (result.Error != null)
             {
                 Console.Error.WriteLine(result.Error);
             }
-            return result.Status switch
-            {
-                ExportStatus.Written => ExitCode.Success,
-                ExportStatus.Differs => ExitCode.Differs,
-                _ => ExitCode.Usage,
-            };
+            return ExitFor(result.Status);
         }
+
+        internal static ExitCode ExitFor(ExportStatus status) => status switch
+        {
+            ExportStatus.Written => ExitCode.Success,
+            ExportStatus.Differs => ExitCode.Differs,
+            _ => ExitCode.Usage,
+        };
 
         protected abstract ExportResult Export(ExportSource source, CommandArgs args, string folder);
     }

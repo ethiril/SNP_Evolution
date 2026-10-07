@@ -18,8 +18,6 @@ namespace SnpEvolution.Cli
         // The whole command line, command name first, as it was given.
         public IReadOnlyList<string> Line { get; }
 
-        public bool Has(Option option) => values.ContainsKey(option);
-
         public T Get<T>(Option<T> option, T fallback) where T : notnull => values.TryGetValue(option, out object? value) ? (T)value : fallback;
 
         public T? Find<T>(Option<T> option) where T : class => values.TryGetValue(option, out object? value) ? (T)value : null;

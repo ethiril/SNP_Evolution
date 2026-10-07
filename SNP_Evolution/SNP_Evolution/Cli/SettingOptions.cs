@@ -199,10 +199,6 @@ namespace SnpEvolution.Cli
             (string input, out EvolutionSearch value) => (value = Catalog.Matching(Catalog.Algorithms, search => search.Name, input.Trim()).FirstOrDefault()!) != null,
             "the name of a search; run 'algorithms' to list them", "", "NAME");
 
-        private static ValueKind<bool> ProfileKind => new ValueKind<bool>((string input, out bool value) =>
-        {
-            value = string.Equals(input.Trim(), "hardware", StringComparison.OrdinalIgnoreCase);
-            return value || string.Equals(input.Trim(), "none", StringComparison.OrdinalIgnoreCase);
-        }, "hardware or none", "", "hardware|none");
+        private static ValueKind<bool> ProfileKind => ValueKinds.Words(("hardware", true), ("none", false));
     }
 }

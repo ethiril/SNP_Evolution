@@ -21,13 +21,8 @@ namespace SnpEvolution.Application
             {
                 return Loaded<BenchmarkPlan>.Of(new BenchmarkPlan(searches, benchmark, null));
             }
-            Loaded<ModuleLibrary> library = PartLibraries.Load(settings);
-            if (library.Value == null)
-            {
-                return Loaded<BenchmarkPlan>.Failed(library.Error!);
-            }
-            string from = $"Composition search builds from {library.Value.Parts.Count} part(s) in {settings.PartLibraryFolder}{(settings.HandBuiltParts ? " and the hand-built parts" : "")}.";
-            return Loaded<BenchmarkPlan>.Of(new BenchmarkPlan(searches, benchmark with { Parts = library.Value.Parts.Select(module => module.Part!).ToList() }, from));
+            return PartLibraries.Load(settings).Select(library => new BenchmarkPlan(searches, benchmark with { Parts = library.Parts.Select(module => module.Part!).ToList() },
+                $"Composition search builds from {library.Parts.Count} part(s) in {settings.PartLibraryFolder}{(settings.HandBuiltParts ? " and the hand-built parts" : "")}."));
         }
 
         public static IReadOnlyList<BenchmarkRow> Run(BenchmarkPlan plan, IReadOnlyList<BenchmarkTask> tasks, Action<string> log) =>
@@ -42,8 +37,7 @@ namespace SnpEvolution.Application
         // benchmark.txt and benchmark.csv in a new run folder, which is returned.
         public static string Save(IReadOnlyList<BenchmarkRow> rows)
         {
-            string folder = RunFolders.NewOutputFolder();
-            Directory.CreateDirectory(folder);
+            string folder = RunFolders.CreateOutputFolder();
             NetworkFiles.SaveText(Benchmark.FormatTable(rows), Path.Combine(folder, "benchmark.txt"));
             NetworkFiles.SaveText(Benchmark.FormatCsv(rows), Path.Combine(folder, "benchmark.csv"));
             return folder;

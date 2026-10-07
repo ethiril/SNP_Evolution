@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Application;
 
 namespace SnpEvolution.Cli
 {
@@ -31,6 +32,9 @@ namespace SnpEvolution.Cli
         public abstract ExitCode Run(CommandArgs args);
 
         public string Usage => string.Join(" ", new[] { "snp-evolution", Name }.Concat(Options.Select(option => Required.Contains(option) ? option.Usage : $"[{option.Usage}]")));
+
+        protected static ExitCode Ended(EvolveResult result) =>
+            result.Error is string error ? Refuse(error) : result.Solved ? ExitCode.Success : ExitCode.Unsolved;
 
         // Writes the reason to stderr and returns the usage exit code.
         protected static ExitCode Refuse(string reason)

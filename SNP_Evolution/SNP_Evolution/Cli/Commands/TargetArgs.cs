@@ -9,16 +9,11 @@ namespace SnpEvolution.Cli
         // Null, with the reason on stderr, when the target is not of its kind.
         public static Settings? Settings(CommandArgs args, IEnumerable<SettingOption> options)
         {
-            TargetKind kind = args.Get(CommonOptions.Kind, "sequence") switch
-            {
-                "set" => TargetKind.Set,
-                "binary" => TargetKind.BinaryWord,
-                _ => TargetKind.Sequence,
-            };
+            TargetKind kind = args.Get(CommonOptions.Kind, TargetKind.Sequence);
             string values = args.Get(CommonOptions.Target, "");
             if (!OutputTarget.TryParse(kind, values, out OutputTarget target))
             {
-                System.Console.Error.WriteLine($"--target takes positive numbers, or 0s and 1s with --kind binary, not '{values}'.");
+                System.Console.Error.WriteLine($"{CommonOptions.Target.Flag} takes {CommonOptions.Target.Help}, not '{values}'.");
                 return null;
             }
             var settings = new Settings { Target = target, Task = Catalog.TargetTask };

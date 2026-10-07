@@ -31,8 +31,6 @@ namespace SnpEvolution.Application
             settings.Algorithm is CompositionSearch ? null : "compose needs a composition search --algorithm; run 'algorithms' to list them.";
 
         public static EvolveResult Run(Settings settings, Random random, Action<string> log) =>
-            Problem(settings) is string problem
-                ? new EvolveResult(null, false, null, null, problem)
-                : EvolveService.Run(new EvolveRequest(settings, random, FileStem), log);
+            EvolveService.Run(new EvolveRequest(settings, random, FileStem), log);
     }
 }

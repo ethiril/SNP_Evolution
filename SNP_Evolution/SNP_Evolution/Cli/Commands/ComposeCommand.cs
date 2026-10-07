@@ -6,7 +6,6 @@ using SnpEvolution.Evolution.Benchmarking;
 
 namespace SnpEvolution.Cli
 {
-    // Exits with 2 when the task was not solved, so a script can tell a failed search from a bad command.
     internal sealed class ComposeCommand : Command
     {
         public override string Name => "compose";
@@ -34,8 +33,7 @@ namespace SnpEvolution.Cli
             BenchmarkTask task = settings.SelectedTask;
             Console.WriteLine("Composing a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
             RunNotes.For(settings, task).ToList().ForEach(Console.WriteLine);
-            EvolveResult result = ComposeService.Run(settings, RunSeed.For(CommonOptions.SeedFrom(args) ?? RunSeed.Repeatable), Console.WriteLine);
-            return result.Error is string error ? Refuse(error) : result.Solved ? ExitCode.Success : ExitCode.Unsolved;
+            return Ended(ComposeService.Run(settings, RunSeed.For(CommonOptions.SeedFrom(args) ?? RunSeed.Repeatable), Console.WriteLine));
         }
     }
 }

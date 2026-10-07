@@ -9,7 +9,7 @@ namespace SnpEvolution.Cli
     {
         public static int Run(string[] args) => (int)Execute(args);
 
-        public static ExitCode Execute(string[] args)
+        private static ExitCode Execute(string[] args)
         {
             if (CommandRegistry.Find(args[0]) is not Command command)
             {
@@ -21,6 +21,10 @@ namespace SnpEvolution.Cli
             {
                 Console.Error.WriteLine(error);
                 Console.Error.WriteLine("Usage: " + command.Usage);
+                foreach (Option option in command.Options)
+                {
+                    Console.Error.WriteLine($"  {option.Usage}: {option.Help}");
+                }
                 return ExitCode.Usage;
             }
             return command.Run(parsed);

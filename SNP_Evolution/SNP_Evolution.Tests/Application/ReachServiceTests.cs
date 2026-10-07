@@ -34,6 +34,10 @@ namespace SnpEvolution.Tests.Application
         }
 
         [Fact]
+        public void WithoutABudgetNothingRunsSinceTheSetupsAreComparedOnIt() =>
+            Assert.Contains("evaluation budget", ReachService.Run(Budgeted("unused", 0), ReachService.Setups, 1, true, "reach", _ => { }));
+
+        [Fact]
         [Slow]
         public void CompositionSearchSpendsOnlyWhatThePartsLeaveOfTheSharedBudget()
         {

@@ -1,4 +1,6 @@
+using SnpEvolution.Application;
 using SnpEvolution.Cli;
+using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Cli
 {
@@ -77,6 +79,30 @@ namespace SnpEvolution.Tests.Cli
                 {
                     Directory.Delete(folder, recursive: true);
                 }
+            }
+        }
+
+        [Fact]
+        public void ACheckThatDiffersFromOurEngineHasItsOwnExitCode()
+        {
+            Assert.Equal(ExitCode.Success, ExportCommand.ExitFor(ExportStatus.Written));
+            Assert.Equal(ExitCode.Usage, ExportCommand.ExitFor(ExportStatus.Failed));
+            Assert.Equal(ExitCode.Differs, ExportCommand.ExitFor(ExportStatus.Differs));
+        }
+
+        [Fact]
+        public void AnExportedNetworkRunsForTheStepsGiven()
+        {
+            string file = Path.Combine(Path.GetTempPath(), "snp-network-" + Guid.NewGuid().ToString("N") + ".json");
+            try
+            {
+                NetworkFiles.Save(TestNetworks.PingPong(), file);
+
+                Assert.Equal(7, Assert.Single(ExportService.Network(file, 7).Value!.Cases).Steps);
+            }
+            finally
+            {
+                File.Delete(file);
             }
         }
 

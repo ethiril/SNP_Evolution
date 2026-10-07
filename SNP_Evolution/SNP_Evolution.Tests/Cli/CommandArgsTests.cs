@@ -47,6 +47,14 @@ namespace SnpEvolution.Tests.Cli
 
         [Theory]
         [InlineData("no-such-command")]
+        [InlineData("evolve", "--target")]
+        [InlineData("evolve", "--target", "1,2", "--modules", "yes")]
+        [InlineData("export-verilog", "--network", "no-such-network.json")]
+        [InlineData("advise", "--target", "1,x")]
+        [InlineData("reach", "--target", "1,2", "--evaluations", "100", "--setups", "no-such-setup")]
+        [InlineData("evolve-parts", "--only", "no such contract", "--library", "no-such-library-folder")]
+        [InlineData("compose", "--task", "Contract")]
+        [InlineData("select", "--task", "Contract")]
         [InlineData("evolve-parts", "--profile", "hardwre")]
         [InlineData("evolve", "--target", "1,2", "--glue-weight", "-1")]
         [InlineData("compose", "--task", "no such task")]
@@ -91,6 +99,19 @@ namespace SnpEvolution.Tests.Cli
             Assert.Equal(new[] { "a.json", "b.json" }, settings.ModuleFiles);
             Assert.True(settings.Modules);
         }
+
+        [Fact]
+        public void OptionsGivenOverrideTheAdvisorsSuggestions()
+        {
+            string[] line = { "evolve", "--target", "1,2", "--advise", "on", "--population", "3" };
+            CommandArgs args = CommandArgs.Parse(CommandRegistry.Find("evolve")!, line, out string error) ?? throw new ArgumentException(error);
+
+            Assert.Equal(3, EvolveCommand.Configured(args, _ => { })!.PopulationSize);
+        }
+
+        [Fact]
+        public void TheKindOfTargetIsReadIgnoringCase() =>
+            Assert.Equal(TargetKind.Set, Evolving("--kind", "SET").Target.Kind);
 
         [Fact]
         public void AnAlgorithmNamedExactlyWinsOverThoseContainingItsName() =>

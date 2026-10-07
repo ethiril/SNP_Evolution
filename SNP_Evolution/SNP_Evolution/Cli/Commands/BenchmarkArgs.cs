@@ -11,8 +11,6 @@ namespace SnpEvolution.Cli
     // The options benchmark and select share: which searches race on which tasks, and with what budget and engine.
     internal static class BenchmarkArgs
     {
-        private static readonly Option<bool> Lexicase = new Option<bool>("lexicase", ValueKinds.Switch, "pick parents by lexicase selection");
-
         private static readonly SettingOption[] Settings =
         {
             SettingOptions.BenchmarkBudget, SettingOptions.BenchmarkSeeds, SettingOptions.BenchmarkPopulation, SettingOptions.Repetitions,
@@ -21,7 +19,7 @@ namespace SnpEvolution.Cli
 
         public static readonly IReadOnlyList<Option> Options = new Option[]
         {
-            CommonOptions.Task, CommonOptions.Algorithms, CommonOptions.Engine, CommonOptions.Configurations, Lexicase,
+            CommonOptions.Task, CommonOptions.Algorithm, CommonOptions.Sampled, CommonOptions.Configurations, SettingOptions.Lexicase.Option,
         }.Concat(SettingOptions.Flags(Settings)).ToList();
 
         public static List<BenchmarkTask> Tasks(CommandArgs args) => Catalog.Matching(TaskSuite.All, task => task.Name, args.Find(CommonOptions.Task));
@@ -29,15 +27,15 @@ namespace SnpEvolution.Cli
         // Null, with the reason on stderr, when no search matches or the part library cannot be read.
         public static BenchmarkPlan? Plan(CommandArgs args)
         {
-            List<ISearch<Individual>> searches = Catalog.Matching(SearchCatalog.FromScratch, search => search.Name, args.Find(CommonOptions.Algorithms));
+            List<ISearch<Individual>> searches = Catalog.Matching(SearchCatalog.FromScratch, search => search.Name, args.Find(CommonOptions.Algorithm));
             if (searches.Count == 0)
             {
-                Console.Error.WriteLine($"No search matches '{args.Find(CommonOptions.Algorithms)}'; run 'algorithms' to list them.");
+                Console.Error.WriteLine($"No search matches '{args.Find(CommonOptions.Algorithm)}'; run 'algorithms' to list them.");
                 return null;
             }
             var settings = new Application.Settings();
             SettingOptions.Apply(settings, args, Settings);
-            BenchmarkSettings benchmark = settings.BenchmarkSettings with { CreateEngine = CommonOptions.EngineFrom(args).Factory, Lexicase = args.Get(Lexicase, false) };
+            BenchmarkSettings benchmark = settings.BenchmarkSettings with { CreateEngine = CommonOptions.EngineFrom(args).Factory, Lexicase = args.Get(SettingOptions.Lexicase.Typed, false) };
             Loaded<BenchmarkPlan> plan = BenchmarkService.Plan(settings, benchmark, searches);
             if (plan.Value == null)
             {

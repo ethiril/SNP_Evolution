@@ -58,17 +58,17 @@ namespace SnpEvolution.Cli
             stopwatch.Stop();
             Console.WriteLine("Final output set: ");
             Console.WriteLine(string.Join("\t", run.Outputs));
-            if (run.Score != null)
+            switch (run)
             {
-                Console.WriteLine("On {0}: fitness {1}, {2}", run.Task!.Name, run.Score.Fitness, run.Score.Description);
-            }
-            else
-            {
-                // One run's output spike train, as bits and as the intervals between spikes.
-                int steps = state.Settings.MaxSteps;
-                Console.WriteLine("One run's spike train over {0} steps:", steps);
-                Console.WriteLine(SpikeTrains.Format(SpikeTrains.Word(run.SpikeSteps!, steps)));
-                Console.WriteLine("Intervals between its spikes: {0}", string.Join(",", SpikeTrains.Intervals(run.SpikeSteps!)));
+                case NetworkRun.Scored scored:
+                    Console.WriteLine("On {0}: fitness {1}, {2}", scored.Task.Name, scored.Score.Fitness, scored.Score.Description);
+                    break;
+                case NetworkRun.SpikeTrain train:
+                    int steps = state.Settings.MaxSteps;
+                    Console.WriteLine("One run's spike train over {0} steps:", steps);
+                    Console.WriteLine(SpikeTrains.Format(SpikeTrains.Word(train.SpikeSteps, steps)));
+                    Console.WriteLine("Intervals between its spikes: {0}", string.Join(",", SpikeTrains.Intervals(train.SpikeSteps)));
+                    break;
             }
             ConsoleInput.WaitForEnter($"Time elapsed: {stopwatch.Elapsed}. Press enter to return to the menu.");
         }

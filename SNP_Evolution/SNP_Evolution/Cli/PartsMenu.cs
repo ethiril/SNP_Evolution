@@ -33,7 +33,10 @@ namespace SnpEvolution.Cli
             {
                 return;
             }
-            PartsService.Run(settings, new PartsRequest(FirstParts.Contracts, seed), Console.WriteLine);
+            if (PartsService.Run(settings, new PartsRequest(FirstParts.Contracts, seed), Console.WriteLine).Error is string error)
+            {
+                Console.WriteLine(error);
+            }
             ConsoleInput.WaitForEnter("Press enter to continue.");
         }
     }

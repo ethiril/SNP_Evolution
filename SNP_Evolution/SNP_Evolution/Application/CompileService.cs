@@ -23,22 +23,21 @@ namespace SnpEvolution.Application
 
     // Compiled is null when the target could not be compiled, with the reason in the log; Solved says whether the
     // network kept, shrunk or not, solves the target.
-    internal sealed record CompileResult(Network? Compiled, Network? Shrunk, bool Solved, string? Folder);
+    internal sealed record CompileResult(Network? Compiled, bool Solved);
 
     internal static class CompileService
     {
         public const int DefaultShrinkGenerations = 300;
         public const int DefaultProgramGenerations = 2000;
 
-        private static readonly CompileResult NotCompiled = new CompileResult(null, null, false, null);
+        private static readonly CompileResult NotCompiled = new CompileResult(null, false);
 
-        public static CompileResult Run(Settings settings, CompileRequest options, Random random, Action<string> log)
+        public static CompileResult Run(Settings settings, CompileRequest request, Random random, Action<string> log)
         {
             var budget = new EvaluationBudget();
             OutputTarget target = settings.Target;
             ITask task = target.CreateTask(settings.FitnessFunction.Create(settings));
-            string folder = RunFolders.NewOutputFolder();
-            Directory.CreateDirectory(folder);
+            string folder = RunFolders.CreateOutputFolder();
             Network compiled;
             ISimulationEngine engine;
             int steps = settings.MaxSteps;
@@ -61,7 +60,7 @@ namespace SnpEvolution.Application
                     fitted = recurrence;
                     break;
                 case TargetKind.Set:
-                    if (FindProgram(target, task, settings, options, budget, random, log) is not RegisterProgram program)
+                    if (FindProgram(target, task, settings, request, budget, random, log) is not RegisterProgram program)
                     {
                         return NotCompiled;
                     }
@@ -87,10 +86,10 @@ namespace SnpEvolution.Application
             FitnessEvaluator evaluator = scoring.Evaluator(task, budget, random);
             FitnessResult check = evaluator.Evaluate(compiled);
             log($"The compiled network scores {check.Fitness:0.000}: {check.Description}");
-            if (options.ShrinkGenerations == 0 || !StartsShrink(evaluator, compiled, check, log))
+            if (request.ShrinkGenerations == 0 || !StartsShrink(evaluator, compiled, check, log))
             {
                 log($"Saved to {folder}");
-                return new CompileResult(compiled, null, Solved.Solves(check.Fitness), folder);
+                return new CompileResult(compiled, Solved.Solves(check.Fitness));
             }
             var start = new Individual(compiled);
             start.Record(check);
@@ -98,7 +97,7 @@ namespace SnpEvolution.Application
             SearchOutcome<Individual> shrink = SearchCatalog.Shrink.Run(new SearchRequest<Individual>(task, budget, random, log)
             {
                 Seeds = new[] { start },
-                MaxGenerations = options.ShrinkGenerations,
+                MaxGenerations = request.ShrinkGenerations,
                 Networks = setup,
             });
             Network smallest = shrink.Best?.Genes ?? compiled;
@@ -114,7 +113,7 @@ namespace SnpEvolution.Application
                 log($"Past the target, the next {ContinuedValues} values of the recurrence: compiled {Continues(continued, compiled)}, shrunk {Continues(continued, smallest)}.");
             }
             log($"Saved to {folder}");
-            return new CompileResult(compiled, smallest, true, folder);
+            return new CompileResult(compiled, true);
         }
 
         private const int ContinuedValues = 4;
@@ -134,29 +133,29 @@ namespace SnpEvolution.Application
             return true;
         }
 
-        private static RegisterProgram? FindProgram(OutputTarget target, ITask task, Settings settings, CompileRequest options, EvaluationBudget budget, Random random, Action<string> log)
+        private static RegisterProgram? FindProgram(OutputTarget target, ITask task, Settings settings, CompileRequest request, EvaluationBudget budget, Random random, Action<string> log)
         {
-            if (options.ProgramFile != null)
+            if (request.ProgramFile != null)
             {
                 try
                 {
-                    var given = RegisterProgram.Parse(File.ReadAllText(options.ProgramFile));
+                    var given = RegisterProgram.Parse(File.ReadAllText(request.ProgramFile));
                     if (given.Problem() is string problem)
                     {
-                        log($"{options.ProgramFile} cannot be compiled: {problem}.");
+                        log($"{request.ProgramFile} cannot be compiled: {problem}.");
                         return null;
                     }
                     return given;
                 }
                 catch (Exception exception) when (exception is IOException or FormatException or UnauthorizedAccessException)
                 {
-                    log($"Could not read a program from {options.ProgramFile}: {exception.Message}");
+                    log($"Could not read a program from {request.ProgramFile}: {exception.Message}");
                     return null;
                 }
             }
             log($"Evolving a register program for {target}.");
-            var search = new ProgramSearch(new ProgramSearchSettings(Math.Max(settings.PopulationSize, 100), Lexicase: options.ProgramLexicase));
-            SearchOutcome<RegisterProgram> best = search.Run(new SearchRequest<RegisterProgram>(task, budget, random, log) { MaxGenerations = options.ProgramGenerations });
+            var search = new ProgramSearch(new ProgramSearchSettings(Math.Max(settings.PopulationSize, 100), Lexicase: request.ProgramLexicase));
+            SearchOutcome<RegisterProgram> best = search.Run(new SearchRequest<RegisterProgram>(task, budget, random, log) { MaxGenerations = request.ProgramGenerations });
             log(best.Solved
                 ? $"Found a program in {best.Generations} generations."
                 : $"No program generates exactly {target} after {best.Generations} generations; compiling the best, with fitness {best.Fitness:0.000}, {best.Description}.");

@@ -16,36 +16,19 @@ namespace SnpEvolution.Application
             Load(settings.PartLibraryFolder, settings.HandBuiltParts, settings.HandBuiltAddLoop, log);
 
         // The saved parts in the folder, with the hand-built parts when asked for; a missing folder is an empty library.
-        public static Loaded<ModuleLibrary> Load(string folder, bool handBuilt, bool addLoop, Action<string>? log = null)
-        {
-            ModuleLibrary library;
-            try
+        public static Loaded<ModuleLibrary> Load(string folder, bool handBuilt, bool addLoop, Action<string>? log = null) =>
+            Loaded<ModuleLibrary>.Try(() => PartLibraryFiles.Load(folder, log)).Select(library =>
             {
-                library = PartLibraryFiles.Load(folder, log);
-            }
-            catch (Exception exception) when (exception is InvalidDataException or IOException or UnauthorizedAccessException)
-            {
-                return Loaded<ModuleLibrary>.Failed(exception.Message);
-            }
-            if (handBuilt)
-            {
-                HandBuiltMachines.AddParts(library, log ?? (_ => { }), addLoop);
-            }
-            return Loaded<ModuleLibrary>.Of(library);
-        }
+                if (handBuilt)
+                {
+                    HandBuiltMachines.AddParts(library, log ?? (_ => { }), addLoop);
+                }
+                return library;
+            });
 
         // One part file, with the path it was read from.
-        public static Loaded<PartFile> ReadPart(string file)
-        {
-            try
-            {
-                return Loaded<PartFile>.Of(new PartFile(PartLibraryFiles.Read(File.ReadAllText(file), Path.GetFileName(file)), file));
-            }
-            catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
-            {
-                return Loaded<PartFile>.Failed(exception.Message);
-            }
-        }
+        public static Loaded<PartFile> ReadPart(string file) =>
+            Loaded<PartFile>.Try(() => new PartFile(PartLibraryFiles.Read(File.ReadAllText(file), Path.GetFileName(file)), file));
 
         // Each part in the folder with the file it is saved to, which is the file it was loaded from.
         public static Loaded<IReadOnlyList<PartFile>> PartsIn(string folder)
@@ -54,12 +37,7 @@ namespace SnpEvolution.Application
             {
                 return Loaded<IReadOnlyList<PartFile>>.Failed($"There is no part library folder '{folder}'.");
             }
-            Loaded<ModuleLibrary> library = Load(folder, handBuilt: false, addLoop: false);
-            if (library.Value == null)
-            {
-                return Loaded<IReadOnlyList<PartFile>>.Failed(library.Error!);
-            }
-            return Loaded<IReadOnlyList<PartFile>>.Of(library.Value.Parts.Select(module => module.Part).OfType<LibraryPart>()
+            return Load(folder, handBuilt: false, addLoop: false).Select<IReadOnlyList<PartFile>>(library => library.Parts.Select(module => module.Part).OfType<LibraryPart>()
                 .Select(part => new PartFile(part, Path.Combine(folder, PartLibraryFiles.FileName(part.Contract)))).ToList());
         }
 

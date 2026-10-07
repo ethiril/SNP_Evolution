@@ -41,10 +41,9 @@ namespace SnpEvolution.Application
             Loaded<ModuleLibrary> loaded = PartLibraries.Load(folder, handBuilt: false, addLoop: false, log);
             if (loaded.Value is not ModuleLibrary library)
             {
-                log(loaded.Error!);
                 return new PartsResult(Array.Empty<Row>(), loaded.Error);
             }
-            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.Option}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}";
+            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.CommandLineFlag}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}";
             PartSearchSettings search = SearchSettings(budget, engine.Factory) with { HardwareProfile = settings.HardwareProfile, RobustJitter = request.RobustJitter };
             var rows = new List<Row>();
             foreach (Contract contract in request.Contracts)

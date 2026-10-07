@@ -39,8 +39,9 @@ namespace SnpEvolution.Cli
                 setups = names.Select(name => ReachService.Setups.Single(setup => setup.Name == name)).ToList();
             }
             string command = "dotnet run -- " + string.Join(" ", args.Line.Select(arg => arg.Contains(' ') || arg.Contains(',') ? $"\"{arg}\"" : arg));
-            ReachResult result = ReachService.Run(settings, setups, args.Get(Seeds, 10), args.Get(ChargeParts, true), command, Console.WriteLine);
-            return result.Error is string error ? Refuse(error) : ExitCode.Success;
+            return ReachService.Run(settings, setups, args.Get(Seeds, 10), args.Get(ChargeParts, true), command, Console.WriteLine) is string error
+                ? Refuse(error)
+                : ExitCode.Success;
         }
     }
 }

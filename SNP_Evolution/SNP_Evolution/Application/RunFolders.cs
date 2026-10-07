@@ -7,10 +7,12 @@ namespace SnpEvolution.Application
     // working directory outside one, and ignored by git so runs never land in the source tree.
     internal static class RunFolders
     {
-        public const string RunsFolder = "runs";
+        private const string RunsFolder = "runs";
 
         public static string NewOutputFolder() =>
             Path.Combine(WorkingRoot(), RunsFolder, (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond).ToString());
+
+        public static string CreateOutputFolder() => Directory.CreateDirectory(NewOutputFolder()).FullName;
 
         // The root of the repository the program runs in, or the working directory outside one.
         public static string WorkingRoot()
