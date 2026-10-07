@@ -17,15 +17,14 @@ namespace SnpEvolution.Cli
 
         public override IReadOnlyList<Option> Required { get; } = new[] { CommonOptions.Task };
 
+        public override Settings Starting(Settings settings) => ComposeService.Starting(settings);
+
         public override ExitCode Run(CommandArgs args)
         {
-            List<CatalogEntry<Settings, BenchmarkTask>> matching = Catalog.Matching(Catalog.Tasks.Skip(1), task => task.Name, args.Find(CommonOptions.Task));
-            if (matching.Count != 1)
+            if (TargetArgs.Settings(args, SettingOptions.Evolve) is not Settings settings)
             {
-                return Refuse("compose needs a --task that names one task; run 'tasks' to list them.");
+                return ExitCode.Usage;
             }
-            Settings settings = ComposeService.SettingsFor(matching[0]);
-            SettingOptions.Apply(settings, args, SettingOptions.Evolve);
             if (ComposeService.Problem(settings) is string problem)
             {
                 return Refuse(problem);

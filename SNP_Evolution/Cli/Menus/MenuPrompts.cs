@@ -20,12 +20,6 @@ namespace SnpEvolution.Cli
         internal static T Choose<T>(Settings settings, string message, IReadOnlyList<T> entries, T current, Func<T, string> name) =>
             ConsoleUi.Choose(settings, message, entries.Select(name).ToList(), entries.ToList().IndexOf(current)) is int choice ? entries[choice] : current;
 
-        internal static TEnum ChooseEnum<TEnum>(Settings settings, string message, TEnum current) where TEnum : struct, Enum
-        {
-            TEnum[] values = Enum.GetValues<TEnum>();
-            return ConsoleUi.Choose(settings, message, values.Select(value => value.ToString()).ToList(), Array.IndexOf(values, current)) is int choice ? values[choice] : current;
-        }
-
         internal static void PromptFor<T>(string request, string invalidMessage, InputParser<T> parse, Action<T> assign) =>
             ConsoleInput.PromptUntilAccepted(request, invalidMessage, input =>
             {

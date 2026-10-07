@@ -5,7 +5,8 @@ using SnpEvolution.Application;
 
 namespace SnpEvolution.Cli
 {
-    // The saved runs, newest first. Each can be run again as it was, or have its settings loaded to change first.
+    // The saved runs, newest first. Each can be run again as it was, by the evolve command with its settings, or have
+    // its settings loaded to change first.
     internal static class RedoMenu
     {
         public static void Show(MenuState state)
@@ -34,7 +35,7 @@ namespace SnpEvolution.Cli
                 {
                     case 0:
                         state.Settings = chosen.Settings.Copy();
-                        EvolveMenu.Evolve(state, chosen.Start, chosen.FileStem, chosen.Name);
+                        CommandScreen.Run(state, new EvolveItem(chosen.Name, Again(chosen)) { SavedName = chosen.Name }, new Dictionary<Option, string>());
                         break;
                     case 1:
                         state.Settings = chosen.Settings.Copy();
@@ -49,5 +50,10 @@ namespace SnpEvolution.Cli
                 }
             }
         }
+
+        // What the saved run evolved for, and the network it started from.
+        private static Func<Settings, IEnumerable<(Option, string)>> Again(SavedRun run) => settings => run.Start == RunStart.Scratch
+            ? MainMenu.Selected(settings)
+            : MainMenu.TargetOf(settings).Append((EvolveCommand.Start, EvolveCommand.Start.Kind.Format(run.Start)));
     }
 }

@@ -92,6 +92,17 @@ namespace SnpEvolution.Application
         public IReadOnlyList<string> MutationTemplates =>
             ExperimentalRules ? ExpressionGenerator.ExperimentalTemplates : ExpressionGenerator.SimpleTemplates;
 
+        // Makes the task the one to evolve for; a suite task brings the rule form and timing it is meant for.
+        public void UseTask(CatalogEntry<Settings, BenchmarkTask> task)
+        {
+            Task = task;
+            if (task != Catalog.TargetTask)
+            {
+                BenchmarkTask chosen = task.Create(this);
+                (RuleForm, OutputTiming) = (chosen.RuleForm, chosen.Timing);
+            }
+        }
+
         // The selected task, built with the rule form and output timing chosen here.
         public BenchmarkTask SelectedTask => Task.Create(this) with { RuleForm = RuleForm, Timing = OutputTiming };
 
