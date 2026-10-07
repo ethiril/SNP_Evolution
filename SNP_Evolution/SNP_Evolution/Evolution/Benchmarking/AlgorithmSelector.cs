@@ -9,15 +9,16 @@ namespace SnpEvolution.Evolution.Benchmarking
 {
     public sealed record SelectionRound(long Budget, IReadOnlyList<BenchmarkRow> Standings, IReadOnlyList<string> Advancing);
 
-    public sealed record SelectionResult(AlgorithmChoice Winner, IReadOnlyList<SelectionRound> Rounds, Individual? BestFound);
+    public sealed record SelectionResult<TSearch>(TSearch Winner, IReadOnlyList<SelectionRound> Rounds, Individual? BestFound);
 
     // Picks the best algorithm for a task by successive halving: every candidate gets a small budget on a few seeds,
     // the better half goes through with double the budget, and so on until one is left. Most of the effort goes to
     // the promising candidates, and the winner has also produced the best network seen along the way.
     public static class AlgorithmSelector
     {
-        public static SelectionResult Select(
-            IReadOnlyList<AlgorithmChoice> candidates, BenchmarkTask task, BenchmarkSettings settings, long initialBudget, Action<string>? progress = null)
+        public static SelectionResult<TSearch> Select<TSearch>(
+            IReadOnlyList<TSearch> candidates, BenchmarkTask task, BenchmarkSettings settings, long initialBudget, Action<string>? progress = null)
+            where TSearch : ISearch<Individual>
         {
             if (candidates.Count == 0)
             {
@@ -31,24 +32,26 @@ namespace SnpEvolution.Evolution.Benchmarking
             while (true)
             {
                 progress?.Invoke($"Round {round + 1}: {remaining.Count} algorithm(s) with {budget} evaluations each on {settings.Seeds} seed(s).");
-                var outcomes = (from algorithm in remaining.AsParallel().AsOrdered()
-                                from seed in Enumerable.Range(1 + round * settings.Seeds, settings.Seeds)
-                                select Benchmark.RunOnce(algorithm, task, seed, budget, settings)).ToList();
-                foreach (Individual best in outcomes.Select(outcome => outcome.Best).OfType<Individual>())
+                int first = 1 + round * settings.Seeds;
+                var runs = remaining.AsParallel().AsOrdered()
+                    .Select(search => (Search: search, Outcomes: Enumerable.Range(first, settings.Seeds).Select(seed => Benchmark.RunOnce(search, task, seed, budget, settings)).ToList()))
+                    .ToList();
+                foreach (Individual best in runs.SelectMany(run => run.Outcomes).Select(outcome => outcome.Best).OfType<Individual>())
                 {
                     bestFound = bestFound == null || Ranking.IsBetter(best, bestFound) ? best : bestFound;
                 }
-                List<BenchmarkRow> standings = Benchmark.Summarise(outcomes).OrderBy(row => row, Standing).ToList();
+                var ranked = runs.Select(run => (run.Search, Row: Benchmark.Summarise(run.Outcomes).Single())).OrderBy(run => run.Row, Standing).ToList();
+                List<BenchmarkRow> standings = ranked.Select(run => run.Row).ToList();
                 int advancing = remaining.Count == 1 ? 1 : (remaining.Count + 1) / 2;
-                remaining = standings.Take(advancing).Select(row => remaining.First(algorithm => algorithm.Name == row.Algorithm)).ToList();
-                rounds.Add(new SelectionRound(budget, standings, remaining.Select(algorithm => algorithm.Name).ToList()));
+                remaining = ranked.Take(advancing).Select(run => run.Search).ToList();
+                rounds.Add(new SelectionRound(budget, standings, remaining.Select(search => search.Name).ToList()));
                 foreach (BenchmarkRow row in standings)
                 {
                     progress?.Invoke($"  {row.Algorithm}: solved {row.Solved}/{row.Runs}, mean best {row.MeanBestFitness:0.###}");
                 }
                 if (remaining.Count == 1)
                 {
-                    return new SelectionResult(remaining[0], rounds, bestFound);
+                    return new SelectionResult<TSearch>(remaining[0], rounds, bestFound);
                 }
                 budget *= 2;
                 round++;

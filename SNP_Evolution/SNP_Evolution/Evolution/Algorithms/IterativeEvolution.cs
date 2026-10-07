@@ -10,26 +10,6 @@ namespace SnpEvolution.Evolution.Algorithms
     // A stage that has finished, or the one under way when the run stopped.
     public sealed record StageReport(int Length, int Generations, bool Solved, float BestFitness);
 
-    // How long the first stage's target is and how many values each later stage adds.
-    public sealed record CurriculumPlan(int StartLength, int Step)
-    {
-        // Short sequences make good first stages; binary words need a few bits before they say anything.
-        public static CurriculumPlan For(IPrefixTask task) =>
-            task is SpikeWordTask ? new CurriculumPlan(Math.Min(8, task.Length), 4) : new CurriculumPlan(Math.Min(3, task.Length), 1);
-
-        // Every stage's target length, ending with the whole target.
-        public IReadOnlyList<int> Lengths(int total)
-        {
-            var lengths = new List<int>();
-            for (int length = Math.Clamp(StartLength, 1, total); length < total; length += Math.Max(1, Step))
-            {
-                lengths.Add(length);
-            }
-            lengths.Add(total);
-            return lengths;
-        }
-    }
-
     // Evolves for a long target a few values at a time: first for its opening values, and once a network reliably
     // gives those, for a few more. The same algorithm carries on from stage to stage, with everything it kept scored
     // again on the longer target, so the population, and an archive of stepping stones, survive each step. Each stage
@@ -97,7 +77,7 @@ namespace SnpEvolution.Evolution.Algorithms
                 return;
             }
             algorithm.NextGeneration();
-            if (algorithm.Best is not Individual best || !Solved.Solves(best.Fitness) || !evaluator.Current.ConfirmSolved(best))
+            if (algorithm.Best is not Individual best || !SolveCheck.Confirms(best, evaluator.Current))
             {
                 return;
             }

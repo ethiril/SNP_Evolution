@@ -26,8 +26,6 @@ namespace SnpEvolution.Evolution.Modules
     // solved its side run is reused rather than evolved again.
     public sealed class ModularEvolution : IGeneticAlgorithm
     {
-        private const float ImprovementTolerance = 1e-6f;
-
         // How much an incubated network must beat the main run by to count, more than sampled runs vary by when the
         // same network is scored again.
         private const float IncubationMargin = 1e-3f;
@@ -43,8 +41,7 @@ namespace SnpEvolution.Evolution.Modules
         private readonly int maxNeurons;
         private readonly Random random;
         private readonly Action<string> log;
-        private float? bestFitness;
-        private int stale;
+        private readonly StallDetector stall;
         private int builds;
 
         // currentTask gives the task the run is scored on now. createSideRun builds an algorithm for another task,
@@ -71,6 +68,7 @@ namespace SnpEvolution.Evolution.Modules
             this.maxNeurons = maxNeurons;
             this.random = random;
             this.log = log ?? Console.WriteLine;
+            stall = new StallDetector(policy.Patience);
         }
 
         public IGeneticAlgorithm Inner => inner;
@@ -93,22 +91,10 @@ namespace SnpEvolution.Evolution.Modules
         public void NextGeneration()
         {
             inner.NextGeneration();
-            if (inner.Best is not Individual best || !GeneticAlgorithm.IsRecordableFitness(best.Fitness))
+            if (inner.Best is Individual best && ScoreHistory.IsRecordable(best.Fitness) && stall.Observe(best.Fitness) == Progress.Stalled)
             {
-                return;
+                React();
             }
-            if (bestFitness == null || best.Fitness > bestFitness + ImprovementTolerance)
-            {
-                bestFitness = best.Fitness;
-                stale = 0;
-                return;
-            }
-            if (++stale < policy.Patience)
-            {
-                return;
-            }
-            stale = 0;
-            React();
         }
 
         public void Immigrate(IReadOnlyList<Network> newcomers) => inner.Immigrate(newcomers);
@@ -123,8 +109,7 @@ namespace SnpEvolution.Evolution.Modules
             }
             inner.Rescore();
             tracker?.Reset();
-            bestFitness = null;
-            stale = 0;
+            stall.Reset();
         }
 
         private void React()
@@ -155,8 +140,8 @@ namespace SnpEvolution.Evolution.Modules
         private ITask? Part(ITask task, int check)
         {
             builds++;
-            ITask? triggered = policy.Triggered && builds % 2 == 0 ? task.Triggered(check) : null;
-            return triggered ?? task.Focus(check);
+            ITask? triggered = policy.Triggered && builds % 2 == 0 && task is ITriggerable triggerable ? triggerable.Triggered(check) : null;
+            return triggered ?? (task as IFocusable)?.Focus(check);
         }
 
         // The module for the part: the one kept when it was solved before, or the best network of a new side run.
@@ -195,7 +180,7 @@ namespace SnpEvolution.Evolution.Modules
         // stall is credited with whether it led to a better network.
         private List<Network> Incubate(ITask task, List<Network> composites, Module? module)
         {
-            float target = bestFitness ?? float.MinValue;
+            float target = stall.Best ?? float.MinValue;
             IGeneticAlgorithm nursery = createSideRun(task, composites);
             int generation = Evolve(nursery, policy.IncubationGenerations, best => best.Fitness > target + IncubationMargin);
             List<Individual> ranked = Ranking.Rank(nursery.Population.Where(individual => individual.IsEvaluated));
@@ -217,36 +202,23 @@ namespace SnpEvolution.Evolution.Modules
         // many it ran.
         private int Evolve(IGeneticAlgorithm algorithm, int generations, Func<Individual, bool> done)
         {
-            int generation = 0;
-            while (generation < generations && !(algorithm.Best is Individual best && done(best)))
+            (_, int run) = GenerationLoop.Run(generations, () => false, default, _ =>
             {
                 algorithm.NextGeneration();
-                generation++;
                 SideGenerationsRun++;
-            }
-            return generation;
+                return algorithm.Best is Individual best && done(best);
+            });
+            return run;
         }
 
         // Copies of the module, or of library modules, put into the best networks.
         private List<Network> Composites(Module? module)
         {
             int count = Math.Max(1, (int)Math.Round(populationSize * policy.CompositeFraction));
-            List<Individual> best = Ranking.Rank(inner.Population.Where(individual => individual.IsEvaluated)).Take(Math.Max(1, count / 2)).ToList();
-            var composites = new List<Network>();
-            for (int attempt = 0; best.Count > 0 && attempt < 3 * count && composites.Count < count; attempt++)
-            {
-                Network host = best[attempt % best.Count].Genes;
-                if ((module ?? library.Choose(random)) is not Module chosen)
-                {
-                    break;
-                }
-                Network composite = ModuleEdits.Insert(host, chosen, library.NextInstance(), maxNeurons, library, random);
-                if (composite != host)
-                {
-                    composites.Add(composite);
-                }
-            }
-            return composites;
+            return Immigrants.FromBest(inner.Population, Math.Max(1, count / 2), count, 3 * count, host =>
+                (module ?? library.Choose(random)) is Module chosen && ModuleEdits.Insert(host, chosen, library.NextInstance(), maxNeurons, library, random) is Network composite && composite != host
+                    ? composite
+                    : null);
         }
     }
 }

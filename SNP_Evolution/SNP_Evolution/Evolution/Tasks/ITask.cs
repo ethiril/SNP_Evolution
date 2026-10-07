@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
 
@@ -47,18 +46,6 @@ namespace SnpEvolution.Evolution.Tasks
 
         // A short name for a check, for progress output.
         string CheckName(int check) => $"check {check + 1}";
-
-        // A small task of its own around a check, such as a few gaps of a sequence starting near it, to evolve a part
-        // that does it on the side. Null when the task has no such part.
-        ITask? Focus(int check) => null;
-
-        // Like Focus, but the part waits for a spike on its one input before it starts, so it can be chained after
-        // what a network already does instead of running beside it from the first step. Null when the task has no
-        // such part.
-        ITask? Triggered(int check) => null;
-
-        // A part a stalled composition run could evolve to pass the checks no network passes, or null when the task has none.
-        Contract? Propose(IReadOnlyList<int> unsolvedChecks) => null;
     }
 
     // A task whose target is a list that can be cut short, such as a sequence of intervals or a binary word, so it
@@ -70,5 +57,24 @@ namespace SnpEvolution.Evolution.Tasks
 
         // The same task with only the first length values of the target.
         ITask Prefix(int length);
+
+        // Short targets make good first stages, a value at a time.
+        CurriculumPlan Curriculum => new CurriculumPlan(System.Math.Min(3, Length), 1);
+    }
+
+    // How long the first stage's target is and how many values each later stage adds.
+    public sealed record CurriculumPlan(int StartLength, int Step)
+    {
+        // Every stage's target length, ending with the whole target.
+        public IReadOnlyList<int> Lengths(int total)
+        {
+            var lengths = new List<int>();
+            for (int length = System.Math.Clamp(StartLength, 1, total); length < total; length += System.Math.Max(1, Step))
+            {
+                lengths.Add(length);
+            }
+            lengths.Add(total);
+            return lengths;
+        }
     }
 }

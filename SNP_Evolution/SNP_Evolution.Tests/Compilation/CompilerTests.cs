@@ -1,6 +1,8 @@
 using SnpEvolution.Compilation;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Genome;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
@@ -13,7 +15,7 @@ namespace SnpEvolution.Tests.Compilation
         private static readonly int[] Fibonacci = { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584 };
 
         private static FitnessEvaluator SequenceEvaluator(IReadOnlyList<int> values) =>
-            new FitnessEvaluator(new SequentialCpuEngine(), new SequenceTask("target", values), new SimulationOptions(50, 2, OutputTiming.Interval), 1, new Random(1));
+            new FitnessEvaluator(new SequentialCpuEngine(), new SequenceTask("target", values), new SimulationOptions(50, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
 
         private static IReadOnlyList<int> Generated(Network network, int maxSteps = 400) =>
             new ExhaustiveCpuEngine().CollectOutputs(new[] { network }, new SimulationOptions(maxSteps, 20, OutputTiming.Interval), new Random(1))[0];
@@ -134,19 +136,22 @@ namespace SnpEvolution.Tests.Compilation
         [Fact]
         public void ProgramSearchFindsASmallSetAndItsNetworkGeneratesIt()
         {
-            var search = new ProgramSearch(new[] { 2, 3 }, new ProgramSearchSettings(Generations: 400, Population: 60), new Random(1));
+            var search = new ProgramSearch(new ProgramSearchSettings(Population: 60));
+            var target = new GeneratorTask("{2,3}", new[] { 2, 3 }, new JaccardFitness(new[] { 2, 3 }));
+            var budget = new EvaluationBudget();
 
-            ScoredProgram best = search.Run(_ => { });
+            SearchOutcome<RegisterProgram> best = search.Run(new SearchRequest<RegisterProgram>(target, budget, new Random(1), _ => { }) { MaxGenerations = 400 });
 
-            Assert.True(Solved.Solves(best.Fitness), best.Program.ToString());
-            Assert.Equal(new[] { 2, 3 }, Generated(RegisterMachineCompiler.Compile(best.Program)));
+            Assert.True(best.Solved, best.Best!.ToString());
+            Assert.Equal(new[] { 2, 3 }, Generated(RegisterMachineCompiler.Compile(best.Best!)));
+            Assert.True(budget[EvaluationKind.InterpreterRun] > 0);
         }
 
         [Fact]
         public void ProgramSearchLearnsLargeSetsInStagesThatEndPastTheLargestNumber()
         {
-            Assert.Equal(new long[] { 5, 13, 34, 89, 233, 610, 1976 }, ProgramSearch.StageBounds(new[] { 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987 }));
-            Assert.Equal(new long[] { 14 }, ProgramSearch.StageBounds(new[] { 2, 4, 6 }));
+            Assert.Equal(new long[] { 5, 13, 34, 89, 233, 610, 1976 }, ProgramScoring.StageBounds(new[] { 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987 }));
+            Assert.Equal(new long[] { 14 }, ProgramScoring.StageBounds(new[] { 2, 4, 6 }));
         }
 
         // Only the first numbers are generated before the limit on register 0 cuts the computations off, and that
@@ -172,12 +177,18 @@ namespace SnpEvolution.Tests.Compilation
             var random = new Random(5);
             var space = new GenomeSpace(RuleForm: RuleForm.Standard, MaxNeurons: compiled.Neurons.Count, MaxInitialSpikes: 8, MaxProduce: 2);
             var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, 4, random), random);
-            var shrink = new ShrinkRun(compiled, evaluator, factory, 20, random, _ => { });
+            var setup = new NetworkSetup(20, 0.5f, factory, () => compiled, new NetworkScoring(() => new SequentialCpuEngine(), new SimulationOptions(50, 2, OutputTiming.Interval), 1));
 
-            Assert.True(shrink.Run(30));
+            SearchOutcome<Individual> shrink = SearchCatalog.Shrink.Run(new SearchRequest<Individual>(evaluator.Task, new EvaluationBudget(), random, _ => { })
+            {
+                Seeds = new[] { new Individual(compiled) },
+                MaxGenerations = 30,
+                Networks = setup,
+            });
 
-            Assert.True(shrink.Smallest.Size <= compiled.Size);
-            Assert.True(evaluator.IsReliablySolved(shrink.Smallest));
+            Assert.Equal(30, shrink.Generations);
+            Assert.True(HardwareCost.Of(shrink.Best!.Genes).CompareTo(HardwareCost.Of(compiled)) <= 0);
+            Assert.True(evaluator.ConfirmSolved(shrink.Best!.Genes).Solved);
         }
     }
 }

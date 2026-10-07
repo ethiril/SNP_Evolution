@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -153,7 +154,7 @@ namespace SnpEvolution.Storage
             PartMeasurement measurement;
             try
             {
-                measurement = new Verifier(part.Task()).Measure(part.Network);
+                measurement = Verifier.Measure(part, new EvaluationBudget());
             }
             catch (ArgumentException exception)
             {

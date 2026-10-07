@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Storage;
@@ -39,7 +40,7 @@ namespace SnpEvolution.Tests.Golden
 
         // Saves a hand-built part as a library file, measured the way evolve-parts measures the parts it saves.
         public void Save(Part part, string file) =>
-            File.WriteAllText(Path.Combine(Folder, file), PartLibraryFiles.ToJson(Verifier.Measure(part).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0))));
+            File.WriteAllText(Path.Combine(Folder, file), PartLibraryFiles.ToJson(Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0))));
 
         // The command line, exit code, output and every file the run left in the folder.
         public string Run(params string[] args)

@@ -64,7 +64,7 @@ namespace SnpEvolution.Evolution.Modules
             }
         }
 
-        private static float Fitness(FitnessResult result) => GeneticAlgorithm.IsRecordableFitness(result.Fitness) ? result.Fitness : -1;
+        private static float Fitness(FitnessResult result) => ScoreHistory.IsRecordable(result.Fitness) ? result.Fitness : -1;
 
         // Whether the child gets some check right that the parent does not, or the task has no checks.
         private static bool DoesMore(FitnessResult child, FitnessResult parent)

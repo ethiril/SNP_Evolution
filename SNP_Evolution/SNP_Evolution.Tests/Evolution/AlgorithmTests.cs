@@ -37,14 +37,14 @@ namespace SnpEvolution.Tests.Evolution
         private static float ThreeNeurons(Network network) => 1f / (1 + Math.Abs(network.Neurons.Count - 3));
 
         public static TheoryData<string> StructuralAlgorithms => new TheoryData<string>(
-            AlgorithmCatalog.All.Where(choice => !choice.Name.Contains("only")).Select(choice => choice.Name));
+            SearchCatalog.Evolution.Where(search => !search.EvolvesRulesOnly).Select(choice => choice.Name));
 
         [Theory]
         [Slow]
         [MemberData(nameof(StructuralAlgorithms))]
         public void StructuralAlgorithmsSolveTheIdentityFunction(string name)
         {
-            AlgorithmChoice algorithm = AlgorithmCatalog.All.Single(choice => choice.Name == name);
+            EvolutionSearch algorithm = SearchCatalog.Evolution.Single(search => search.Name == name);
 
             RunOutcome outcome = Benchmark.RunOnce(algorithm, Identity, seed: 1, budget: 4000, Settings);
 
@@ -59,7 +59,7 @@ namespace SnpEvolution.Tests.Evolution
             var random = new Random(3);
             NetworkFactory factory = Factory(random);
             var evaluator = new DelegateEvaluator(ThreeNeurons);
-            IGeneticAlgorithm algorithm = AlgorithmCatalog.All.Single(choice => choice.Name == name)
+            IGeneticAlgorithm algorithm = SearchCatalog.Evolution.Single(search => search.Name == name)
                 .Create(new EvolutionContext(12, 0.5f, random, factory.NewNetwork, evaluator, factory, _ => { }));
 
             float best = float.MinValue;
@@ -150,9 +150,9 @@ namespace SnpEvolution.Tests.Evolution
         [Slow]
         public void SelectorHalvesTheCandidatesUntilOneIsLeft()
         {
-            List<AlgorithmChoice> candidates = AlgorithmCatalog.All.Take(3).ToList();
+            List<EvolutionSearch> candidates = SearchCatalog.Evolution.Take(3).ToList();
 
-            SelectionResult result = AlgorithmSelector.Select(candidates, TaskSuite.Generators[0], Settings, initialBudget: 60);
+            SelectionResult<EvolutionSearch> result = AlgorithmSelector.Select(candidates, TaskSuite.Generators[0], Settings, initialBudget: 60);
 
             Assert.Contains(result.Winner, candidates);
             Assert.Equal(new[] { 3, 2 }, result.Rounds.Select(round => round.Standings.Count));

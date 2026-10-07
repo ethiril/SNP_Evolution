@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Search;
@@ -50,10 +51,11 @@ namespace SnpEvolution.Cli
                     continue;
                 }
                 log($"Evolving a part for {contract.Name}.");
-                PartOutcome outcome = PartEvolution.Evolve(contract, options.Seed, settings, log);
+                var budget = new EvaluationBudget();
+                PartOutcome outcome = PartSearch.Evolve(contract, options.Seed, settings, budget, log);
                 if (outcome.Part is Part part && outcome.Measurement is PartMeasurement measurement)
                 {
-                    BoundedResult admission = BoundedCheck.Admit(part, log);
+                    BoundedResult admission = BoundedCheck.Admit(part, budget, log);
                     if (admission.Verdict is Verdict.Failed)
                     {
                         rows.Add(new Row(contract.Name, "fails past its cases", outcome.Evaluations, kept?.Part));
@@ -69,7 +71,7 @@ namespace SnpEvolution.Cli
             }
             IReadOnlyList<string> written = PartLibraryFiles.Save(library, options.Folder);
             log($"Saved {written.Count} part(s) to {options.Folder}.");
-            rows = rows.Select(row => row with { Robust = row.Part == null ? null : Robustness.Reported.Select(jitter => Robustness.Of(row.Part.Part, jitter)).ToList() }).ToList();
+            rows = rows.Select(row => row with { Robust = row.Part == null ? null : Robustness.Reported.Select(jitter => Robustness.Of(row.Part.Part, jitter, new EvaluationBudget())).ToList() }).ToList();
             log(FormatTable(rows));
             log($"Robust j=N is the share of {Robustness.Runs} runs that keep the contract, latency aside, when each spike on each synapse may arrive up to N steps late.");
             return rows.All(row => row.Part != null) ? 0 : 2;
@@ -79,7 +81,7 @@ namespace SnpEvolution.Cli
 
         // How evolve-parts searches for a part, which a run's proposed parts share.
         public static PartSearchSettings SearchSettings(long budget, Func<ISimulationEngine> createEngine) =>
-            new PartSearchSettings(budget, budget / 4, Population, Catalog.ChoiceFor(Catalog.StructuralDefault), createEngine);
+            new PartSearchSettings(budget, budget / 4, Population, Catalog.StructuralDefault, createEngine);
 
         // A part kept from an earlier run shows the evaluations that run spent on it.
         public static string FormatTable(IReadOnlyList<Row> rows)

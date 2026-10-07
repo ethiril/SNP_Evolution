@@ -26,7 +26,7 @@ namespace SnpEvolution.Tests.Evolution
 
         private static BenchmarkTask Multiply => TaskSuite.Contracts.Single(task => task.Name == "Contract multiply");
 
-        private static AlgorithmChoice MapElites => AlgorithmCatalog.All.Single(choice => AlgorithmCatalog.IsComposition(choice.Name) && choice.Name.Contains("MAP-Elites"));
+        private static EvolutionSearch MapElites => SearchCatalog.CompositionMapElites;
 
         [Fact]
         [Slow]

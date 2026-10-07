@@ -4,25 +4,26 @@ using SnpEvolution.Evolution.Fitness;
 
 namespace SnpEvolution.Evolution.Algorithms
 {
-    // Fitter first and, between equally fit networks, smaller first: parsimony pressure that steers the search
+    // Fitter first and, between equally fit candidates, smaller first: parsimony pressure that steers the search
     // towards the small systems the field values without ever trading away fitness.
     public static class Ranking
     {
         public static readonly IComparer<Individual> FittestFirst = Comparer<Individual>.Create(Compare);
 
-        public static int Compare(Individual first, Individual second)
+        public static int Compare(IScored first, IScored second)
         {
             int byFitness = Score(second.Fitness).CompareTo(Score(first.Fitness));
-            return byFitness != 0 ? byFitness : first.Genes.Size.CompareTo(second.Genes.Size);
+            return byFitness != 0 ? byFitness : first.Size.CompareTo(second.Size);
         }
 
-        public static bool IsBetter(Individual candidate, Individual incumbent) => Compare(candidate, incumbent) < 0;
+        public static bool IsBetter(IScored candidate, IScored incumbent) => Compare(candidate, incumbent) < 0;
 
-        // A stable sort, so among exact ties earlier individuals stay ahead.
-        public static List<Individual> Rank(IEnumerable<Individual> individuals) => individuals.OrderBy(individual => individual, FittestFirst).ToList();
+        // A stable sort, so among exact ties earlier candidates stay ahead.
+        public static List<T> Rank<T>(IEnumerable<T> candidates) where T : IScored =>
+            candidates.OrderBy(candidate => candidate, Comparer<T>.Create((first, second) => Compare(first, second))).ToList();
 
         // Out-of-range fitness ranks below everything else.
-        private static float Score(float fitness) => fitness >= 0 && fitness <= 1 ? fitness : -1;
+        private static float Score(float fitness) => ScoreHistory.IsRecordable(fitness) ? fitness : -1;
     }
 
     public static class Evaluation

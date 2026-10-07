@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Modules;
@@ -37,7 +38,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             PartCopy last = PartWiring.Copies(network, library).OrderBy(copy => copy.Tag.Instance).Last();
             var binding = new PortBinding(new Dictionary<string, int> { ["out"] = last["out"], ["done"] = last["done"] });
-            return new Verifier(new ContractTask(PlusTwo(), binding)).Measure(network);
+            return new Verifier(new ContractTask(PlusTwo(), binding), new EvaluationBudget()).Measure(network);
         }
 
         private static NetworkFactory Factory(int maxNeurons, Random random) =>

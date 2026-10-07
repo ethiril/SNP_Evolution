@@ -13,7 +13,10 @@ namespace SnpEvolution.Cli
 
         // Returns current when the user goes back.
         internal static CatalogEntry<TContext, T> ChooseEntry<TContext, T>(Settings settings, string message, IReadOnlyList<CatalogEntry<TContext, T>> entries, CatalogEntry<TContext, T> current) =>
-            ConsoleUi.Choose(settings, message, entries.Select(entry => entry.Name).ToList(), entries.ToList().IndexOf(current)) is int choice ? entries[choice] : current;
+            Choose(settings, message, entries, current, entry => entry.Name);
+
+        internal static T Choose<T>(Settings settings, string message, IReadOnlyList<T> entries, T current, Func<T, string> name) =>
+            ConsoleUi.Choose(settings, message, entries.Select(name).ToList(), entries.ToList().IndexOf(current)) is int choice ? entries[choice] : current;
 
         internal static TEnum ChooseEnum<TEnum>(Settings settings, string message, TEnum current) where TEnum : struct, Enum
         {

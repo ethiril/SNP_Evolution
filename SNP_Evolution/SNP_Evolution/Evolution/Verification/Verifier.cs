@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
@@ -10,7 +11,8 @@ namespace SnpEvolution.Evolution.Verification
 {
     // Checks a network against a contract on the exhaustive engine: the one place a network is run on a contract's cases
     // and judged. Part search, promotion, the part library and each bound of a bounded check go through it. A case too
-    // wide to follow exactly gives no verdict, since sampling is not proof.
+    // wide to follow exactly gives no verdict, since sampling is not proof. Every network run is charged to the budget
+    // as one exhaustive check.
     public sealed class Verifier
     {
         public const int MaxConfigurations = 50_000;
@@ -19,10 +21,12 @@ namespace SnpEvolution.Evolution.Verification
         public const int Repetitions = 20;
 
         private readonly ExhaustiveCpuEngine engine;
+        private readonly EvaluationBudget budget;
 
-        public Verifier(ContractTask task, int maxConfigurations = MaxConfigurations)
+        public Verifier(ContractTask task, EvaluationBudget budget, int maxConfigurations = MaxConfigurations)
         {
             Task = task;
+            this.budget = budget;
             engine = new ExhaustiveCpuEngine(maxConfigurations);
             Options = new SimulationOptions(task.StepsNeeded, Repetitions, OutputTiming.Interval);
         }
@@ -31,13 +35,11 @@ namespace SnpEvolution.Evolution.Verification
 
         public SimulationOptions Options { get; }
 
-        public long Evaluations { get; private set; }
-
-        public static PartMeasurement Measure(Part part) => new Verifier(part.Task()).Measure(part.Network);
+        public static PartMeasurement Measure(Part part, EvaluationBudget budget) => new Verifier(part.Task(), budget).Measure(part.Network);
 
         public IReadOnlyList<TrialResult> Run(Network network)
         {
-            Evaluations++;
+            budget.Charge(EvaluationKind.ExhaustiveCheck, 1);
             return engine.Run(Task.Cases.Select(@case => @case.Of(network)).ToList(), Options, new Random(0));
         }
 

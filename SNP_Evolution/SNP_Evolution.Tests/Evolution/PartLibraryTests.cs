@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Networks;
@@ -8,7 +9,7 @@ namespace SnpEvolution.Tests.Evolution
     {
         private static readonly PartOrigin ByHand = new PartOrigin(0, "by hand", 0);
 
-        private static LibraryPart Measured(Part part) => Verifier.Measure(part).ToLibraryPart(part, ByHand);
+        private static LibraryPart Measured(Part part) => Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, ByHand);
 
         // The reference delay with a neuron that holds nothing and does nothing: the same behaviour at a higher cost.
         private static Part PaddedDelay(int k)

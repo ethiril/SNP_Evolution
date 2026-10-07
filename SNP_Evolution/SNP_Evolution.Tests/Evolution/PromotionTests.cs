@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Parts;
@@ -54,7 +55,7 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
 
-            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add).Module!;
+            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, new EvaluationBudget(), log.Add).Module!;
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);
             LibraryPart addTwo = loaded.PartFor("add 2")!.Part!;
@@ -71,7 +72,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
-            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add);
+            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, new EvaluationBudget(), log.Add);
 
             PartLibraryFiles.Save(library, folder);
             string file = File.ReadAllText(Path.Combine(folder, "add-2.json"));
@@ -88,7 +89,7 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 5);
 
-            Module? promoted = Promotion.Promote(chain, CatalogueEntry.Of(Specifications.AddConstant(5), FirstParts.Each(FirstParts.Values)).Contract, binding, library, Origin, log.Add).Module;
+            Module? promoted = Promotion.Promote(chain, CatalogueEntry.Of(Specifications.AddConstant(5), FirstParts.Each(FirstParts.Values)).Contract, binding, library, Origin, new EvaluationBudget(), log.Add).Module;
 
             Assert.NotNull(promoted);
             Assert.True(promoted!.Body.Neurons.Count > ModuleLibrary.MaxModuleNeurons);
@@ -101,7 +102,7 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
 
-            Promoted promoted = Promotion.Promote(chain, FirstParts.Named("increment"), binding, library, Origin, log.Add);
+            Promoted promoted = Promotion.Promote(chain, FirstParts.Named("increment"), binding, library, Origin, new EvaluationBudget(), log.Add);
 
             Assert.Equal(ContractRule.DoneOnce, Assert.IsType<Verdict.Failed>(promoted.Verdict).Counterexample.Rule);
             Assert.Null(promoted.Module);
@@ -115,9 +116,9 @@ namespace SnpEvolution.Tests.Evolution
         {
             (ModuleLibrary library, Module increment) = Increments();
             (Composition two, PortBinding twoBinding) = Chain(library, increment, 2);
-            Module addTwo = Promotion.Promote(two, ArithmeticParts.AddTwo(), twoBinding, library, Origin, log.Add).Module!;
+            Module addTwo = Promotion.Promote(two, ArithmeticParts.AddTwo(), twoBinding, library, Origin, new EvaluationBudget(), log.Add).Module!;
             (Composition four, PortBinding fourBinding) = Chain(library, addTwo, 2);
-            Promotion.Promote(four, CatalogueEntry.Of(Specifications.AddConstant(4), FirstParts.Each(FirstParts.Values)).Contract, fourBinding, library, Origin, log.Add);
+            Promotion.Promote(four, CatalogueEntry.Of(Specifications.AddConstant(4), FirstParts.Each(FirstParts.Values)).Contract, fourBinding, library, Origin, new EvaluationBudget(), log.Add);
 
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);
@@ -133,7 +134,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
-            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, log.Add);
+            Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, new EvaluationBudget(), log.Add);
             PartLibraryFiles.Save(library, folder);
             File.Delete(Path.Combine(folder, "increment.json"));
 

@@ -4,7 +4,19 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Fitness
 {
-    public sealed class Individual
+    // A candidate with a score: what ranking and lexicase selection compare, whether it is a network or a program.
+    // Size breaks ties between equally fit candidates, smaller first.
+    public interface IScored
+    {
+        float Fitness { get; }
+
+        int Size { get; }
+
+        // The score, from 0 to 1, on each separate thing the task checks; empty when the task does not say.
+        IReadOnlyList<float> Checks { get; }
+    }
+
+    public sealed class Individual : IScored
     {
         public Individual(Network genes)
         {
@@ -22,6 +34,8 @@ namespace SnpEvolution.Evolution.Fitness
         public bool Exact { get; private set; }
 
         public bool IsEvaluated { get; private set; }
+
+        public int Size => Genes.Size;
 
         // The task's behaviour cell for this network, if the task has one.
         public (int, int)? Niche { get; private set; }

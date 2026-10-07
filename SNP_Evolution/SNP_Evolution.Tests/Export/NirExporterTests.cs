@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -35,7 +36,7 @@ namespace SnpEvolution.Tests.Export
             foreach (string file in new[] { "delay-2.json", "sequencer-2.json" })
             {
                 Part part = ProfilePart(file);
-                Assert.True(Verifier.Measure(part).Verdict is Verdict.Passed, file);
+                Assert.True(Verifier.Measure(part, new EvaluationBudget()).Verdict is Verdict.Passed, file);
                 Assert.Empty(HardwareProfile.Problems(part.Network));
             }
         }

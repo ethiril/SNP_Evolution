@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -26,7 +27,7 @@ namespace SnpEvolution.Tests.Evolution
         // A part checked against its contract on the exhaustive engine and recorded as a library part would be.
         internal static LibraryPart Verified(Part part)
         {
-            PartMeasurement measurement = Verifier.Measure(part);
+            PartMeasurement measurement = Verifier.Measure(part, new EvaluationBudget());
             Assert.True(measurement.Verdict is Verdict.Passed, measurement.Description);
             return measurement.ToLibraryPart(part, new PartOrigin(1, "a test", 0));
         }

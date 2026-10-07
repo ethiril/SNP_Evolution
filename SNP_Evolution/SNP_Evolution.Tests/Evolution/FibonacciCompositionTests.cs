@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Parts;
@@ -108,7 +109,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Network network = Build().Network;
             var task = new SequenceTask("Fibonacci", Fibonacci.Take(16).ToList());
-            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(task.StepsNeeded, 20, OutputTiming.Interval), 1, new Random(1));
+            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(task.StepsNeeded, 20, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
 
             FitnessResult result = evaluator.Evaluate(network);
 

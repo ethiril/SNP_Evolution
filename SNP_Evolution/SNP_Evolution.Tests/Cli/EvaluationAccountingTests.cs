@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Modules;
@@ -37,7 +38,7 @@ namespace SnpEvolution.Tests.Cli
         public void SideRunsAndIncubationAreCountedApartFromTheMainRun()
         {
             Settings settings = Stalling(80);
-            var evaluations = new EvaluationCounter();
+            var evaluations = new EvaluationBudget();
 
             IGeneticAlgorithm run = EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
 
@@ -47,7 +48,7 @@ namespace SnpEvolution.Tests.Cli
             Assert.True(evaluations[EvaluationSource.Incubation] > 0);
             Assert.Equal((long)modular.SideGenerationsRun * Population, evaluations[EvaluationSource.SideRun] + evaluations[EvaluationSource.Incubation]);
             Assert.Equal((long)(run.Generation - 1) * Population, evaluations[EvaluationSource.Main]);
-            Assert.Equal(Enum.GetValues<EvaluationSource>().Sum(source => evaluations[source]), evaluations.Total);
+            Assert.Equal(Enum.GetValues<EvaluationSource>().Sum(source => evaluations[source]), evaluations.Networks);
         }
 
         [Fact]
@@ -55,22 +56,22 @@ namespace SnpEvolution.Tests.Cli
         {
             Settings settings = Stalling(1000);
             settings.MaxEvaluations = 300;
-            var evaluations = new EvaluationCounter();
+            EvaluationBudget evaluations = settings.RunBudget();
 
             EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
 
-            Assert.InRange(evaluations.Total, 300, 300 + Population * (1 + new ModulePolicy().SideGenerations + new ModulePolicy().IncubationGenerations));
+            Assert.InRange(evaluations.Networks, 300, 300 + Population * (1 + new ModulePolicy().SideGenerations + new ModulePolicy().IncubationGenerations));
         }
 
         [Fact]
         public void RetestsOfASolvedNetworkCountAsVerification()
         {
-            var counter = new EvaluationCounter();
+            var counter = new EvaluationBudget();
             var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }),
                 new SimulationOptions(40, 5, OutputTiming.Interval), 3, new Random(1), counter, EvaluationSource.SideRun);
 
             evaluator.Evaluate(TestNetworks.Identity());
-            Assert.True(evaluator.IsReliablySolved(TestNetworks.Identity()));
+            Assert.True(evaluator.ConfirmSolved(TestNetworks.Identity()).Solved);
 
             Assert.Equal(1, counter[EvaluationSource.SideRun]);
             Assert.Equal(3, counter[EvaluationSource.Verification]);
@@ -84,20 +85,20 @@ namespace SnpEvolution.Tests.Cli
             try
             {
                 var library = new ModuleLibrary();
-                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2)).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", 1234)), "a test");
+                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2), new EvaluationBudget()).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", 1234)), "a test");
                 PartLibraryFiles.Save(library, folder);
                 Settings settings = Stalling(5);
                 settings.Modules = false;
                 settings.PartLibraryFolder = folder;
-                settings.Algorithm = Catalog.Algorithms.First(entry => AlgorithmCatalog.IsComposition(entry.Name));
-                var evaluations = new EvaluationCounter();
+                settings.Algorithm = SearchCatalog.CompositionMapElites;
+                var evaluations = new EvaluationBudget();
 
                 IGeneticAlgorithm run = EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
 
                 Assert.Equal(1234, evaluations.UpFront);
-                Assert.Equal(5L * Population, evaluations.Total);
+                Assert.Equal(5L * Population, evaluations.Networks);
                 Assert.Contains(run.Population, individual => individual.Genes.Neurons.Any(neuron => neuron.Module != null));
-                Assert.Contains("1,234", evaluations.Describe());
+                Assert.Contains("1,234", evaluations.Report().Describe());
             }
             finally
             {

@@ -119,18 +119,21 @@ namespace SnpEvolution.Cli
                 [typeof(CatalogEntry<Settings, BenchmarkTask>)] = (Catalog.Tasks, Catalog.Tasks[0]),
                 [typeof(CatalogEntry<Settings, ISimulationEngine>)] = (Catalog.Engines, Catalog.Engines[0]),
                 [typeof(CatalogEntry<Settings, IFitnessFunction>)] = (Catalog.FitnessFunctions, Catalog.FitnessFunctions[0]),
-                [typeof(CatalogEntry<EvolutionContext, IGeneticAlgorithm>)] = (Catalog.Algorithms, Catalog.StructuralDefault),
+                [typeof(EvolutionSearch)] = (Catalog.Algorithms, Catalog.StructuralDefault),
             };
 
-            public override bool CanConvert(Type objectType) => Catalogs.ContainsKey(objectType);
+            // A composition search is saved as the search it is, by name, like any other.
+            public override bool CanConvert(Type objectType) => CatalogFor(objectType) != null;
 
             public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer) => writer.WriteValue(value == null ? null : NameOf(value));
 
             public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
             {
-                (IEnumerable<object> entries, object fallback) = Catalogs[objectType];
+                (IEnumerable<object> entries, object fallback) = Catalogs[CatalogFor(objectType)!];
                 return entries.FirstOrDefault(entry => NameOf(entry) == reader.Value as string) ?? fallback;
             }
+
+            private static Type? CatalogFor(Type objectType) => Catalogs.Keys.FirstOrDefault(type => type.IsAssignableFrom(objectType));
 
             private static string NameOf(object entry) => (string)entry.GetType().GetProperty("Name")!.GetValue(entry)!;
         }

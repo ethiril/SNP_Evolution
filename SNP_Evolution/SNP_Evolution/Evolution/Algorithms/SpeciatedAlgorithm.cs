@@ -24,7 +24,7 @@ namespace SnpEvolution.Evolution.Algorithms
         private readonly ICrossover crossover;
         private readonly IMutation mutation;
         private readonly int targetSpecies;
-        private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
+        private readonly ScoreHistory fitnessHistory = new ScoreHistory();
         private List<Species> species = new List<Species>();
         private List<Individual> population;
         private double threshold = InitialThreshold;
@@ -46,7 +46,7 @@ namespace SnpEvolution.Evolution.Algorithms
 
         public Individual? Best { get; private set; }
 
-        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory;
+        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory.Rows;
 
         public int SpeciesCount => species.Count;
 
@@ -78,7 +78,7 @@ namespace SnpEvolution.Evolution.Algorithms
         public void NextGeneration()
         {
             Evaluation.Evaluate(evaluator, population);
-            fitnessHistory.Add(population.Select(individual => individual.Fitness).Where(GeneticAlgorithm.IsRecordableFitness).ToList());
+            fitnessHistory.Record(population);
             population = Ranking.Rank(population);
             Best = Best == null || Ranking.IsBetter(population[0], Best) ? population[0] : Best;
             Speciate();
@@ -87,11 +87,7 @@ namespace SnpEvolution.Evolution.Algorithms
         }
 
         // The champion is first in the population waiting to be scored, so newcomers replace children from the end.
-        public void Immigrate(IReadOnlyList<Network> newcomers)
-        {
-            int keep = Math.Max(1, population.Count - newcomers.Count);
-            population = population.Take(keep).Concat(newcomers.Take(population.Count - keep).Select(network => new Individual(network))).ToList();
-        }
+        public void Immigrate(IReadOnlyList<Network> newcomers) => population = Immigrants.ReplaceWeakest(population, newcomers, 1);
 
         // The population waiting is scored next generation anyway; the best ever and the species' records are from
         // the old task, so they go.

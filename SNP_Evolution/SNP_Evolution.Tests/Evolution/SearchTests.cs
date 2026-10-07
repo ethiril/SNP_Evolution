@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Genome;
@@ -66,7 +67,7 @@ namespace SnpEvolution.Tests.Evolution
                 stageTask =>
                 {
                     seen.Add(((SequenceTask)stageTask).Expected.Count);
-                    return new FitnessEvaluator(new SequentialCpuEngine(), stageTask, new SimulationOptions(5, 3, OutputTiming.Interval), 2, random);
+                    return new FitnessEvaluator(new SequentialCpuEngine(), stageTask, new SimulationOptions(5, 3, OutputTiming.Interval), 2, random, new EvaluationBudget());
                 },
                 evaluator => Generational(6, random, PingPong, evaluator, WeightedMutation.Structural(0, Factory(random))),
                 _ => { });
@@ -91,7 +92,7 @@ namespace SnpEvolution.Tests.Evolution
             var algorithm = new ModularEvolutionTests.StubAlgorithm();
             algorithm.Individuals.Add(lucky);
             var iterative = new IterativeEvolution(new SequenceTask("twos", Enumerable.Repeat(2, 4).ToList()), new[] { 2, 4 },
-                stageTask => new FitnessEvaluator(new SequentialCpuEngine(), stageTask, new SimulationOptions(5, 3, OutputTiming.Interval), 2, new Random(0)),
+                stageTask => new FitnessEvaluator(new SequentialCpuEngine(), stageTask, new SimulationOptions(5, 3, OutputTiming.Interval), 2, new Random(0), new EvaluationBudget()),
                 _ => algorithm,
                 _ => { });
 

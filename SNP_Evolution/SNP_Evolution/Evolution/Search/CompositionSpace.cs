@@ -37,7 +37,7 @@ namespace SnpEvolution.Evolution.Search
 
         public static CompositionSpace For(EvolutionContext context) =>
             new CompositionSpace(context.Parts ?? new ModuleLibrary(), context.Factory, context.Composition ?? new CompositionMix(), context.Random,
-                ((context.Evaluator as ITaskEvaluator)?.Task as ContractTask)?.Boundary);
+                ((context.Evaluator as ITaskEvaluator)?.Task as IContractTask)?.Boundary);
 
         public ModuleLibrary Library => library;
 

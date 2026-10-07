@@ -12,8 +12,9 @@ namespace SnpEvolution.Cli
 {
     internal sealed record CatalogEntry<TContext, T>(string Name, Func<TContext, T> Create);
 
-    // The swappable parts offered in the settings menu. A new engine, fitness function, task or algorithm only
-    // needs to implement its interface and be listed here; the first entry of each list is the default.
+    // The swappable parts offered in the settings menu. A new engine, fitness function or task only needs to implement
+    // its interface and be listed here, and a new search to be registered in SearchCatalog; the first entry of each list
+    // is the default.
     internal static class Catalog
     {
         // The default: the GPU where there is one, which itself hands batches too small for it to the CPU.
@@ -48,17 +49,9 @@ namespace SnpEvolution.Cli
             .Concat(TaskSuite.All.Select(task => new CatalogEntry<Settings, BenchmarkTask>(task.Name, _ => task)))
             .ToList();
 
-        public static readonly IReadOnlyList<CatalogEntry<EvolutionContext, IGeneticAlgorithm>> Algorithms =
-            AlgorithmCatalog.All.Select(choice => new CatalogEntry<EvolutionContext, IGeneticAlgorithm>(choice.Name, choice.Create)).ToList();
+        // The genetic algorithms a run can evolve with, from the search catalog.
+        public static IReadOnlyList<EvolutionSearch> Algorithms => SearchCatalog.Evolution;
 
-        // The default algorithm: it evolves structure as well as rules, and has done best from scratch so far.
-        public static CatalogEntry<EvolutionContext, IGeneticAlgorithm> StructuralDefault => Algorithms.First(entry => entry.Name.StartsWith("MAP-Elites"));
-
-        // Rule-only algorithms keep the starting network's structure, so they cannot build a network from scratch.
-        public static bool EvolvesRulesOnly(CatalogEntry<EvolutionContext, IGeneticAlgorithm> entry) => EvolvesRulesOnly(entry.Name);
-
-        public static bool EvolvesRulesOnly(string algorithmName) => algorithmName.Contains("rule expressions only");
-
-        public static AlgorithmChoice ChoiceFor(CatalogEntry<EvolutionContext, IGeneticAlgorithm> entry) => new AlgorithmChoice(entry.Name, entry.Create);
+        public static EvolutionSearch StructuralDefault => SearchCatalog.StructuralDefault;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
@@ -312,9 +313,8 @@ namespace SnpEvolution.Cli
             }
             if (ConsoleUi.WaitForEnterOrEscape(" Press enter to run a quick pilot that picks the algorithm, or ESC to skip it."))
             {
-                AlgorithmChoice winner = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
-                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == winner.Name);
-                Console.WriteLine(" The pilot picked {0}.", winner.Name);
+                settings.Algorithm = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
+                Console.WriteLine(" The pilot picked {0}.", settings.Algorithm.Name);
             }
             return true;
         }
@@ -324,7 +324,7 @@ namespace SnpEvolution.Cli
 
         private void EvolveFromScratch(string fileStem)
         {
-            if (Catalog.EvolvesRulesOnly(settings.Algorithm) &&
+            if (settings.Algorithm.EvolvesRulesOnly &&
                 ConsoleUi.Confirm(settings, $"{settings.Algorithm.Name} keeps a random network's structure. Switch to {Catalog.StructuralDefault.Name}?"))
             {
                 settings.Algorithm = Catalog.StructuralDefault;
@@ -358,9 +358,9 @@ namespace SnpEvolution.Cli
                 return;
             }
             Settings used = settings.Copy();
-            var evaluations = new EvaluationCounter();
+            EvaluationBudget evaluations = settings.RunBudget();
             IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, createStartingNetwork, random, Console.WriteLine, evaluations);
-            RunOutput.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine, evaluations);
+            RunOutput.Save(geneticAlgorithm, folder, fileStem, Console.WriteLine, evaluations.Report());
             ConsoleUi.WaitForEnter("Press enter to continue.");
             OfferToSave(used, start, fileStem, savedName ?? $"{task.Name} ({DateTime.Now:yyyy-MM-dd HH:mm})", Outcome(geneticAlgorithm));
         }
@@ -393,14 +393,14 @@ namespace SnpEvolution.Cli
             Console.Clear();
             BenchmarkSettings benchmark = settings.BenchmarkSettings;
             Console.WriteLine("Runs {0} algorithms on {1} tasks, {2} seeds each, with up to {3} evaluations per run, on the {4} engine.",
-                AlgorithmCatalog.All.Count, TaskSuite.All.Count, benchmark.Seeds, benchmark.EvaluationBudget, settings.Engine.Name);
+                SearchCatalog.FromScratch.Count, TaskSuite.All.Count, benchmark.Seeds, benchmark.EvaluationBudget, settings.Engine.Name);
             if (!ConsoleUi.WaitForEnterOrEscape("Press enter to start, or ESC to go back; this can take a while."))
             {
                 return;
             }
             string folder = EvolutionSession.NewOutputFolder();
             Stopwatch stopwatch = Stopwatch.StartNew();
-            IReadOnlyList<BenchmarkRow> rows = Benchmark.Run(AlgorithmCatalog.All, TaskSuite.All, benchmark, Console.WriteLine);
+            IReadOnlyList<BenchmarkRow> rows = Benchmark.Run(SearchCatalog.FromScratch, TaskSuite.All, benchmark, Console.WriteLine);
             string table = Benchmark.FormatTable(rows);
             Console.WriteLine("\n{0}\nTime elapsed: {1}", table, stopwatch.Elapsed);
             Directory.CreateDirectory(folder);
@@ -415,12 +415,12 @@ namespace SnpEvolution.Cli
             BenchmarkTask task = settings.SelectedTask;
             BenchmarkSettings benchmark = settings.BenchmarkSettings;
             long initialBudget = Math.Max(1, benchmark.EvaluationBudget / 8);
-            Console.WriteLine("Successive halving over {0} algorithms for: {1}, starting at {2} evaluations per run.", AlgorithmCatalog.All.Count, task.Name, initialBudget);
+            Console.WriteLine("Successive halving over {0} algorithms for: {1}, starting at {2} evaluations per run.", Catalog.Algorithms.Count, task.Name, initialBudget);
             if (!ConsoleUi.WaitForEnterOrEscape("Press enter to start, or ESC to go back; this can take a while."))
             {
                 return;
             }
-            SelectionResult result = AlgorithmSelector.Select(AlgorithmCatalog.All, task, benchmark, initialBudget, Console.WriteLine);
+            SelectionResult<EvolutionSearch> result = AlgorithmSelector.Select(Catalog.Algorithms, task, benchmark, initialBudget, Console.WriteLine);
             Console.WriteLine("\nBest algorithm for {0}: {1}", task.Name, result.Winner.Name);
             if (result.BestFound is Individual best)
             {
@@ -429,7 +429,7 @@ namespace SnpEvolution.Cli
             ConsoleUi.WaitForEnter("Press enter to continue.");
             if (ConsoleUi.Confirm(settings, $"Use {result.Winner.Name} from now on?"))
             {
-                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == result.Winner.Name);
+                settings.Algorithm = result.Winner;
             }
         }
 
@@ -465,7 +465,7 @@ namespace SnpEvolution.Cli
             if (network.Neurons.Any(neuron => neuron.IsInput))
             {
                 BenchmarkTask task = settings.SelectedTask;
-                FitnessResult result = new FitnessEvaluator(engine, task.Task, settings.SimulationOptions, 1, random).Evaluate(network);
+                FitnessResult result = new FitnessEvaluator(engine, task.Task, settings.SimulationOptions, 1, random, new EvaluationBudget()).Evaluate(network);
                 Console.WriteLine("On {0}: fitness {1}, {2}", task.Name, result.Fitness, result.Description);
             }
             else

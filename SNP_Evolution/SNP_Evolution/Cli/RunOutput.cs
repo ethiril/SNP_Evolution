@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Modules;
@@ -17,7 +18,7 @@ namespace SnpEvolution.Cli
     internal static class RunOutput
     {
         // Saves the fitness history and the best network, and reports the best network and what the run spent.
-        public static void Save(IGeneticAlgorithm geneticAlgorithm, string folder, string fileStem, Action<string> log, EvaluationCounter? evaluations = null)
+        public static void Save(IGeneticAlgorithm geneticAlgorithm, string folder, string fileStem, Action<string> log, BudgetReport? evaluations = null)
         {
             Directory.CreateDirectory(folder);
             if (evaluations != null)

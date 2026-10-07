@@ -30,12 +30,8 @@ namespace SnpEvolution.Evolution.Tasks
 
         public float Score(IReadOnlyList<TrialResult> results)
         {
-            float[] accuracy = new[] { true, false }
-                .Select(accept => Examples.Select((example, index) => (example, index)).Where(pair => pair.example.Accept == accept).ToList())
-                .Where(group => group.Count > 0)
-                .Select(group => (float)group.Count(pair => results[pair.index].CanHalt == pair.example.Accept) / group.Count)
-                .ToArray();
-            return accuracy.Length == 0 ? 0 : accuracy.Average();
+            IReadOnlyList<float> checks = Checks(results);
+            return TaskScoring.BalancedAccuracy(Enumerable.Range(0, Examples.Count), example => Examples[example].Accept, example => checks[example]);
         }
 
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SnpEvolution.Compilation;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Search;
@@ -22,6 +23,7 @@ namespace SnpEvolution.Cli
 
         public static int Run(Settings settings, Options options, Random random, Action<string> log)
         {
+            var budget = new EvaluationBudget();
             OutputTarget target = settings.Target;
             ITask task = target.CreateTask(settings.FitnessFunction.Create(settings));
             string folder = EvolutionSession.NewOutputFolder();
@@ -48,7 +50,7 @@ namespace SnpEvolution.Cli
                     fitted = recurrence;
                     break;
                 case TargetKind.Set:
-                    if (FindProgram(target, settings, options, random, log) is not RegisterProgram program)
+                    if (FindProgram(target, task, settings, options, budget, random, log) is not RegisterProgram program)
                     {
                         return 1;
                     }
@@ -58,7 +60,7 @@ namespace SnpEvolution.Cli
                     // Every choice is followed, so rare outputs are seen.
                     // Runs last as long as the slowest computation up to the search's last bound: no module takes more
                     // than four steps an instruction, and the output counts down.
-                    long bound = ProgramSearch.StageBounds(target.Values.Distinct().OrderBy(number => number).ToList())[^1];
+                    long bound = ProgramScoring.StageBounds(target.Values.Distinct().OrderBy(number => number).ToList())[^1];
                     int instructionSteps = program.Generate(outputLimit: bound, valueLimit: 4 * bound + 4).Steps;
                     engine = new ExhaustiveCpuEngine();
                     steps = (int)Math.Max(steps, 4L * (instructionSteps + 2) + bound + 10);
@@ -67,28 +69,38 @@ namespace SnpEvolution.Cli
                     log("Only sequence and set targets can be compiled.");
                     return 1;
             }
-            log($"Compiled: {ShrinkRun.Describe(compiled)}.");
+            log($"Compiled: {ShrinkSearch.Describe(compiled)}.");
             Save(compiled, folder, "Compiled");
             SimulationOptions simulation = settings.SimulationOptions with { MaxSteps = steps, Repetitions = repetitions, Timing = OutputTiming.Interval };
-            var evaluator = new FitnessEvaluator(engine, task, simulation, settings.SolvedRetestCount, random);
+            var scoring = new NetworkScoring(() => engine, simulation, settings.SolvedRetestCount);
+            FitnessEvaluator evaluator = scoring.Evaluator(task, budget, random);
             FitnessResult check = evaluator.Evaluate(compiled);
             log($"The compiled network scores {check.Fitness:0.000}: {check.Description}");
-            var shrink = new ShrinkRun(compiled, evaluator, ShrinkFactory(settings, compiled, random), settings.PopulationSize, random, log);
-            if (options.ShrinkGenerations == 0 || !shrink.Run(options.ShrinkGenerations))
+            if (options.ShrinkGenerations == 0 || !StartsShrink(evaluator, compiled, check, log))
             {
                 log($"Saved to {folder}");
                 return Solved.Solves(check.Fitness) ? 0 : 2;
             }
-            NetworkFiles.SaveText(FitnessCsv.Format(shrink.FitnessHistory), Path.Combine(folder, "Shrunk.csv"));
-            Save(shrink.Smallest, folder, "Shrunk");
-            log($"{Environment.NewLine}Smallest correct network after {shrink.Generations} generations of shrinking: {ShrinkRun.Describe(shrink.Smallest)}, " +
-                $"from {ShrinkRun.Describe(compiled)}.{Environment.NewLine}{NetworkNotation.Format(shrink.Smallest)}");
+            var start = new Individual(compiled);
+            start.Record(check);
+            var setup = new NetworkSetup(settings.PopulationSize, settings.MutationRate, ShrinkFactory(settings, compiled, random), () => compiled, scoring);
+            SearchOutcome<Individual> shrink = SearchCatalog.Shrink.Run(new SearchRequest<Individual>(task, budget, random, log)
+            {
+                Seeds = new[] { start },
+                MaxGenerations = options.ShrinkGenerations,
+                Networks = setup,
+            });
+            Network smallest = shrink.Best!.Genes;
+            NetworkFiles.SaveText(FitnessCsv.Format(shrink.History), Path.Combine(folder, "Shrunk.csv"));
+            Save(smallest, folder, "Shrunk");
+            log($"{Environment.NewLine}Smallest correct network after {shrink.Generations} generations of shrinking: {ShrinkSearch.Describe(smallest)}, " +
+                $"from {ShrinkSearch.Describe(compiled)}.{Environment.NewLine}{NetworkNotation.Format(smallest)}");
             if (fitted != null)
             {
                 // Shrinking only checks the values given, so it may drop what the gaps after them need.
                 var further = new SequenceTask("continued", fitted.Values(target.Values.Count + ContinuedValues).Select(value => (int)Math.Min(int.MaxValue, value)).ToList());
-                var continued = new FitnessEvaluator(engine, further, simulation, settings.SolvedRetestCount, random);
-                log($"Past the target, the next {ContinuedValues} values of the recurrence: compiled {Continues(continued, compiled)}, shrunk {Continues(continued, shrink.Smallest)}.");
+                FitnessEvaluator continued = scoring.Evaluator(further, budget, random);
+                log($"Past the target, the next {ContinuedValues} values of the recurrence: compiled {Continues(continued, compiled)}, shrunk {Continues(continued, smallest)}.");
             }
             log($"Saved to {folder}");
             return 0;
@@ -97,9 +109,21 @@ namespace SnpEvolution.Cli
         private const int ContinuedValues = 4;
 
         private static string Continues(FitnessEvaluator evaluator, Network network) =>
-            evaluator.IsReliablySolved(network) ? "carries on" : $"does not ({evaluator.Evaluate(network).Description})";
+            evaluator.ConfirmSolved(network).Solved ? "carries on" : $"does not ({evaluator.Evaluate(network).Description})";
 
-        private static RegisterProgram? FindProgram(OutputTarget target, Settings settings, Options options, Random random, Action<string> log)
+        // A shrink keeps only networks as good as the one it starts from, so that one must reliably solve the task.
+        private static bool StartsShrink(FitnessEvaluator evaluator, Network compiled, FitnessResult check, Action<string> log)
+        {
+            if (!evaluator.ConfirmSolved(compiled).Solved)
+            {
+                log($"The starting network does not reliably solve {evaluator.Task.Name} (fitness {check.Fitness:0.000}), so there is nothing to shrink.");
+                return false;
+            }
+            log($"Shrinking from {ShrinkSearch.Describe(compiled)}.");
+            return true;
+        }
+
+        private static RegisterProgram? FindProgram(OutputTarget target, ITask task, Settings settings, Options options, EvaluationBudget budget, Random random, Action<string> log)
         {
             if (options.ProgramFile != null)
             {
@@ -120,13 +144,12 @@ namespace SnpEvolution.Cli
                 }
             }
             log($"Evolving a register program for {target}.");
-            var search = new ProgramSearch(target.Values, new ProgramSearchSettings(options.ProgramGenerations, Math.Max(settings.PopulationSize, 100), Lexicase: options.ProgramLexicase), random);
-            ScoredProgram best = search.Run(log);
-            log(Solved.Solves(best.Fitness)
-                ? $"Found a program in {search.GenerationsRun} generations."
-                : $"No program generates exactly {target} after {search.GenerationsRun} generations; compiling the best, with fitness {best.Fitness:0.000} " +
-                    $"on numbers up to {search.Bounds[search.Stage]} (stage {search.Stage + 1}/{search.Bounds.Count}).");
-            return best.Program;
+            var search = new ProgramSearch(new ProgramSearchSettings(Math.Max(settings.PopulationSize, 100), Lexicase: options.ProgramLexicase));
+            SearchOutcome<RegisterProgram> best = search.Run(new SearchRequest<RegisterProgram>(task, budget, random, log) { MaxGenerations = options.ProgramGenerations });
+            log(best.Solved
+                ? $"Found a program in {best.Generations} generations."
+                : $"No program generates exactly {target} after {best.Generations} generations; compiling the best, with fitness {best.Fitness:0.000}, {best.Description}.");
+            return best.Best;
         }
 
         // The usual genome space, widened to hold the compiled network so no edit is cut short by a limit it already breaks.

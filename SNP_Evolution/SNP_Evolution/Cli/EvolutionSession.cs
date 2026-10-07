@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
@@ -57,7 +58,7 @@ namespace SnpEvolution.Cli
                         (settings.TriggeredModules ? "; every other side run builds a part that starts on a trigger from the host." : "."));
                 }
             }
-            if (AlgorithmCatalog.IsComposition(settings.Algorithm.Name))
+            if (settings.Algorithm is CompositionSearch)
             {
                 notes.Add($"Composing networks from the parts in {settings.PartLibraryFolder}{(settings.HandBuiltParts ? " and the hand-built parts" : "")}, with up to {(settings.Composition.MaxGlue > 0 ? settings.Composition.MaxGlue : settings.MaxNeurons)} glue neuron(s) and {settings.Composition.MaxParts} part copies"
                     + (settings.Modules ? "; the modular loop is left out, since harvested modules are not parts." : "."));
@@ -65,7 +66,7 @@ namespace SnpEvolution.Cli
                 {
                     notes.Add($"When the run stalls it proposes the parts it lacks and evolves each for up to {settings.ProposalBudget} evaluations.");
                 }
-                if (task.Task is ContractTask)
+                if (task.Task is IContractTask)
                 {
                     notes.Add("A composition that solves the contract is promoted to a part and saved to the library.");
                 }
@@ -82,7 +83,7 @@ namespace SnpEvolution.Cli
             {
                 notes.Add($"After {settings.StagnationPatience} generations without improvement, mutation steps up and newcomers join.");
             }
-            if (task.Task is SequenceTask)
+            if (task.Task is ISequenceTask)
             {
                 notes.Add("Small SN P systems produce intervals that eventually repeat, so the evolved network matches the");
                 notes.Add("numbers given and need not continue the pattern after them.");
@@ -100,11 +101,11 @@ namespace SnpEvolution.Cli
         }
 
         // Starting networks always use the simple rule template; the configured templates only drive mutation.
+        // Every evaluation is charged to the budget, side runs, incubation, retests and proposed parts included.
         public static IGeneticAlgorithm Evolve(Settings settings, BenchmarkTask task, Func<NetworkFactory, Network> createStartingNetwork, Random random, Action<string> log,
-            EvaluationCounter? evaluations = null)
+            EvaluationBudget evaluations)
         {
-            evaluations ??= new EvaluationCounter();
-            bool composition = AlgorithmCatalog.IsComposition(settings.Algorithm.Name);
+            bool composition = settings.Algorithm is CompositionSearch;
             ModuleLibrary? parts = composition ? CompositionParts.Load(settings, log) : null;
             int partsAtStart = parts?.Parts.Count ?? 0;
             evaluations.AddUpFront(parts?.PartEvaluations ?? 0);
@@ -154,24 +155,19 @@ namespace SnpEvolution.Cli
                 {
                     Func<ITask> scoredOn = evaluator is ITaskEvaluator scoring ? () => scoring.Task : () => task.Task;
                     geneticAlgorithm = new PartProposals(geneticAlgorithm, CompositionSpace.For(context), scoredOn, ProposedPart,
-                        settings.ProposalPolicy, settings.PopulationSize, log);
+                        settings.ProposalPolicy, evaluations, settings.PopulationSize, log);
                 }
                 if (!settings.StagnationRecovery)
                 {
                     return geneticAlgorithm;
                 }
-                // Newcomers in composition search are compositions too, made and mutated the way the search makes them.
-                CompositionSpace? composer = composition ? CompositionSpace.For(context) : null;
-                return new StagnationRecovery(geneticAlgorithm, settings.StagnationPolicy, settings.PopulationSize, pressure,
-                    composer != null ? composer.NewNetwork : startingFactory.NewNetwork,
-                    composer?.Mutation(1) ?? WeightedMutation.Structural(1, mutationFactory, modules: library != null ? new ModuleSupport(library, settings.FreezeModules) : null),
-                    random, log);
+                return settings.Algorithm.Recovering(geneticAlgorithm, context, settings.StagnationPolicy, pressure, startingFactory.NewNetwork,
+                    WeightedMutation.Structural(1, mutationFactory, modules: library != null ? new ModuleSupport(library, settings.FreezeModules) : null));
             }
             PartOutcome ProposedPart(Contract contract)
             {
-                PartOutcome outcome = PartEvolution.Evolve(contract, random.Next(), PartsSession.SearchSettings(settings.ProposalBudget, () => new ExhaustiveCpuEngine()) with { HardwareProfile = settings.HardwareProfile }, log);
-                evaluations.Add(EvaluationSource.Proposals, outcome.Evaluations);
-                return outcome;
+                return PartSearch.Evolve(contract, random.Next(), PartsSession.SearchSettings(settings.ProposalBudget, () => new ExhaustiveCpuEngine()) with { HardwareProfile = settings.HardwareProfile },
+                    evaluations.Phase(source: EvaluationSource.Proposals), log);
             }
             if (IsIterative(settings, task, out IPrefixTask? prefixTask))
             {
@@ -184,16 +180,15 @@ namespace SnpEvolution.Cli
             IGeneticAlgorithm run = CreateAlgorithm(evaluator);
             RunGenerations(settings, evaluations, run, best =>
             {
-                if (!Solved.Solves(best.Fitness))
+                if (Solved.Solves(best.Fitness))
                 {
-                    return false;
+                    log("Testing the best fitness for repeated success.");
                 }
-                log("Testing the best fitness for repeated success.");
-                return evaluator.ConfirmSolved(best);
+                return SolveCheck.Confirms(best, evaluator);
             }, log);
-            if (parts != null && task.Task is ContractTask contractTask && IsSolved(run, contractTask) && run.Best is Individual solved)
+            if (parts != null && task.Task is IContractTask contractTask && IsSolved(run, contractTask) && run.Best is Individual solved)
             {
-                Promotion.PromoteSolved(solved.Genes, contractTask, parts, new PartOrigin(0, $"composition search for {contractTask.Contract.Name}", evaluations.Total), log);
+                Promotion.PromoteSolved(solved.Genes, ContractTask.Of(contractTask), parts, new PartOrigin(0, $"composition search for {contractTask.Contract.Name}", evaluations.Networks), evaluations, log);
             }
             CompositionParts.SaveIfGrown(settings, parts, partsAtStart, log);
             return run;
@@ -246,30 +241,29 @@ namespace SnpEvolution.Cli
             return library;
         }
 
-        private static void RunGenerations(Settings settings, EvaluationCounter evaluations, IGeneticAlgorithm geneticAlgorithm, Func<Individual, bool> isSolved, Action<string> log)
+        private static void RunGenerations(Settings settings, EvaluationBudget evaluations, IGeneticAlgorithm geneticAlgorithm, Func<Individual, bool> isSolved, Action<string> log)
         {
-            for (int generation = 0; generation < settings.MaxGenerations; generation++)
+            (SearchStop stop, int generations) = GenerationLoop.Run(settings.MaxGenerations, () => evaluations.IsSpent, default, generation =>
             {
-                if (settings.MaxEvaluations > 0 && evaluations.Total >= settings.MaxEvaluations)
-                {
-                    log($"The budget of {settings.MaxEvaluations} evaluations is spent, stopping . . .");
-                    return;
-                }
                 string stage = geneticAlgorithm is IterativeEvolution iterative ? $" (stage {iterative.Stage + 1}/{iterative.StageCount})" : "";
                 log($"Running Generation {generation}{stage}");
                 geneticAlgorithm.NextGeneration();
                 if (geneticAlgorithm.Best is not Individual best)
                 {
-                    continue;
+                    return false;
                 }
                 log(NetworkNotation.Format(best.Genes).TrimEnd());
                 log(best.Description);
                 log($"Current best fitness: {best.Fitness}");
-                if (isSolved(best))
-                {
-                    log($"Fitness over {Solved.Sampled}, stopping . . .");
-                    return;
-                }
+                return isSolved(best);
+            });
+            if (stop == SearchStop.Solved)
+            {
+                log($"Fitness over {Solved.Sampled}, stopping . . .");
+            }
+            else if (stop == SearchStop.BudgetSpent && generations < settings.MaxGenerations)
+            {
+                log($"The budget of {settings.MaxEvaluations} evaluations is spent, stopping . . .");
             }
         }
     }

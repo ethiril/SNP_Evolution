@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
@@ -37,7 +38,7 @@ namespace SnpEvolution.Tests.Evolution
             Part register = ReferenceParts.Register();
             Contract doubled = register.Contract with { Cases = register.Contract.Cases.Select(@case => @case with { Outputs = new Dictionary<string, int> { ["out"] = 2 * @case.Outputs["out"] } }).ToList() };
 
-            BoundedResult result = BoundedCheck.Prove(register with { Contract = doubled }, AMinute);
+            BoundedResult result = BoundedCheck.Prove(register with { Contract = doubled }, AMinute, new EvaluationBudget());
 
             Assert.Equal(-1, result.Proven.UpTo);
             Assert.Equal(Stop.NoSpecification, Assert.IsType<Verdict.Unknown>(result.Verdict).Reason.Stop);
@@ -49,7 +50,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var clock = Stopwatch.StartNew();
 
-            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxBound = 32 });
+            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxBound = 32 }, new EvaluationBudget());
 
             Assert.IsNotType<Verdict.Failed>(result.Verdict);
             Assert.Equal(32, result.Proven.UpTo);
@@ -61,9 +62,9 @@ namespace SnpEvolution.Tests.Evolution
         public void CatchesAPartThatFailsOnlyAtTwentyWithItsTrace()
         {
             Part broken = RegisterFailingAtTwenty();
-            Assert.IsType<Verdict.Passed>(Verifier.Measure(broken).Verdict);
+            Assert.IsType<Verdict.Passed>(Verifier.Measure(broken, new EvaluationBudget()).Verdict);
 
-            BoundedResult result = BoundedCheck.Prove(broken, AMinute);
+            BoundedResult result = BoundedCheck.Prove(broken, AMinute, new EvaluationBudget());
 
             Assert.Equal(19, result.Proven.UpTo);
             Assert.Equal("n=20", result.Proven.FailsAt);
@@ -86,7 +87,7 @@ namespace SnpEvolution.Tests.Evolution
             Neuron start = delay.Network.Neurons[0];
             var sometimesTwice = delay with { Network = new Network(new[] { start.WithRules(new[] { Rule.Standard("a", 1, 1), Rule.Standard("a", 1, 2) }), delay.Network.Neurons[1] }) };
 
-            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(sometimesTwice, AMinute).Verdict).Counterexample;
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(sometimesTwice, AMinute, new EvaluationBudget()).Verdict).Counterexample;
 
             Assert.Equal(ContractRule.DoneOnce, counterexample.Rule);
             Assert.Equal(2, counterexample.Run.Firings.Last().Count);
@@ -98,7 +99,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var log = new List<string>();
 
-            Assert.IsType<Verdict.Failed>(BoundedCheck.Admit(RegisterFailingAtTwenty(), log.Add).Verdict);
+            Assert.IsType<Verdict.Failed>(BoundedCheck.Admit(RegisterFailingAtTwenty(), new EvaluationBudget(), log.Add).Verdict);
             Assert.Contains(log, line => line.Contains("Not admitted") && line.Contains("n=20"));
             Assert.Equal(24, BoundedCheck.Admission(FirstParts.Named("register")).MaxBound);
         }
@@ -107,7 +108,7 @@ namespace SnpEvolution.Tests.Evolution
         [Slow]
         public void APartWithNoDataInPortsIsProvenForEveryInput()
         {
-            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Delay(2), AMinute);
+            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Delay(2), AMinute, new EvaluationBudget());
 
             Assert.True(result.Proven.AllInputs);
             Assert.Equal(0, result.Proven.UpTo);
@@ -118,7 +119,7 @@ namespace SnpEvolution.Tests.Evolution
         [Slow]
         public void ACaseTooWideToFollowExactlyIsNotProven()
         {
-            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxConfigurations = 0 });
+            BoundedResult result = BoundedCheck.Prove(ReferenceParts.Register(), AMinute with { MaxConfigurations = 0 }, new EvaluationBudget());
 
             Assert.Equal(-1, result.Proven.UpTo);
             Assert.Equal(Stop.TooWide, Assert.IsType<Verdict.Unknown>(result.Verdict).Reason.Stop);
@@ -131,7 +132,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Assert.All(HandBuiltParts.All(), part =>
             {
-                BoundedResult result = BoundedCheck.Prove(part, BoundedCheck.Admission(part.Contract) with { Time = TimeSpan.FromMinutes(1) });
+                BoundedResult result = BoundedCheck.Prove(part, BoundedCheck.Admission(part.Contract) with { Time = TimeSpan.FromMinutes(1) }, new EvaluationBudget());
 
                 Assert.True(result.Verdict is not Verdict.Failed, $"{part.Contract.Name}: {result.Verdict}");
                 Assert.Equal(BoundedCheck.Admission(part.Contract).MaxBound, result.Proven.UpTo);
@@ -150,7 +151,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ALibraryFileKeepsItsProvenBound()
         {
             Part delay = ReferenceParts.Delay(2);
-            LibraryPart part = Verifier.Measure(delay).ToLibraryPart(delay, new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
+            LibraryPart part = Verifier.Measure(delay, new EvaluationBudget()).ToLibraryPart(delay, new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
 
             LibraryPart read = PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "delay-2.json");
 
@@ -180,11 +181,11 @@ namespace SnpEvolution.Tests.Evolution
         public void ACounterexampleIsACaseAContractCanTake()
         {
             Part broken = RegisterFailingAtTwenty();
-            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(broken, AMinute).Verdict).Counterexample;
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(broken, AMinute, new EvaluationBudget()).Verdict).Counterexample;
 
             Contract withIt = broken.Contract with { Cases = broken.Contract.Cases.Append(counterexample.Case).ToList(), MaxLatency = counterexample.Contract.MaxLatency };
 
-            Assert.IsType<Verdict.Failed>(new Verifier(new ContractTask(withIt, broken.Binding)).Check(broken.Network));
+            Assert.IsType<Verdict.Failed>(new Verifier(new ContractTask(withIt, broken.Binding), new EvaluationBudget()).Check(broken.Network));
         }
 
         [Fact]
@@ -192,7 +193,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ALibraryFileWithACounterexampleIsRefused()
         {
             Part broken = RegisterFailingAtTwenty();
-            LibraryPart part = Verifier.Measure(broken).ToLibraryPart(broken, new PartOrigin(0, "by hand", 0)) with { Proven = BoundedCheck.Prove(broken, AMinute).Proven };
+            LibraryPart part = Verifier.Measure(broken, new EvaluationBudget()).ToLibraryPart(broken, new PartOrigin(0, "by hand", 0)) with { Proven = BoundedCheck.Prove(broken, AMinute, new EvaluationBudget()).Proven };
 
             var refusal = Assert.Throws<InvalidDataException>(() => PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "register.json"));
 

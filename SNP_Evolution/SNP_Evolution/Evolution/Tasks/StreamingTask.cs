@@ -141,21 +141,12 @@ namespace SnpEvolution.Evolution.Tasks
         public float Score(IReadOnlyList<TrialResult> results)
         {
             IReadOnlyList<float> checks = Checks(results);
-            float[] accuracy = new[] { true, false }
-                .Select(wantsOutput => Enumerable.Range(0, windows.Count).Where(check => windows[check].Window.WantsOutput == wantsOutput).ToList())
-                .Where(group => group.Count > 0)
-                .Select(group => group.Average(check => checks[check]))
-                .ToArray();
-            return accuracy.Length == 0 ? 0 : accuracy.Average();
+            return TaskScoring.BalancedAccuracy(Enumerable.Range(0, windows.Count), check => windows[check].Window.WantsOutput, check => checks[check]);
         }
 
         // Each window, scored by the share of runs whose output does the right thing in it.
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
-            windows.Select(pair =>
-            {
-                IReadOnlyList<IReadOnlyList<int>> trains = results[pair.Case].SpikeTrains;
-                return trains.Count == 0 ? 0 : (float)trains.Count(train => pair.Window.Passes(train)) / trains.Count;
-            }).ToList();
+            windows.Select(pair => TaskScoring.ShareOfRuns(results[pair.Case].SpikeTrains, pair.Window.Passes)).ToList();
 
         public string CheckName(int check)
         {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -22,14 +23,14 @@ namespace SnpEvolution.Evolution.Modules
         {
             foreach (Part part in HandBuiltParts.All())
             {
-                library.AddPart(Verifier.Measure(part).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0)), HandBuiltParts.Origin);
+                library.AddPart(Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0)), HandBuiltParts.Origin);
             }
             if (!addLoop)
             {
                 return;
             }
             (Composition loop, PortBinding binding) = AddLoop(library);
-            Promotion.Promote(loop, ArithmeticParts.AddLoop(), binding, library, new PartOrigin(0, HandBuiltParts.Origin, 0), log);
+            Promotion.Promote(loop, ArithmeticParts.AddLoop(), binding, library, new PartOrigin(0, HandBuiltParts.Origin, 0), new EvaluationBudget(), log);
         }
 
         // Each round adds b to the sum and counts n down; on the last round the gate starts shut and swallows b, so every neuron ends where it began.

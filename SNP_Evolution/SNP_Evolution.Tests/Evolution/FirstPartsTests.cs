@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Parts;
@@ -25,7 +26,7 @@ namespace SnpEvolution.Tests.Evolution
             "| Sequencer | done out xk | fires its outputs in order, each one step after the previous (k = 2, 3) |\n";
 
         private static FitnessResult Verify(ContractTask task, Network network) =>
-            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, new Random(0)).Evaluate(network);
+            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, new Random(0), new EvaluationBudget()).Evaluate(network);
 
         public static TheoryData<string> ContractNames => new TheoryData<string>(FirstParts.Contracts.Select(contract => contract.Name));
 

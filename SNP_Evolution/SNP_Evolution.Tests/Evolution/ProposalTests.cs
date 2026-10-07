@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
@@ -80,14 +81,14 @@ namespace SnpEvolution.Tests.Evolution
             var task = new SequenceTask("gaps", new[] { 1, 6, 1 });
             var factory = new NetworkFactory(new GenomeSpace(InputCount: 0, RuleForm: RuleForm.Standard, MaxNeurons: 4),
                 new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, random);
+            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, random, new EvaluationBudget());
             var space = new CompositionSpace(library, factory, new CompositionMix(), random);
             var context = new EvolutionContext(12, 0.5f, random, space.NewNetwork, evaluator, factory, _ => { }, Parts: library);
-            IGeneticAlgorithm search = AlgorithmCatalog.All.First(choice => AlgorithmCatalog.IsComposition(choice.Name)).Create(context);
-            var settings = new PartSearchSettings(30_000, 0, PartsSession.Population, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine());
+            IGeneticAlgorithm search = SearchCatalog.CompositionMapElites.Create(context);
+            var settings = new PartSearchSettings(30_000, 0, PartsSession.Population, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine());
             var log = new List<string>();
-            var proposals = new PartProposals(search, space, () => task, contract => PartEvolution.Evolve(contract, 1, settings, log.Add),
-                new ProposalPolicy(Patience: 2, MaxProposals: 1), 12, log.Add);
+            var proposals = new PartProposals(search, space, () => task, contract => PartSearch.Evolve(contract, 1, settings, new EvaluationBudget(), log.Add),
+                new ProposalPolicy(Patience: 2, MaxProposals: 1), new EvaluationBudget(), 12, log.Add);
 
             for (int generation = 0; generation < 12 && proposals.Proposals.Count == 0; generation++)
             {

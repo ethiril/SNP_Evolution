@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
@@ -12,7 +13,7 @@ namespace SnpEvolution.Tests.Evolution
         private static readonly SimulationOptions Options = new SimulationOptions(MaxSteps: 40, Repetitions: 20, OutputTiming.Interval);
 
         private static FitnessResult Evaluate(ITask task, Network network) =>
-            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, Options, solvedRetestCount: 3, new Random(0)).Evaluate(network);
+            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, Options, solvedRetestCount: 3, new Random(0), new EvaluationBudget()).Evaluate(network);
 
         private static TrialResult Outputs(params int[] outputs) => new TrialResult(outputs, false, TrialCoverage.Exact);
 
@@ -91,10 +92,10 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ExactResultIsReliablySolvedWithoutRetesting()
         {
-            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }), Options, solvedRetestCount: 5, new Random(0));
+            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }), Options, solvedRetestCount: 5, new Random(0), new EvaluationBudget());
 
-            Assert.True(evaluator.IsReliablySolved(Identity()));
-            Assert.Equal(1, evaluator.Evaluations);
+            Assert.True(evaluator.ConfirmSolved(Identity()).Solved);
+            Assert.Equal(1, evaluator.Budget.Networks);
         }
 
         [Fact]
