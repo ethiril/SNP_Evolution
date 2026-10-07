@@ -1,3 +1,4 @@
+using SnpEvolution.Application;
 using SnpEvolution.Cli;
 using SnpEvolution.Simulation;
 

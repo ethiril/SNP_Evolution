@@ -1,18 +1,41 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using SnpEvolution.Application;
 using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Simulation;
 using static SnpEvolution.Cli.MenuPrompts;
-using static SnpEvolution.Cli.SearchMenu;
-using static SnpEvolution.Cli.TargetMenu;
 
 namespace SnpEvolution.Cli
 {
-    // Settings grouped by what they affect. Each group lists its settings with their current values, and stays open
-    // until the user goes back, so several can be changed in one visit.
+    // Settings grouped by what they affect, each group a page of its settings.
     internal static class SettingsMenu
     {
+        private static readonly SettingRow[] Evolution =
+        {
+            new SettingRow(settings => ConsoleUi.Row("Task", settings.Task.Name), ChooseTask),
+            new SettingRow(settings => ConsoleUi.Row("Target", $"{settings.Target.Kind} {settings.Target}"), settings => TargetMenu.EditTarget(settings)),
+            new SettingRow(settings => ConsoleUi.Row("Fitness function (sets)", settings.FitnessFunction.Name),
+                settings => settings.FitnessFunction = ChooseEntry(settings, "Score set targets with:", Catalog.FitnessFunctions, settings.FitnessFunction)),
+            SettingOptions.Algorithm,
+            SettingOptions.Population,
+            new SettingRow(settings => ConsoleUi.Row("Mutation rate", settings.MutationRate),
+                settings => PromptFor<float>("Mutation rate, between 0 and 1", ValueKinds.Probability.Invalid, InputParsing.TryProbability, value => settings.MutationRate = value)),
+            SettingOptions.Generations,
+            SettingOptions.Neurons,
+            SettingRow.Toggle("Experimental rules", settings => settings.ExperimentalRules, (settings, value) => settings.ExperimentalRules = value),
+        };
+
+        private static readonly SettingRow[] Simulation =
+        {
+            new SettingRow(settings => ConsoleUi.Row("Engine", settings.Engine.Name), settings => settings.Engine = ChooseEntry(settings, "Run networks on:", Catalog.Engines, settings.Engine)),
+            new SettingRow(settings => ConsoleUi.Row("Max steps per run", settings.MaxSteps),
+                settings => PromptFor<int>("Maximum steps per run", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.MaxSteps = value)),
+            SettingOptions.Repetitions,
+            new SettingRow(settings => ConsoleUi.Row("Rule form", settings.RuleForm), settings => settings.RuleForm = ChooseEnum(settings, "Form of the rules evolution creates:", settings.RuleForm)),
+            new SettingRow(settings => ConsoleUi.Row("Output timing", settings.OutputTiming),
+                settings => settings.OutputTiming = ChooseEnum(settings, "How the output neuron's spikes become a number:", settings.OutputTiming)),
+            SettingOptions.HardwareProfile,
+        };
+
+        private static readonly SettingRow[] Benchmarks = { SettingOptions.BenchmarkSeeds, SettingOptions.BenchmarkBudget, SettingOptions.BenchmarkPopulation };
+
         // Returns the settings to use from now on, which is a fresh instance when defaults are restored.
         public static Settings Edit(Settings settings)
         {
@@ -23,16 +46,16 @@ namespace SnpEvolution.Cli
                 switch (choice)
                 {
                     case 0:
-                        EditEvolution(settings);
+                        SettingsPage.Edit(settings, "Settings > Evolution", Evolution);
                         break;
                     case 1:
-                        EditSearch(settings);
+                        SearchMenu.EditSearch(settings);
                         break;
                     case 2:
-                        EditSimulation(settings);
+                        SettingsPage.Edit(settings, "Settings > Simulation", Simulation);
                         break;
                     case 3:
-                        EditBenchmarks(settings);
+                        SettingsPage.Edit(settings, "Settings > Benchmarks", Benchmarks);
                         break;
                     case 4:
                         if (ConsoleUi.Confirm(settings, "Load the default configuration?"))
@@ -43,120 +66,6 @@ namespace SnpEvolution.Cli
                 }
             }
             return settings;
-        }
-
-        private static void EditEvolution(Settings settings)
-        {
-            int selection = 0;
-            while (ConsoleUi.Choose(settings, "Settings > Evolution", new[]
-                {
-                    ConsoleUi.Row("Task", settings.Task.Name),
-                    ConsoleUi.Row("Target", $"{settings.Target.Kind} {settings.Target}"),
-                    ConsoleUi.Row("Fitness function (sets)", settings.FitnessFunction.Name),
-                    ConsoleUi.Row("Genetic algorithm", settings.Algorithm.Name),
-                    ConsoleUi.Row("Population size", settings.PopulationSize),
-                    ConsoleUi.Row("Mutation rate", settings.MutationRate),
-                    ConsoleUi.Row("Max generations", settings.MaxGenerations),
-                    ConsoleUi.Row("Max neurons", settings.MaxNeurons),
-                    ConsoleUi.Row("Experimental rules", settings.ExperimentalRules ? "on" : "off"),
-                }, selection) is int choice)
-            {
-                selection = choice;
-                switch (choice)
-                {
-                    case 0:
-                        ChooseTask(settings);
-                        break;
-                    case 1:
-                        EditTarget(settings);
-                        break;
-                    case 2:
-                        settings.FitnessFunction = ChooseEntry(settings, "Score set targets with:", Catalog.FitnessFunctions, settings.FitnessFunction);
-                        break;
-                    case 3:
-                        settings.Algorithm = Choose(settings, "Evolve networks with:", Catalog.Algorithms, settings.Algorithm, search => search.Name);
-                        break;
-                    case 4:
-                        PromptFor<int>("Population size", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.PopulationSize = value);
-                        break;
-                    case 5:
-                        PromptFor<float>("Mutation rate, between 0 and 1", "Number was not a rate between 0 and 1.", InputParsing.TryProbability, value => settings.MutationRate = value);
-                        break;
-                    case 6:
-                        PromptFor<int>("Maximum number of generations", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.MaxGenerations = value);
-                        break;
-                    case 7:
-                        PromptFor<int>("Maximum number of neurons in an evolved network", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.MaxNeurons = value);
-                        break;
-                    case 8:
-                        settings.ExperimentalRules = !settings.ExperimentalRules;
-                        break;
-                }
-            }
-        }
-
-        private static void EditSimulation(Settings settings)
-        {
-            int selection = 0;
-            while (ConsoleUi.Choose(settings, "Settings > Simulation", new[]
-                {
-                    ConsoleUi.Row("Engine", settings.Engine.Name),
-                    ConsoleUi.Row("Max steps per run", settings.MaxSteps),
-                    ConsoleUi.Row("Runs per network", settings.Repetitions),
-                    ConsoleUi.Row("Rule form", settings.RuleForm),
-                    ConsoleUi.Row("Output timing", settings.OutputTiming),
-                    ConsoleUi.Row("Hardware profile", settings.HardwareProfile ? "on (threshold-and-reset rules only)" : "off"),
-                }, selection) is int choice)
-            {
-                selection = choice;
-                switch (choice)
-                {
-                    case 0:
-                        settings.Engine = ChooseEntry(settings, "Run networks on:", Catalog.Engines, settings.Engine);
-                        break;
-                    case 1:
-                        PromptFor<int>("Maximum steps per run", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.MaxSteps = value);
-                        break;
-                    case 2:
-                        PromptFor<int>("Number of runs per network", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.Repetitions = value);
-                        break;
-                    case 3:
-                        settings.RuleForm = ChooseEnum(settings, "Form of the rules evolution creates:", settings.RuleForm);
-                        break;
-                    case 4:
-                        settings.OutputTiming = ChooseEnum(settings, "How the output neuron's spikes become a number:", settings.OutputTiming);
-                        break;
-                    case 5:
-                        settings.HardwareProfile = !settings.HardwareProfile;
-                        break;
-                }
-            }
-        }
-
-        private static void EditBenchmarks(Settings settings)
-        {
-            int selection = 0;
-            while (ConsoleUi.Choose(settings, "Settings > Benchmarks", new[]
-                {
-                    ConsoleUi.Row("Seeds per task", settings.BenchmarkSeeds),
-                    ConsoleUi.Row("Evaluations per run", settings.EvaluationBudget),
-                    ConsoleUi.Row("Population size", settings.BenchmarkPopulationSize),
-                }, selection) is int choice)
-            {
-                selection = choice;
-                switch (choice)
-                {
-                    case 0:
-                        PromptFor<int>("Number of seeds each benchmark runs", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.BenchmarkSeeds = value);
-                        break;
-                    case 1:
-                        PromptFor<int>("Number of network evaluations each benchmark run may use", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.EvaluationBudget = value);
-                        break;
-                    case 2:
-                        PromptFor<int>("Population size for benchmarks", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.BenchmarkPopulationSize = value);
-                        break;
-                }
-            }
         }
 
         // Suite tasks come with the rule form and timing they are meant for, which can still be changed after.

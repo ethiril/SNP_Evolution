@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using SnpEvolution.Evolution.Algorithms;
+using SnpEvolution.Application;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
@@ -14,14 +14,6 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Cli
 {
-    // The network an evolution run starts from.
-    internal enum RunStart
-    {
-        Scratch,
-        NaturalNumbers,
-        EvenNumbers,
-    }
-
     // A run's settings and starting point, kept so the run can be done again or its settings loaded later. Outcome
     // says how it went the time it was saved.
     internal sealed record SavedRun(string Name, DateTime SavedAt, RunStart Start, string FileStem, string Outcome, Settings Settings)

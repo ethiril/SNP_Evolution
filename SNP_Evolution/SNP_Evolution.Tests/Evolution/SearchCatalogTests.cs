@@ -70,7 +70,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheMenuOffersEveryGeneticAlgorithmInTheCatalog()
         {
-            Assert.Equal(SearchCatalog.Evolution, SnpEvolution.Cli.Catalog.Algorithms);
+            Assert.Equal(SearchCatalog.Evolution, SnpEvolution.Application.Catalog.Algorithms);
         }
 
         [Fact]

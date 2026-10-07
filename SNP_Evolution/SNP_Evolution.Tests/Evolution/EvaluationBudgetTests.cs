@@ -1,4 +1,4 @@
-using SnpEvolution.Cli;
+using SnpEvolution.Application;
 using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Parts;

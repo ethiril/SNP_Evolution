@@ -68,6 +68,28 @@ Sequence and binary targets have some limits:
 - Small SN P systems produce spike trains that eventually repeat. An evolved network matches the numbers you typed but need not continue the pattern after them. For example, one evolved network for `1,1,2,3,5,8,13` continued with `6,8`.
 - The default algorithm, MAP-Elites, evolves structure as well as rules. If you pick a rule-only algorithm, the menu offers to switch back before evolving from scratch, since a random network's structure would never change. Long or irregular targets need a larger population than the default.
 
+## Commands
+
+Every menu run also runs without the menu, from scripts. Each command declares its options, and an unknown option, a missing value or a value the option cannot take is refused with a message naming it. Commands exit with 0 on success, 1 for a bad command line or input they cannot use, 2 when a run solved nothing or a proof found a counterexample, and 3 when an outside tool's check differs from our engine. Options in brackets are optional; `NAME` matches any task, search or contract whose name contains it, ignoring case, unless one name is exactly `NAME`.
+
+| Command | What it does | Options |
+|---|---|---|
+| `evolve` | Evolves a network from scratch for a target and saves the run; exits with 2 when no network solved it. | `--target VALUES` `[--kind set\|sequence\|binary]` `[--seed N]` `[--advise on\|off]` `[--pilot on\|off]` `[--generations N]` `[--population N]` `[--neurons N]` `[--patience N]` `[--iterative on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--evaluations N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` |
+| `advise` | Prints the settings the advisor suggests for a target, without evolving. | `--target VALUES` `[--kind set\|sequence\|binary]` `[--generations N]` `[--population N]` `[--neurons N]` `[--patience N]` `[--iterative on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--evaluations N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` |
+| `compile` | Compiles a sequence target's recurrence or a set target's register program into a network that is correct by construction, then shrinks it. | `--target VALUES` `[--kind set\|sequence\|binary]` `[--program FILE]` `[--generations N]` `[--lexicase on\|off]` `[--shrink N]` `[--seed N]` `[--population N]` |
+| `reach` | Runs each setup on seeds 1 to N with the same budget and compares how far into the target they get. | `--target VALUES` `--evaluations N` `[--kind set\|sequence\|binary]` `[--setups flat,modules,composition]` `[--seeds N]` `[--charge-parts on\|off]` `[--generations N]` `[--population N]` `[--neurons N]` `[--patience N]` `[--iterative on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` |
+| `evolve-parts` | Evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for, and reports robustness to jitter. | `[--seed N]` `[--budget N]` `[--only "NAME,NAME"]` `[--library DIR]` `[--engine exact\|sampled]` `[--configurations N]` `[--redo on\|off]` `[--profile hardware\|none]` `[--robust J]` |
+| `compose` | Composition search for one suite task; a solved contract is promoted to a part and the library saved. | `--task NAME` `[--seed N]` `[--generations N]` `[--population N]` `[--neurons N]` `[--patience N]` `[--iterative on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--evaluations N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` |
+| `verify` | Proves each part's contract for every input up to a bound, raised until the time per part runs out, and records it in the part's file. | `[--part FILE]` `[--library DIR]` `[--only "NAME,NAME"]` `[--seconds N]` `[--bound N]` |
+| `export-verilog` | Writes a deterministic network as Verilog with a testbench, and co-simulates it under iverilog when installed. | `[--part FILE]` `[--network FILE]` `[--steps N]` `[--out DIR]` `[--check on\|off]` |
+| `export-nir` | Writes a hardware-profile network for tools/snp_nir.py, which makes the NIR file and co-simulates it in norse. | `[--part FILE]` `[--network FILE]` `[--steps N]` `[--out DIR]` |
+| `export-uppaal` | Writes a part as Uppaal timed automata with queries for its contract, and model-checks them with verifyta when installed. | `--part FILE` `[--out DIR]` `[--check on\|off]` |
+| `benchmark` | Runs every matching search on every matching suite task over several seeds, with a budget of evaluations per run, and prints the table. | `[--task NAME]` `[--algorithm NAME]` `[--engine exact\|sampled]` `[--configurations N]` `[--lexicase on\|off]` `[--budget N]` `[--seeds N]` `[--population N]` `[--repetitions N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` |
+| `select` | Picks the best of the matching searches for one suite task by successive halving. | `--task NAME` `[--algorithm NAME]` `[--engine exact\|sampled]` `[--configurations N]` `[--lexicase on\|off]` `[--budget N]` `[--seeds N]` `[--population N]` `[--repetitions N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` |
+| `tasks` | Lists the suite tasks. |  |
+| `algorithms` | Lists the searches. |  |
+
+
 ## Understanding the evolution outputs in the console
 When evolving, the console shows the best network after every generation: its neurons, its rules, what it did on the task, and its fitness. For each kind of task, that line shows:
 
@@ -243,7 +265,7 @@ snp-evolution benchmark --task "Contract multiply" --algorithm Composition --lex
 
 **Hand-built parts.** evolve-parts has not yet found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Its done waits for both the loop's last round and the accumulator's own done, since a large a is still draining into the sum when the loop ends. Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
 
-On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 10 of 20 runs with the add loop in the library: 7 of 10 with MAP-Elites (median 3205 evaluations) and 3 of 10 with tournament selection (median 4325). The add loop was in the best network of 18 of 20 runs. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 4e-4). Before the add loop's done was joined to its accumulator's (see Proving parts past their cases), the same runs solved 14 of 20, 7 of 10 for each algorithm. The fix cost tournament selection 4 runs (7 against 3 of 10, p = 0.18). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier (`compose --seed 1`) has 56 neurons and 68 synapses and takes 261 steps for 6 x 5.
+On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 10 of 20 runs with the add loop in the library: 7 of 10 with MAP-Elites (median 3205 evaluations) and 3 of 10 with tournament selection (median 4325). The add loop was in the best network of 18 of 20 runs. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 4e-4). Before the add loop's done was joined to its accumulator's (see Proving parts past their cases), the same runs solved 14 of 20, 7 of 10 for each algorithm. The fix cost tournament selection 4 runs (7 against 3 of 10, p = 0.18). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier (`compose --task "Contract multiply" --hand-built on --seed 1`) has 56 neurons and 68 synapses and takes 261 steps for 6 x 5.
 
 ```
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built on
@@ -256,7 +278,7 @@ A contract's cases test n up to 8 and one larger value, and composition trusts e
 
 ```
 snp-evolution verify --library parts
-snp-evolution verify --part parts/delay-2.json [--seconds 60] [--bound N]
+snp-evolution verify --part parts/delay-2.json --seconds 60 --bound 12
 snp-evolution verify --library DIR --only "add loop"
 ```
 
@@ -327,6 +349,12 @@ dotnet run --project SNP_Evolution -c Release -- algorithms   # list the searche
 
 `evolve` builds a network from scratch for a target. `--kind` is `set`, `sequence` (the default) or `binary`. `evolve` uses the default algorithm, MAP-Elites, unless given `--algorithm`, and `--seed N` makes a run repeatable. It saves the result like the menu does, and exits with status 2 if no network solved the target.
 
+`reach` compares setups on one target with the same evaluation budget: flat MAP-Elites, MAP-Elites with the modular loop and lexicase parents, and composition search from the part library, whose recorded cost is taken off composition search's budget unless given `--charge-parts off`. Each setup runs on seeds 1 to N in parallel, one CPU thread each. The report gives each setup's reach, which is how many of the target's checks its best network gets right, in order, before the first it misses, with Mann-Whitney tests between setups. It is saved as `reach.md` and `reach.csv`:
+
+```
+snp-evolution reach --target "1,1,2,3,5,8,13,21,34" --evaluations 20000 --seeds 10 --setups flat,composition
+```
+
 File Structure (under `SNP_Evolution/SNP_Evolution`):
 
 - `Program.cs` starts the console menu, or runs a command when given arguments.
@@ -355,7 +383,8 @@ File Structure (under `SNP_Evolution/SNP_Evolution`):
 - `Compilation/` compiles recurrences and register machines into networks.
 - `Export/` writes Verilog, NIR and Uppaal models of networks.
 - `Storage/` saves and loads networks, parts and contracts as JSON, through one set of settings (`Json`), and fitness history as CSV.
-- `Cli/` holds the console menus, settings and command-line mode. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings menu offers. `EvolutionSession` runs and saves one evolution, for both the menu and the `evolve` command.
+- `Application/` holds the settings and one run service per flow (evolve, compose, compile, evolve-parts, reach, benchmark, verify, export), which the menu, the command line and the tests all call. A service takes settings and a request, reports progress through a callback and returns a typed result; it never writes to the console. `Catalog` lists the engines, fitness functions, tasks and algorithms the settings offer, `PartLibraries` loads part libraries and part files, and `EvolutionSession` builds and runs one evolution.
+- `Cli/` holds the console menus, one per submenu, and the command line. `Commands/` has one class per command, listed in `CommandRegistry`; `SettingOptions` declares each setting that is both a flag and a settings menu row once, for both.
 
 ## How spikes are stored
 
@@ -367,7 +396,9 @@ When an evolution finishes, the best network is printed and saved as a `.txt` ta
 
 Each swappable part is an interface plus one line in a catalog, after which it appears in the settings menu:
 
-- **Simulation engine** (`ISimulationEngine`, listed in `Cli/Catalog.cs`): receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out, and declares what it can run in `Support`. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
-- **Fitness function** (`IFitnessFunction`, `Cli/Catalog.cs`): scores a generator's sorted outputs from 0 to 1.
-- **Task** (`ITask`, `Evolution/Benchmarking/TaskSuite.cs` or `Cli/Catalog.cs`): lists its cases (input spikes and readout), then scores and describes the results.
+- **Simulation engine** (`ISimulationEngine`, listed in `Application/Catalog.cs`): receives a whole batch of trials (a network, its input and what to read back) so it can spread the runs out, and declares what it can run in `Support`. Read each network through `CompiledNetwork.Of(network)`, whose flat arrays are ready to copy to a GPU, and seed any per-run generators from the `Random` passed in, as `ParallelCpuEngine` does.
+- **Fitness function** (`IFitnessFunction`, `Application/Catalog.cs`): scores a generator's sorted outputs from 0 to 1.
+- **Task** (`ITask`, `Evolution/Benchmarking/TaskSuite.cs` or `Application/Catalog.cs`): lists its cases (input spikes and readout), then scores and describes the results.
 - **Search** (`ISearch<TCandidate>`, registered in `Evolution/Search/SearchCatalog.cs`): takes a `SearchRequest` (the task, the `EvaluationBudget` every evaluation is charged to, the run's random source and log, and optionally seeds, a stall policy and how to make and score networks) and returns a `SearchOutcome` (why it stopped, the best candidate, what it spent). A genetic algorithm only needs to implement `IGeneticAlgorithm`, built from the `EvolutionContext`, and be registered as an `EvolutionSearch`; it then runs in the shared generation loop with stall recovery and solve confirmation. Or combine new `IParentSelection`, `ICrossover` or `IMutation` operators with an existing algorithm. A network search that starts from nothing is automatically included in the benchmark and the selector; one that improves the networks it is given, such as the shrink, says `NeedsSeeds`.
+
+A new command is one subclass of `Command` (in `Cli/Commands/`), which declares its name, a one-line summary and its options, plus one line in `CommandRegistry`. Usage, option parsing and errors come from the declarations, and a test checks the command table above against the registry. An option several commands take is declared once in `CommonOptions`, or in `SettingOptions` when it is also a settings menu row. The command should call a run service in `Application/` rather than run the flow itself.
