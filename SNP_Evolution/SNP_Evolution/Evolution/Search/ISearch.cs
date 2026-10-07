@@ -15,18 +15,14 @@ namespace SnpEvolution.Evolution.Search
         bool NeedsSeeds => false;
     }
 
-    // A way to find candidates for a task, such as a genetic algorithm, a shrink, or a search over programs. A search
-    // holds only how it searches; everything about one run is in the request, so one instance serves every run.
+    // A search holds only how it searches, so one registered instance serves every run.
     public interface ISearch<TCandidate> : ISearch
         where TCandidate : class
     {
         SearchOutcome<TCandidate> Run(SearchRequest<TCandidate> request);
     }
 
-    // One run of a search: the task (a contract is a ContractTask), the budget every evaluation is charged to, the run's
-    // random source and where progress goes. Seeds are candidates to start from; Stall is how to react when the best
-    // stops improving, for searches that do; MaxGenerations and Cancellation stop it early. Networks is how network
-    // searches make, edit and score networks.
+    // Networks is needed only by searches over networks; program searches ignore it.
     public sealed record SearchRequest<TCandidate>(ITask Task, EvaluationBudget Budget, Random Random, Action<string> Log)
         where TCandidate : class
     {

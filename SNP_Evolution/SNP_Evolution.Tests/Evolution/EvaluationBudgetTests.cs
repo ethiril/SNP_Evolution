@@ -1,16 +1,17 @@
 using SnpEvolution.Cli;
 using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Search;
 using SnpEvolution.Evolution.Tasks;
+using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Evolution
 {
     public class EvaluationBudgetTests
     {
-        // Counts the networks an engine is asked to run. An evaluator runs each network on every case of its task in turn,
-        // with the same case objects for every network, so the trials sharing the first trial's input are one per network.
+        // An evaluator reuses the same case objects for every network, so trials sharing the first trial's input are one per network.
         private sealed class CountingEngine : ISimulationEngine
         {
             private readonly ISimulationEngine inner;
@@ -45,7 +46,6 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(3, run[EvaluationKind.ExhaustiveCheck]);
         }
 
-        // The limit is on network evaluations, as every benchmark has been, so checks and proofs never stop a search.
         [Fact]
         public void OnlyNetworkEvaluationsCountTowardsTheLimit()
         {
@@ -82,7 +82,17 @@ namespace SnpEvolution.Tests.Evolution
             Assert.EndsWith(" Besides them, 7 exhaustive checks.", budget.Report().Describe());
         }
 
-        // Side runs and incubation make evaluators of their own, all drawing on the run's engine setting.
+        [Fact]
+        public void AVerifierChargesOneExhaustiveCheckPerNetworkItRuns()
+        {
+            var budget = new EvaluationBudget();
+
+            Verifier.Measure(ReferenceParts.Delay(2), budget);
+
+            Assert.Equal(1, budget[EvaluationKind.ExhaustiveCheck]);
+            Assert.Equal(0, budget.Networks);
+        }
+
         [Fact]
         [Slow]
         public void EveryNetworkAModularRunScoresIsCharged()
@@ -108,7 +118,6 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(engine.Networks, budget.Networks);
         }
 
-        // A solved run retests its best before it stops, and the retests are charged too.
         [Fact]
         [Slow]
         public void EveryNetworkABenchmarkRunScoresIsChargedRetestsIncluded()
@@ -122,8 +131,6 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(engine.Networks, outcome.Evaluations);
         }
 
-        // The search and the shrink score networks on the given engine; verification runs on the exhaustive engine and is
-        // charged as checks beside them.
         [Fact]
         [Slow]
         public void EveryNetworkAPartSearchScoresIsChargedAndItsChecksBesideThem()

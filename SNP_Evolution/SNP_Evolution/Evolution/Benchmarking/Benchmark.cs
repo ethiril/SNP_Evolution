@@ -79,8 +79,8 @@ namespace SnpEvolution.Evolution.Benchmarking
             SearchOutcome<Individual> outcome = search.Run(new SearchRequest<Individual>(task.Task, spent, random, _ => { }) { Networks = setup });
             Individual? best = outcome.Best;
             IReadOnlyList<PartCount>? reuse = library != null && best != null ? PartReuse.Count(best.Genes, library) : null;
-            bool promoted = outcome.Solved && library != null && search is CompositionSearch && task.Task is IContractTask contractTask
-                && Promotion.PromoteSolved(best!.Genes, ContractTask.Of(contractTask), library, new PartOrigin(seed, $"benchmark, {search.Name}", outcome.Spent.Networks), spent, _ => { }).Verdict is Verdict.Passed;
+            bool promoted = outcome.Solved && best != null && library != null && search is CompositionSearch && task.Task is IContractTask contractTask
+                && Promotion.PromoteSolved(best.Genes, ContractTask.Of(contractTask), library, new PartOrigin(seed, $"benchmark, {search.Name}", outcome.Spent.Networks), spent, _ => { }).Verdict is Verdict.Passed;
             return new RunOutcome(search.Name, task.Name, seed, outcome.Solved, outcome.Spent.Networks, outcome.Fitness, best, reuse, promoted);
         }
 

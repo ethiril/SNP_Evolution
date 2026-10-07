@@ -40,7 +40,6 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(2, TaskScoring.CorrectPrefix(new[] { 1, 2, 3 }, new[] { 1, 2 }));
         }
 
-        // A number on an input and an interval port's value are the one encoding.
         [Fact]
         public void ANumberIsEncodedAsAnIntervalPortIs()
         {

@@ -6,16 +6,15 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
 {
-    // A contract as a task: each case is run with its inputs encoded on the in-ports and its start spike sent after a
-    // quiet spell, and scored on every rule (ContractScoring) over every computation, read through the ports
-    // (ContractPorts). Latency counts from the step the start spike reaches the part, so a done neuron fed straight from
-    // the start neuron has latency 1.
+    // Latency counts from the step the start spike reaches the part, so a done neuron fed straight from start has latency 1.
     public sealed class ContractTask : IContractTask, IProposing
     {
         // The start spike is never sent before this step, so a part that fires on its own is caught.
         public const int QuietSteps = 2;
 
-        public static readonly int RuleCount = ContractScoring.RuleCount;
+        public static readonly int RuleCount = Enum.GetValues<ContractRule>().Length;
+
+        private static readonly string[] RuleNames = { "quiet before start", "done once", "back to start", "on time" };
 
         private readonly ContractPorts ports;
         private readonly ContractScoring scoring;
@@ -56,7 +55,6 @@ namespace SnpEvolution.Evolution.Tasks
 
         public int StepsAfterDone { get; }
 
-        // The step each case sends its start spike on.
         public IReadOnlyList<int> StartSteps { get; }
 
         public float SolvedFitness => Solved.EveryRun;
@@ -64,9 +62,9 @@ namespace SnpEvolution.Evolution.Tasks
         // The task a verifier runs for a task with a contract: the task itself, or one built from its contract.
         public static ContractTask Of(IContractTask task) => task as ContractTask ?? new ContractTask(task.Contract, task.Binding);
 
-        public static int CheckIndex(int caseIndex, ContractRule rule) => ContractScoring.CheckIndex(caseIndex, rule);
+        public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
 
-        public static string RuleName(ContractRule rule) => ContractScoring.RuleName(rule);
+        public static string RuleName(ContractRule rule) => RuleNames[(int)rule];
 
         public float Score(IReadOnlyList<TrialResult> results) => Checks(results).Average();
 
@@ -111,7 +109,6 @@ namespace SnpEvolution.Evolution.Tasks
             };
         }
 
-        // What every case read, as a key: two parts with the same key behave the same on the contract (BehaviourKey).
         public string Behaviour(IReadOnlyList<TrialResult> results) => BehaviourKey.Of(Contract, ports, results);
 
         public bool Keeps(PortRun run, int caseIndex, bool timed = true) => scoring.Keeps(run, caseIndex, timed);
@@ -129,9 +126,7 @@ namespace SnpEvolution.Evolution.Tasks
         }
     }
 
-    // What every case of a contract read, as text: per distinct computation the done ports that fired and each data
-    // out-port's value ("?" when it is no value), with the contract's name. Two parts with the same key behave the same
-    // on the contract, which is how the library tells parts apart.
+    // Two parts with the same key behave the same on the contract, which is how the library tells parts apart.
     public static class BehaviourKey
     {
         public static string Of(Contract contract, ContractPorts ports, IReadOnlyList<TrialResult> results) =>

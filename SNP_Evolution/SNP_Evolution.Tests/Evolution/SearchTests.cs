@@ -162,6 +162,56 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void AsManyImmigrantsAsThePopulationStillLeaveTheEliteInPlace()
+        {
+            var random = new Random(4);
+            NetworkFactory factory = Factory(random);
+            var evaluator = new RecordingEvaluator(network => 1f / network.Neurons.Count);
+            var algorithms = new IGeneticAlgorithm[]
+            {
+                Generational(6, random, factory.NewNetwork, evaluator, WeightedMutation.Structural(1, factory)),
+                new SpeciatedAlgorithm(6, random, factory.NewNetwork, evaluator, new NeuronCrossover(), WeightedMutation.Structural(1, factory)),
+            };
+            foreach (IGeneticAlgorithm algorithm in algorithms)
+            {
+                algorithm.NextGeneration();
+                Network elite = algorithm.Population[0].Genes;
+
+                algorithm.Immigrate(Enumerable.Range(0, 6).Select(_ => NeverOutputs()).ToList());
+
+                Assert.Same(elite, algorithm.Population[0].Genes);
+                Assert.Equal(6, algorithm.Population.Count);
+            }
+        }
+
+        [Fact]
+        public void NewcomersAreMadeOnlyFromScoredHosts()
+        {
+            var scored = new Individual(TestNetworks.Identity());
+            scored.Record(new FitnessResult(-1, Array.Empty<int>()));
+            var unscored = new Individual(NeverOutputs());
+
+            List<Network> made = Immigrants.FromBest(new[] { unscored, scored }, hosts: 1, wanted: 1, attempts: 1, host => host);
+
+            Assert.Same(scored.Genes, Assert.Single(made));
+        }
+
+        [Fact]
+        public void AnEvolutionSearchStartsFromItsSeed()
+        {
+            var random = new Random(4);
+            NetworkFactory factory = Factory(random);
+            var scoring = new NetworkScoring(() => new SequentialCpuEngine(), new SimulationOptions(20, 1, OutputTiming.Interval), 1);
+            var setup = new NetworkSetup(4, 0.5f, factory, () => throw new InvalidOperationException("The seed should be used."), scoring);
+            var seed = new Individual(TestNetworks.Identity());
+
+            SearchOutcome<Individual> outcome = SearchCatalog.StructuralDefault.Run(
+                new SearchRequest<Individual>(FunctionTask.Of("n", n => n, new[] { 1, 2 }), new EvaluationBudget(), random, _ => { }) { Seeds = new[] { seed }, MaxGenerations = 1, Networks = setup });
+
+            Assert.Same(seed.Genes, outcome.Best!.Genes);
+        }
+
+        [Fact]
         public void ArchiveAndStrategyImmigrantsJoinTheNextBatch()
         {
             var random = new Random(5);

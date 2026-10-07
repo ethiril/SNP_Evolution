@@ -9,8 +9,7 @@ namespace SnpEvolution.Evolution.Algorithms
         Stalled,
     }
 
-    // Watches a search's best fitness, a generation at a time, and says when it has stalled. Stagnation recovery, the
-    // modular loop, part proposals and program search each react to a stall in their own way.
+    // One stall rule for every search, so each only decides how to react.
     public sealed class StallDetector
     {
         private const float ImprovementTolerance = 1e-6f;
@@ -23,7 +22,6 @@ namespace SnpEvolution.Evolution.Algorithms
             this.patience = patience;
         }
 
-        // The best fitness seen since the start or the last reset.
         public float? Best { get; private set; }
 
         public Progress Observe(float fitness)

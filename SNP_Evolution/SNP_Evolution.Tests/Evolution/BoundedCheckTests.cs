@@ -64,9 +64,12 @@ namespace SnpEvolution.Tests.Evolution
             Part broken = RegisterFailingAtTwenty();
             Assert.IsType<Verdict.Passed>(Verifier.Measure(broken, new EvaluationBudget()).Verdict);
 
-            BoundedResult result = BoundedCheck.Prove(broken, AMinute, new EvaluationBudget());
+            var budget = new EvaluationBudget();
+            BoundedResult result = BoundedCheck.Prove(broken, AMinute, budget);
 
             Assert.Equal(19, result.Proven.UpTo);
+            Assert.InRange(budget[EvaluationKind.ProofStep], 1, 21);
+            Assert.Equal(budget[EvaluationKind.ProofStep], budget[EvaluationKind.ExhaustiveCheck]);
             Assert.Equal("n=20", result.Proven.FailsAt);
             Counterexample counterexample = Assert.IsType<Verdict.Failed>(result.Verdict).Counterexample;
             Assert.Equal("n=20", counterexample.Inputs);

@@ -13,14 +13,7 @@ using SnpEvolution.Networks;
 
 namespace SnpEvolution.Evolution.Search
 {
-    // Evolves a network that already solves the task into cheaper ones that still do, in the spirit of superoptimisers
-    // such as STOKE (Schkufza, Sharma and Aiken 2013) and of evolving smaller circuits from a working one (Vasicek and
-    // Sekanina). MAP-Elites keeps the best network of every hardware cost cell, every cell starting from the seed, with
-    // the usual edits apart from those that only add, plus bypassing and merging neurons. Each generation the cheapest
-    // solving elites, up to three, are checked, and the first that passes is kept: on a contract by the Verifier on the
-    // exhaustive engine, otherwise by the retests that stop a run. The seed is taken to solve the task already. With a
-    // jitter, cells are robustness at that jitter by neuron count, and the most robust part that verifies is kept, the
-    // cheapest among equally robust ones.
+    // After STOKE (Schkufza, Sharma and Aiken 2013): the seed is taken to solve the task, and only a cheaper network that passes the check replaces it.
     public sealed class ShrinkSearch : ISearch<Individual>
     {
         private const int CheckedPerGeneration = 3;
@@ -89,17 +82,14 @@ namespace SnpEvolution.Evolution.Search
             (SearchStop stop, int generations) = GenerationLoop.Run(request.MaxGenerations, () => request.Budget.IsSpent, request.Cancellation, generation =>
             {
                 archive.NextGeneration();
-                foreach (Individual candidate in archive.Population
+                if (archive.Population
                     .Where(individual => Solved.Solves(individual.Fitness, request.Task) && Compare(individual.Genes, kept.Genes) < 0)
                     .OrderBy(individual => individual.Genes, Comparer<Network>.Create(Compare))
-                    .Take(CheckedPerGeneration))
+                    .Take(CheckedPerGeneration)
+                    .FirstOrDefault(candidate => tried.Add(NetworkNotation.Format(candidate.Genes)) && passes(candidate.Genes)) is Individual cheaper)
                 {
-                    if (tried.Add(NetworkNotation.Format(candidate.Genes)) && passes(candidate.Genes))
-                    {
-                        kept = candidate;
-                        request.Log($"Shrink generation {generation}: {Describe(kept.Genes)}.");
-                        break;
-                    }
+                    kept = cheaper;
+                    request.Log($"Shrink generation {generation}: {Describe(kept.Genes)}.");
                 }
                 return false;
             });

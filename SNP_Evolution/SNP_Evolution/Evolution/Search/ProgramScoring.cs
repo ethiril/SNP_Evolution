@@ -8,19 +8,13 @@ using SnpEvolution.Evolution.Tasks;
 
 namespace SnpEvolution.Evolution.Search
 {
-    // Checks are what lexicase selection compares: one per target number in the stage, 1 when it is generated, and
-    // last the share of the numbers generated that are in the target.
+    // The last check is the share of generated numbers in the target, so lexicase rewards generating nothing extra.
     public sealed record ScoredProgram(RegisterProgram Program, float Fitness, IReadOnlyList<int> Outputs, IReadOnlyList<float> Checks) : IScored
     {
         public int Size => Program.Instructions.Count;
     }
 
-    // Scores register programs on a target set by running them, following every choice, which takes far less time than
-    // simulating the network they compile to. The target is learned in stages, as iterative evolution learns a
-    // sequence: a stage looks only at numbers up to a bound, from the smallest few target numbers up, and stops
-    // following a computation once its output register passes the bound. Register 0 never goes down, so that loses
-    // nothing a stage looks at, and a stage costs only as much as its bound. The last stage looks past the largest
-    // target number, so a program that overshoots it is seen to. Each run is charged to the budget.
+    // A stage stops following a computation once register 0 passes its bound, which loses nothing since register 0 never goes down.
     public sealed class ProgramScoring
     {
         private const int FirstStageNumbers = 4;
@@ -64,8 +58,7 @@ namespace SnpEvolution.Evolution.Search
             stageTask = StageTask();
         }
 
-        // Scored on the current stage: the Jaccard similarity of the numbers it generates up to the bound and the
-        // target's. Limits scale with the bound, and a larger scale runs the program for longer.
+        // A larger scale runs the program for longer, for confirming a solve.
         public ScoredProgram Score(RegisterProgram program, int scale = 1)
         {
             budget.Charge(EvaluationKind.InterpreterRun, 1);

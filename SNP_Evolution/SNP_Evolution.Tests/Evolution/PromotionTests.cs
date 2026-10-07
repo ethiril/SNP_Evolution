@@ -55,7 +55,9 @@ namespace SnpEvolution.Tests.Evolution
             (ModuleLibrary library, Module increment) = Increments();
             (Composition chain, PortBinding binding) = Chain(library, increment, 2);
 
-            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, new EvaluationBudget(), log.Add).Module!;
+            var budget = new EvaluationBudget();
+
+            Module promoted = Promotion.Promote(chain, ArithmeticParts.AddTwo(), binding, library, Origin, budget, log.Add).Module!;
             PartLibraryFiles.Save(library, folder);
             ModuleLibrary loaded = PartLibraryFiles.Load(folder);
             LibraryPart addTwo = loaded.PartFor("add 2")!.Part!;
@@ -64,6 +66,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(promoted.Part!.Part.Binding.Positions, addTwo.Part.Binding.Positions);
             Assert.Equal(promoted.Part.Cost, addTwo.Cost);
             Assert.Contains(log, line => line.StartsWith("Promoted the composition for add 2"));
+            Assert.True(budget[EvaluationKind.ProofStep] > 0);
         }
 
         // The file names its children and wiring, so a change to a child shows in the child's file alone.

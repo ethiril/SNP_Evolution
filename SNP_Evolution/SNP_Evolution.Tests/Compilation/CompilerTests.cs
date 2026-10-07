@@ -154,6 +154,25 @@ namespace SnpEvolution.Tests.Compilation
             Assert.Equal(new long[] { 14 }, ProgramScoring.StageBounds(new[] { 2, 4, 6 }));
         }
 
+        [Fact]
+        public void AStageChecksEveryTargetNumberUpToItsBoundAndNothingExtra()
+        {
+            var scoring = new ProgramScoring(new[] { 1, 2, 3, 5, 8 }, 2_000, new EvaluationBudget());
+
+            ScoredProgram scored = scoring.Score(RegisterProgram.Parse("ADD r0 -> 1\nADD r0 -> 0 | 2\nHALT"));
+
+            Assert.Equal(5, scored.Checks.Count);
+        }
+
+        [Fact]
+        public void AnEditNeverLeavesAProgramWithoutInstructions()
+        {
+            var edits = new ProgramEdits(16, 4, new Random(1));
+            RegisterProgram single = RegisterProgram.Parse("HALT");
+
+            Assert.All(Enumerable.Range(0, 300), _ => Assert.NotEmpty(edits.Mutate(single).Instructions));
+        }
+
         // Only the first numbers are generated before the limit on register 0 cuts the computations off, and that
         // still counts as complete, since nothing at or below the limit is lost.
         [Fact]

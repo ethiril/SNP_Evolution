@@ -35,7 +35,11 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void TheSameSeedGivesTheSameScore()
         {
-            Assert.Equal(Robustness.Of(ReferenceParts.Add(), jitter: 1, budget: new EvaluationBudget(), runs: 20), Robustness.Of(ReferenceParts.Add(), jitter: 1, budget: new EvaluationBudget(), runs: 20));
+            var budget = new EvaluationBudget();
+
+            Assert.Equal(Robustness.Of(ReferenceParts.Add(), jitter: 1, budget, runs: 20), Robustness.Of(ReferenceParts.Add(), jitter: 1, budget, runs: 20));
+            Assert.Equal(2, budget[EvaluationKind.JitterRun]);
+            Assert.Equal(0, budget.Networks);
         }
 
         [Fact]

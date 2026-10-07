@@ -5,7 +5,6 @@ using SnpEvolution.Compilation;
 
 namespace SnpEvolution.Evolution.Search
 {
-    // Random register programs and random edits to them, within a number of registers and instructions.
     public sealed class ProgramEdits
     {
         private readonly int maxInstructions;

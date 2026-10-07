@@ -6,9 +6,7 @@ using System.Threading;
 
 namespace SnpEvolution.Evolution.Accounting
 {
-    // What an evaluation was: a network scored on a task's cases, a network checked on the exhaustive engine against a
-    // contract, one bound of a bounded proof, a register program run by the interpreter, or a network run under timing
-    // jitter to measure its robustness.
+    // Only Network counts towards a budget's limit; the other kinds are reported beside it.
     public enum EvaluationKind
     {
         Network,
@@ -18,7 +16,6 @@ namespace SnpEvolution.Evolution.Accounting
         JitterRun,
     }
 
-    // Which part of a run a network evaluation was spent on.
     public enum EvaluationSource
     {
         Main,
@@ -28,22 +25,20 @@ namespace SnpEvolution.Evolution.Accounting
         Proposals,
     }
 
-    // Every evaluation a run makes is charged here by kind. The limit counts network evaluations only, as every
-    // benchmark has so far, and the other kinds are reported beside them. A phase is a budget of its own inside this
-    // one, with its own limit, whose charges also land here. Parts evolved before the run are paid for once and
-    // shared by every run, so UpFront is kept out of every count.
+    // The limit counts network evaluations only, as every benchmark has, and up-front part costs stay out of every count since all runs share them.
     public sealed class EvaluationBudget
     {
         private readonly long[] kinds = new long[Enum.GetValues<EvaluationKind>().Length];
         private readonly long[] sources = new long[Enum.GetValues<EvaluationSource>().Length];
         private readonly EvaluationBudget? parent;
         private readonly EvaluationSource? source;
+        private readonly long? limit;
         private long upFront;
 
         // Without a limit nothing stops a search but itself.
         public EvaluationBudget(long? limit = null)
         {
-            Limit = limit;
+            this.limit = limit;
         }
 
         private EvaluationBudget(EvaluationBudget parent, long? limit, EvaluationSource? source)
@@ -53,18 +48,15 @@ namespace SnpEvolution.Evolution.Accounting
             this.source = source;
         }
 
-        public long? Limit { get; }
-
         public long this[EvaluationKind kind] => Interlocked.Read(ref kinds[(int)kind]);
 
-        // Network evaluations spent on one part of the run.
         public long this[EvaluationSource source] => Interlocked.Read(ref sources[(int)source]);
 
         public long Networks => this[EvaluationKind.Network];
 
         public long UpFront => Interlocked.Read(ref upFront);
 
-        public bool IsSpent => Networks >= Limit;
+        public bool IsSpent => Networks >= limit;
 
         // A phase given a source charges every network evaluation to it, whatever source the evaluator was given.
         public EvaluationBudget Phase(long? limit = null, EvaluationSource? source = null) => new EvaluationBudget(this, limit, source ?? this.source);
@@ -88,7 +80,6 @@ namespace SnpEvolution.Evolution.Accounting
             UpFront);
     }
 
-    // What a budget had spent when it was read.
     public sealed record BudgetReport(IReadOnlyDictionary<EvaluationKind, long> Kinds, IReadOnlyDictionary<EvaluationSource, long> Sources, long UpFront)
     {
         public long this[EvaluationKind kind] => Kinds[kind];

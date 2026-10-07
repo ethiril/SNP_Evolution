@@ -14,10 +14,7 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Search
 {
-    // How a part is evolved for one contract. Budget is search evaluations; ShrinkBudget is spent after a part is found
-    // making it smaller. ExtraNeurons is how far past the port neurons a network may grow. HardwareProfile keeps every
-    // network searched and shrunk within the hardware profile. RobustJitter, when above 0, shrinks over cells of robustness
-    // at that jitter and keeps the most robust part that verifies, the cheapest among equally robust ones.
+    // RobustJitter above 0 makes the shrink keep the most robust part that verifies rather than the cheapest.
     public sealed record PartSearchSettings(
         long Budget,
         long ShrinkBudget,
@@ -37,8 +34,7 @@ namespace SnpEvolution.Evolution.Search
 
     public sealed record MeasuredPart(Part Part, PartMeasurement Measurement);
 
-    // Spent is what the search, shrinking and verification cost; Evaluations counts the networks scored and checked,
-    // which is what a part's record holds.
+    // Evaluations counts networks scored and checked, which is what a part's record has always held.
     public sealed record PartOutcome(Contract Contract, int Seed, BudgetReport Spent, Part? Part, PartMeasurement? Measurement)
     {
         public bool Solved => Part != null;
@@ -46,9 +42,7 @@ namespace SnpEvolution.Evolution.Search
         public long Evaluations => Spent.NetworksAndChecks;
     }
 
-    // Evolves a part from scratch for a contract, verifies it on the exhaustive engine, then shrinks it, keeping the
-    // cheapest network that still verifies. The search and the shrink are each a phase of the request's budget, limited
-    // by the settings' budgets.
+    // The search and the shrink are each a phase of the request's budget, limited by the settings' budgets.
     public sealed class PartSearch : ISearch<MeasuredPart>
     {
         private const float MutationRate = 0.5f;
@@ -87,7 +81,31 @@ namespace SnpEvolution.Evolution.Search
         public SearchOutcome<MeasuredPart> Run(SearchRequest<MeasuredPart> request)
         {
             ContractTask task = request.Task is IContractTask contractTask ? ContractTask.Of(contractTask) : throw new ArgumentException("A part search needs a contract.", nameof(request));
-            Contract contract = task.Contract;
+            NetworkFactory factory = Factory(task, request.Random);
+            var verifier = new Verifier(task, request.Budget);
+            var setup = new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3))
+            {
+                Lexicase = settings.Lexicase,
+            };
+            EvaluationBudget searchPhase = request.Budget.Phase(settings.Budget);
+            IGeneticAlgorithm algorithm = settings.Algorithm.Create(setup.Context(setup.Scoring.Evaluator(task, searchPhase, request.Random), request.Random, _ => { }));
+            PartMeasurement? found = null;
+            (SearchStop stop, _) = GenerationLoop.Run(algorithm, int.MaxValue, () => searchPhase.IsSpent, run => (found = FirstVerified(run, task, verifier)) != null);
+            if (found == null)
+            {
+                string failing = string.Join("; ", (algorithm.Best?.Description ?? "").Split(Environment.NewLine).Take(3));
+                request.Log($"{task.Contract.Name}: not solved in {searchPhase.Networks} evaluations (best fitness {algorithm.Best?.Fitness ?? 0:0.000}, failing {failing}).");
+                return new SearchOutcome<MeasuredPart>(stop, null, algorithm.Best?.Fitness ?? 0, algorithm.Best?.Description ?? "", request.Budget.Report());
+            }
+            request.Log($"{task.Contract.Name}: solved after {searchPhase.Networks} evaluations, {found.Cost}.");
+            Individual start = algorithm.Population.First(individual => ReferenceEquals(individual.Genes, found.Network));
+            PartMeasurement kept = Shrink(request, task, verifier, setup, start, found);
+            request.Log($"{task.Contract.Name}: kept {kept.Cost}, latency {kept.Latency}.");
+            return new SearchOutcome<MeasuredPart>(SearchStop.Solved, new MeasuredPart(new Part(task.Contract, kept.Network, task.Binding), kept), 1, kept.Description, request.Budget.Report());
+        }
+
+        private NetworkFactory Factory(ContractTask task, Random random)
+        {
             var space = new GenomeSpace(
                 InputCount: task.InputCount,
                 RuleForm: RuleForm.Standard,
@@ -97,26 +115,16 @@ namespace SnpEvolution.Evolution.Search
                 MaxInitialSpikes: settings.MaxInitialSpikes,
                 MaxProduce: settings.MaxProduce,
                 HardwareProfile: settings.HardwareProfile);
-            var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, request.Random), request.Random);
-            var verifier = new Verifier(task, request.Budget);
-            var setup = new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3))
-            {
-                Lexicase = settings.Lexicase,
-            };
-            EvaluationBudget searchPhase = request.Budget.Phase(settings.Budget);
-            IGeneticAlgorithm algorithm = settings.Algorithm.Create(setup.Context(setup.Scoring.Evaluator(task, searchPhase, request.Random), request.Random, _ => { }));
-            PartMeasurement? found = null;
-            (SearchStop stop, _) = GenerationLoop.Run(algorithm, int.MaxValue, () => searchPhase.IsSpent, run =>
-                (found = run.Population.Where(individual => Solved.Solves(individual.Fitness, task)).Take(CheckedPerGeneration).Select(individual => verifier.Measure(individual.Genes))
-                    .FirstOrDefault(measured => measured.Verdict is Verdict.Passed)) != null);
-            if (found == null)
-            {
-                string failing = string.Join("; ", (algorithm.Best?.Description ?? "").Split(Environment.NewLine).Take(3));
-                request.Log($"{contract.Name}: not solved in {searchPhase.Networks} evaluations (best fitness {algorithm.Best?.Fitness ?? 0:0.000}, failing {failing}).");
-                return new SearchOutcome<MeasuredPart>(stop, null, algorithm.Best?.Fitness ?? 0, algorithm.Best?.Description ?? "", request.Budget.Report());
-            }
-            request.Log($"{contract.Name}: solved after {searchPhase.Networks} evaluations, {found.Cost}.");
-            Individual start = algorithm.Population.First(individual => ReferenceEquals(individual.Genes, found.Network));
+            return new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+        }
+
+        private static PartMeasurement? FirstVerified(IGeneticAlgorithm run, ContractTask task, Verifier verifier) =>
+            run.Population.Where(individual => Solved.Solves(individual.Fitness, task)).Take(CheckedPerGeneration)
+                .Select(individual => verifier.Measure(individual.Genes))
+                .FirstOrDefault(measured => measured.Verdict is Verdict.Passed);
+
+        private PartMeasurement Shrink(SearchRequest<MeasuredPart> request, ContractTask task, Verifier verifier, NetworkSetup setup, Individual start, PartMeasurement found)
+        {
             PartMeasurement kept = found;
             bool Verifies(Network network)
             {
@@ -129,8 +137,7 @@ namespace SnpEvolution.Evolution.Search
             }
             new ShrinkSearch(settings.RobustJitter).Run(
                 new SearchRequest<Individual>(task, request.Budget.Phase(settings.ShrinkBudget), request.Random, _ => { }) { Seeds = new[] { start }, Networks = setup }, Verifies);
-            request.Log($"{contract.Name}: kept {kept.Cost}, latency {kept.Latency}.");
-            return new SearchOutcome<MeasuredPart>(SearchStop.Solved, new MeasuredPart(new Part(contract, kept.Network, task.Binding), kept), 1, kept.Description, request.Budget.Report());
+            return kept;
         }
     }
 }

@@ -6,9 +6,7 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
 {
-    // Reads one computation of a contract's case through its ports. A PortRun's firings come data out-ports first, in
-    // the contract's order, then done ports. Interval, count and trigger out-ports are read strictly between start and
-    // done, and a binary word follows done, bit i on step done + i.
+    // Firings come data out-ports first, then done ports, each in the contract's order.
     public sealed class ContractPorts
     {
         private readonly Contract contract;
@@ -24,21 +22,17 @@ namespace SnpEvolution.Evolution.Tasks
 
         public IReadOnlyList<Port> DataOut => dataOut;
 
-        // The step the case sends its start spike on.
         public int Start(int caseIndex) => startSteps[caseIndex];
 
-        // Every done port that fired, with each firing, in the contract's order of done ports.
         public List<(string Port, Firing Firing)> Dones(PortRun run) =>
             contract.Done.SelectMany((port, slot) => run.Firings[dataOut.Count + slot].Select(firing => (port.Name, firing))).ToList();
 
-        // The first done to fire, or null when none did.
         public (string Port, Firing Firing)? FirstDone(PortRun run) =>
             Dones(run).OrderBy(done => done.Firing.Step).Cast<(string, Firing)?>().FirstOrDefault();
 
         // The step the computation's first done fired on, counted from the step start reaches the part; null when none fired.
         public int? Latency(PortRun run, int caseIndex) => FirstDone(run)?.Firing.Step - (startSteps[caseIndex] + 1);
 
-        // A data out-port's firings after start, in step order.
         public List<Firing> AfterStart(PortRun run, int slot, int caseIndex) => run.Firings[slot].Where(firing => firing.Step > startSteps[caseIndex]).ToList();
 
         // The value a data out-port carries given the step done fired on; null when it is no value of its kind.

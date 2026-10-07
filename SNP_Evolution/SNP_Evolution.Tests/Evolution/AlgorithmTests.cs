@@ -157,6 +157,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Contains(result.Winner, candidates);
             Assert.Equal(new[] { 3, 2 }, result.Rounds.Select(round => round.Standings.Count));
             Assert.Equal(new[] { 60L, 120L }, result.Rounds.Select(round => round.Budget));
+            Assert.Equal(result.Rounds[0].Standings.Take(2).Select(row => row.Algorithm), result.Rounds[0].Advancing);
             Assert.NotNull(result.BestFound);
         }
     }

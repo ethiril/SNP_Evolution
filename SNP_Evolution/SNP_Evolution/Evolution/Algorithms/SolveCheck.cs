@@ -4,9 +4,7 @@ using SnpEvolution.Evolution.Tasks;
 
 namespace SnpEvolution.Evolution.Algorithms
 {
-    // The one place a search decides its best candidate solves the task: its score says so and a more thorough check
-    // confirms it. A failed check's score becomes the candidate's, since an elite kept with a lucky score is never
-    // rescored and would fail every check after.
+    // A failed check's score becomes the candidate's, since an elite kept with a lucky score is never rescored.
     public static class SolveCheck
     {
         public static bool Confirms(Individual best, FitnessEvaluator evaluator) =>

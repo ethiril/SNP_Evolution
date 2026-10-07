@@ -8,9 +8,7 @@ using SnpEvolution.Evolution.Operators;
 
 namespace SnpEvolution.Evolution.Search
 {
-    // Every search on offer, each registered once. A new search implements ISearch and is listed here, or registered
-    // while the program runs; nothing else needs to know it exists. Lists are read by type: the network searches a
-    // benchmark can run from scratch, and the genetic algorithms an evolution run steps itself.
+    // Registering here is all a new search needs, since callers pick searches by type rather than by name.
     public static class SearchCatalog
     {
         public const int Elitism = 1;
@@ -65,13 +63,11 @@ namespace SnpEvolution.Evolution.Search
             }
         }
 
-        // The network searches that build from nothing, which a benchmark compares.
+        // Searches that need seeds are left out, since a benchmark starts from nothing.
         public static IReadOnlyList<ISearch<Individual>> FromScratch => All.OfType<ISearch<Individual>>().Where(search => !search.NeedsSeeds).ToList();
 
-        // The genetic algorithms an evolution run steps itself, with stages, modules and proposals around them.
         public static IReadOnlyList<EvolutionSearch> Evolution => All.OfType<EvolutionSearch>().ToList();
 
-        // Adds a search while the program runs, after every search already listed.
         public static void Register(ISearch search)
         {
             lock (Lock)

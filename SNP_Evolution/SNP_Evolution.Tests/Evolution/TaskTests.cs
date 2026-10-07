@@ -64,6 +64,7 @@ namespace SnpEvolution.Tests.Evolution
             Assert.Equal(1f, task.Score(new[] { false, true, false, true, false, true }.Select(Halts).ToList()));
             Assert.Equal(0.5f, task.Score(Enumerable.Repeat(Halts(true), 6).ToList()));
             Assert.Equal(0.5f, task.Score(Enumerable.Repeat(Halts(false), 6).ToList()));
+            Assert.Equal(0.5f, AcceptorTask.Of("big", n => n >= 4, new[] { 1, 2, 3, 4 }).Score(Enumerable.Repeat(Halts(true), 4).ToList()));
             Assert.Equal(Readout.Halting, task.Cases[0].Readout);
         }
 
@@ -87,15 +88,17 @@ namespace SnpEvolution.Tests.Evolution
 
             Assert.Equal(1f, result.Fitness);
             Assert.Equal("{1}", result.Description);
+            Assert.Equal(new[] { 0f, 1f, 0f }, new GeneratorTask("{1,2,3}", new[] { 1, 2, 3 }, new JaccardFitness(new[] { 1, 2, 3 })).Checks(new[] { 2 }));
         }
 
         [Fact]
         public void ExactResultIsReliablySolvedWithoutRetesting()
         {
-            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }), Options, solvedRetestCount: 5, new Random(0), new EvaluationBudget());
+            var budget = new EvaluationBudget();
+            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }), Options, solvedRetestCount: 5, new Random(0), budget);
 
             Assert.True(evaluator.ConfirmSolved(Identity()).Solved);
-            Assert.Equal(1, evaluator.Budget.Networks);
+            Assert.Equal(1, budget.Networks);
         }
 
         [Fact]

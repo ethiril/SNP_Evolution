@@ -10,8 +10,6 @@ namespace SnpEvolution.Tests.Evolution
     [Collection(GoldenCollection.Name)]
     public class SearchCatalogTests
     {
-        // A search the catalog has never heard of: it scores one random network after another until one solves the
-        // task or the budget is spent.
         private sealed class RandomSampling : ISearch<Individual>
         {
             public const string SearchName = "Random sampling, registered by a test";
@@ -58,12 +56,30 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void ABenchmarkOfCompositionSearchBuildsFromThePartLibrary()
+        {
+            using var run = new CommandRun();
+            run.CopyFolder("parts");
+
+            string output = run.Run("benchmark", "--algorithm", SearchCatalog.CompositionMapElites.Name, "--task", "Compute n", "--seeds", "1", "--budget", "20",
+                "--population", "5", "--library", "parts");
+
+            Assert.Contains("Composition search builds from", output);
+        }
+
+        [Fact]
+        public void TheMenuOffersEveryGeneticAlgorithmInTheCatalog()
+        {
+            Assert.Equal(SearchCatalog.Evolution, SnpEvolution.Cli.Catalog.Algorithms);
+        }
+
+        [Fact]
         public void TwoSearchesCannotShareAName()
         {
             Assert.Throws<ArgumentException>(() => SearchCatalog.Register(SearchCatalog.StructuralDefault));
         }
 
-        // Every search the catalog lists has a name of its own, which the command line looks them up by.
+        // The command line looks searches up by name.
         [Fact]
         public void EverySearchHasADistinctName()
         {

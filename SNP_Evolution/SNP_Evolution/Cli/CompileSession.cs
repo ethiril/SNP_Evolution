@@ -90,7 +90,7 @@ namespace SnpEvolution.Cli
                 MaxGenerations = options.ShrinkGenerations,
                 Networks = setup,
             });
-            Network smallest = shrink.Best!.Genes;
+            Network smallest = shrink.Best?.Genes ?? compiled;
             NetworkFiles.SaveText(FitnessCsv.Format(shrink.History), Path.Combine(folder, "Shrunk.csv"));
             Save(smallest, folder, "Shrunk");
             log($"{Environment.NewLine}Smallest correct network after {shrink.Generations} generations of shrinking: {ShrinkSearch.Describe(smallest)}, " +

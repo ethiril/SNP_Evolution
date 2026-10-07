@@ -63,8 +63,6 @@ namespace SnpEvolution.Evolution.Fitness
 
         public ITask Task { get; }
 
-        public EvaluationBudget Budget => budget;
-
         public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) => EvaluateAll(networks, source);
 
         private IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks, EvaluationSource spentOn)

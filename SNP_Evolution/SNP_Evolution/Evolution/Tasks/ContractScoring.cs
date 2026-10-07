@@ -7,7 +7,6 @@ using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Evolution.Tasks
 {
-    // What each case of a ContractTask is checked for, scored over every run.
     public enum ContractRule
     {
         // Nothing is sent on any out-port or done port up to the step the start spike is sent on.
@@ -23,13 +22,9 @@ namespace SnpEvolution.Evolution.Tasks
         OnTime,
     }
 
-    // Scores one computation of a contract's case on each rule, from 0 to 1; a wrong but close value earns partial credit.
+    // A wrong but close value earns partial credit, which gives the search a slope.
     public sealed class ContractScoring
     {
-        public static readonly int RuleCount = Enum.GetValues<ContractRule>().Length;
-
-        private static readonly string[] RuleNames = { "quiet before start", "done once", "back to start", "on time" };
-
         private readonly Contract contract;
         private readonly ContractPorts ports;
 
@@ -39,11 +34,6 @@ namespace SnpEvolution.Evolution.Tasks
             this.ports = ports;
         }
 
-        public static string RuleName(ContractRule rule) => RuleNames[(int)rule];
-
-        public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
-
-        // One check per rule per case, each the mean over the case's computations.
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
             Enumerable.Range(0, contract.Cases.Count)
                 .SelectMany(caseIndex => Enum.GetValues<ContractRule>().Select(rule => OverRuns(rule, results[caseIndex].PortRuns, caseIndex)))
@@ -55,7 +45,7 @@ namespace SnpEvolution.Evolution.Tasks
 
         // The first computation that fails the check, or null when every computation of its case passes it.
         public PortRun? FailingRun(IReadOnlyList<TrialResult> results, int check) =>
-            results[check / RuleCount].PortRuns.FirstOrDefault(run => Score((ContractRule)(check % RuleCount), run, check / RuleCount) < 1);
+            results[check / ContractTask.RuleCount].PortRuns.FirstOrDefault(run => Score((ContractRule)(check % ContractTask.RuleCount), run, check / ContractTask.RuleCount) < 1);
 
         public float Score(ContractRule rule, PortRun run, int caseIndex) => rule switch
         {
