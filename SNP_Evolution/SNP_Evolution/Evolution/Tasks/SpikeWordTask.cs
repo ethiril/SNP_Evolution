@@ -8,7 +8,7 @@ namespace SnpEvolution.Evolution.Tasks
     // The network runs with no input, and its output spike train should spell the expected binary word: a 1 on every
     // step the output neuron fires, a 0 on every step it does not, from the first step. Scored per run by balanced
     // accuracy over the ones and zeros, so a silent or always-firing network only earns a half.
-    public sealed class SpikeWordTask : IPrefixTask
+    public sealed class SpikeWordTask : IPrefixTask, IFocusable
     {
         private const int PrefixBuckets = 16;
         private const int SpikeBuckets = 8;
@@ -35,6 +35,9 @@ namespace SnpEvolution.Evolution.Tasks
 
         public ITask Prefix(int length) => new SpikeWordTask(Name, Expected.Take(Math.Clamp(length, 1, Expected.Count)).ToList());
 
+        // Binary words need a few bits before they say anything.
+        public CurriculumPlan Curriculum => new CurriculumPlan(Math.Min(8, Length), 4);
+
         public float Score(IReadOnlyList<TrialResult> results) =>
             results[0].SpikeTrains.Count == 0 ? 0 : results[0].SpikeTrains.Average(train => ScoreRun(SpikeTrains.Word(train, Expected.Count)));
 
@@ -58,28 +61,14 @@ namespace SnpEvolution.Evolution.Tasks
                 return (0, 0);
             }
             bool[] word = SpikeTrains.Word(results[0].SpikeTrains[0], Expected.Count);
-            int prefix = 0;
-            while (prefix < Expected.Count && word[prefix] == Expected[prefix])
-            {
-                prefix++;
-            }
-            return (prefix * PrefixBuckets / Expected.Count, word.Count(bit => bit) * SpikeBuckets / Expected.Count);
+            return (TaskScoring.CorrectPrefix(word, Expected) * PrefixBuckets / Expected.Count, word.Count(bit => bit) * SpikeBuckets / Expected.Count);
         }
 
         // Each step of the word, scored by the share of runs that get it right.
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results)
         {
-            IReadOnlyList<IReadOnlyList<int>> trains = results[0].SpikeTrains;
-            var checks = new float[Expected.Count];
-            foreach (IReadOnlyList<int> train in trains)
-            {
-                bool[] word = SpikeTrains.Word(train, Expected.Count);
-                for (int step = 0; step < Expected.Count; step++)
-                {
-                    checks[step] += word[step] == Expected[step] ? 1f / trains.Count : 0;
-                }
-            }
-            return checks;
+            List<bool[]> words = results[0].SpikeTrains.Select(train => SpikeTrains.Word(train, Expected.Count)).ToList();
+            return Enumerable.Range(0, Expected.Count).Select(step => TaskScoring.ShareOfRuns(words, word => word[step] == Expected[step])).ToList();
         }
 
         public string CheckName(int check) => $"step {check + 1} ({(Expected[check] ? 1 : 0)})";
@@ -92,14 +81,7 @@ namespace SnpEvolution.Evolution.Tasks
             return window.Contains(true) ? new SpikeWordTask($"{Name}, steps {start + 1}-{start + window.Count}", window) : null;
         }
 
-        private float ScoreRun(IReadOnlyList<bool> word)
-        {
-            float[] accuracy = new[] { true, false }
-                .Select(bit => Enumerable.Range(0, Expected.Count).Where(step => Expected[step] == bit).ToList())
-                .Where(steps => steps.Count > 0)
-                .Select(steps => (float)steps.Count(step => word[step] == Expected[step]) / steps.Count)
-                .ToArray();
-            return accuracy.Average();
-        }
+        private float ScoreRun(IReadOnlyList<bool> word) =>
+            TaskScoring.BalancedAccuracy(Enumerable.Range(0, Expected.Count), step => Expected[step], step => word[step] == Expected[step] ? 1f : 0f);
     }
 }

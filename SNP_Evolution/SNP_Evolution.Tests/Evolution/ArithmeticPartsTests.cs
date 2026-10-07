@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
@@ -79,7 +80,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             Part part = HandBuiltParts.All()[index];
 
-            PartMeasurement measurement = Verifier.Measure(part);
+            PartMeasurement measurement = Verifier.Measure(part, new EvaluationBudget());
 
             Assert.True(measurement.Verdict is Verdict.Passed, $"{part.Contract.Name}: {measurement.Description}");
         }

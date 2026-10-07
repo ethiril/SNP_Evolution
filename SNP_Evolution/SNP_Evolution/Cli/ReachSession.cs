@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Fitness;
@@ -37,7 +38,7 @@ namespace SnpEvolution.Cli
             }),
             new Setup("composition", "composition search with MAP-Elites, from the part library", settings =>
             {
-                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == AlgorithmCatalog.CompositionPrefix + "MAP-Elites");
+                settings.Algorithm = SearchCatalog.CompositionMapElites;
                 settings.Modules = false;
             }),
         };
@@ -78,21 +79,21 @@ namespace SnpEvolution.Cli
             Settings own = settings.Copy();
             setup.Apply(own);
             own.Engine = Catalog.Engines.Single(engine => engine.Name == "CPU, single thread");
-            bool composition = AlgorithmCatalog.IsComposition(own.Algorithm.Name);
+            bool composition = own.Algorithm is CompositionSearch;
             own.MaxEvaluations = Math.Max(1, settings.MaxEvaluations - (composition ? partCost : 0));
             BenchmarkTask task = own.SelectedTask;
-            var evaluations = new EvaluationCounter();
+            EvaluationBudget evaluations = own.RunBudget();
             var random = new Random(seed);
             var clock = Stopwatch.StartNew();
             IGeneticAlgorithm run = EvolutionSession.Evolve(own, task, factory => factory.NewNetwork(), random, _ => { }, evaluations);
             clock.Stop();
             if (run.Best is not Individual best)
             {
-                return new Outcome(setup.Name, seed, 0, 0, evaluations.Total, evaluations.UpFront, clock.Elapsed.TotalSeconds);
+                return new Outcome(setup.Name, seed, 0, 0, evaluations.Networks, evaluations.UpFront, clock.Elapsed.TotalSeconds);
             }
-            var scorer = new FitnessEvaluator(own.Engine.Create(own), task.Task, own.SimulationOptions with { Timing = task.Timing }, 1, new Random(seed));
+            var scorer = new FitnessEvaluator(own.Engine.Create(own), task.Task, own.SimulationOptions with { Timing = task.Timing }, 1, new Random(seed), new EvaluationBudget());
             int reach = Reach(scorer.Evaluate(best.Genes).Checks ?? Array.Empty<float>());
-            return new Outcome(setup.Name, seed, reach, best.Genes.Neurons.Count, evaluations.Total, evaluations.UpFront, clock.Elapsed.TotalSeconds);
+            return new Outcome(setup.Name, seed, reach, best.Genes.Neurons.Count, evaluations.Networks, evaluations.UpFront, clock.Elapsed.TotalSeconds);
         }
 
         // A check adds up a share per sampled run, so one every run gets right can fall short of 1 by rounding.

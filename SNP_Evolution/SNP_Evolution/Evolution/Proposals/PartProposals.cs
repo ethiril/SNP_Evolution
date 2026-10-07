@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
@@ -48,24 +49,24 @@ namespace SnpEvolution.Evolution.Proposals
     // A proposed part is verified on the exhaustive engine like every first part, since one admitted on a weaker standard would poison every composition using it.
     public sealed class PartProposals : IGeneticAlgorithm
     {
-        private const float ImprovementTolerance = 1e-6f;
-
         private readonly IGeneticAlgorithm inner;
         private readonly CompositionSpace space;
         private readonly Func<ITask> currentTask;
         private readonly Func<Contract, PartOutcome> solve;
         private readonly ProposalPolicy policy;
+        private readonly EvaluationBudget budget;
         private readonly int populationSize;
         private readonly Action<string> log;
         private readonly List<Proposal> proposals = new List<Proposal>();
         private readonly HashSet<string> asked = new HashSet<string>();
+        private readonly StallDetector stall;
         private bool shapeRead;
-        private float? bestFitness;
-        private int stale;
 
+        // Each proposed part is checked past its cases at the cost of the budget.
         public PartProposals(IGeneticAlgorithm inner, CompositionSpace space, Func<ITask> currentTask, Func<Contract, PartOutcome> solve, ProposalPolicy policy,
-            int populationSize, Action<string> log)
+            EvaluationBudget budget, int populationSize, Action<string> log)
         {
+            this.budget = budget;
             this.inner = inner;
             this.space = space;
             this.currentTask = currentTask;
@@ -73,6 +74,7 @@ namespace SnpEvolution.Evolution.Proposals
             this.policy = policy;
             this.populationSize = populationSize;
             this.log = log;
+            stall = new StallDetector(policy.Patience);
         }
 
         public IGeneticAlgorithm Inner => inner;
@@ -94,22 +96,10 @@ namespace SnpEvolution.Evolution.Proposals
         public void NextGeneration()
         {
             inner.NextGeneration();
-            if (inner.Best is not Individual best || !GeneticAlgorithm.IsRecordableFitness(best.Fitness))
+            if (inner.Best is Individual best && ScoreHistory.IsRecordable(best.Fitness) && stall.Observe(best.Fitness) == Progress.Stalled)
             {
-                return;
+                React();
             }
-            if (bestFitness == null || best.Fitness > bestFitness + ImprovementTolerance)
-            {
-                bestFitness = best.Fitness;
-                stale = 0;
-                return;
-            }
-            if (++stale < policy.Patience)
-            {
-                return;
-            }
-            stale = 0;
-            React();
         }
 
         public void Immigrate(IReadOnlyList<Network> newcomers) => inner.Immigrate(newcomers);
@@ -117,8 +107,7 @@ namespace SnpEvolution.Evolution.Proposals
         public void Rescore()
         {
             inner.Rescore();
-            bestFitness = null;
-            stale = 0;
+            stall.Reset();
         }
 
         public string Describe() => proposals.Count == 0
@@ -142,7 +131,7 @@ namespace SnpEvolution.Evolution.Proposals
         private List<(Contract Contract, ProposalSource Source, string Reason)> Candidates(ITask task)
         {
             var candidates = new List<(Contract Contract, ProposalSource Source, string Reason)>();
-            if (!shapeRead && task is SequenceTask sequence)
+            if (!shapeRead && task is ISequenceTask sequence)
             {
                 shapeRead = true;
                 if (RecurrenceProposer.Propose(sequence.Expected) is ShapeProposal shape)
@@ -156,7 +145,7 @@ namespace SnpEvolution.Evolution.Proposals
                 }
             }
             CheckDiagnosis diagnosis = CheckDiagnosis.Of(inner.Population);
-            if (task.Propose(diagnosis.Unsolved) is Contract failing)
+            if (task is IProposing proposing && proposing.Propose(diagnosis.Unsolved) is Contract failing)
             {
                 candidates.Add((failing, ProposalSource.FailingChecks, diagnosis.Frontier is int frontier ? $"nothing passes {task.CheckName(frontier)}" : "unpassed checks"));
             }
@@ -178,7 +167,7 @@ namespace SnpEvolution.Evolution.Proposals
             }
             log($"Proposing a part for {contract.Name} ({reason}).");
             PartOutcome outcome = solve(contract);
-            BoundedResult? admission = outcome.Part is Part solved && outcome.Measurement != null ? BoundedCheck.Admit(solved, log) : null;
+            BoundedResult? admission = outcome.Part is Part solved && outcome.Measurement != null ? BoundedCheck.Admit(solved, budget, log) : null;
             if (outcome.Part is not Part part || outcome.Measurement is not PartMeasurement measurement || admission is null or { Verdict: Verdict.Failed })
             {
                 Record(new Proposal(inner.Generation, contract, source, reason, ProposalOutcome.NotSolved, outcome.Evaluations, null));
@@ -192,12 +181,9 @@ namespace SnpEvolution.Evolution.Proposals
 
         private void GiveToBestNetworks(Module module)
         {
-            List<Network> composites = Ranking.Rank(inner.Population.Where(individual => individual.IsEvaluated))
-                .Take(Math.Max(1, populationSize / 4))
-                .Select(individual => space.WithPart(individual.Genes, module))
-                .Where(network => network != null)
-                .Select(network => network!)
-                .ToList();
+            int hosts = Math.Max(1, populationSize / 4);
+            List<Network> composites = Immigrants.FromBest(inner.Population, hosts, hosts, Math.Min(hosts, inner.Population.Count(individual => individual.IsEvaluated)),
+                host => space.WithPart(host, module));
             if (composites.Count > 0)
             {
                 inner.Immigrate(composites);

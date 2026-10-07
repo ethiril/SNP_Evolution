@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
@@ -33,7 +34,7 @@ namespace SnpEvolution.Tests.Cli
             RuleForm = RuleForm.Standard,
             OutputTiming = OutputTiming.Interval,
             Engine = Catalog.Engines.Single(engine => engine.Name == "CPU, single thread"),
-            Algorithm = Catalog.Algorithms.First(entry => AlgorithmCatalog.IsComposition(entry.Name) && entry.Name.Contains("MAP-Elites")),
+            Algorithm = SearchCatalog.CompositionMapElites,
             Repetitions = 2,
             PopulationSize = 40,
             MaxGenerations = 400,
@@ -41,8 +42,8 @@ namespace SnpEvolution.Tests.Cli
             PartLibraryFolder = Path.Combine(folder, "parts"),
         };
 
-        private IGeneticAlgorithm Run(Settings settings, int seed, EvaluationCounter? evaluations = null) =>
-            EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(seed), log.Add, evaluations ?? new EvaluationCounter());
+        private IGeneticAlgorithm Run(Settings settings, int seed, EvaluationBudget? evaluations = null) =>
+            EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(seed), log.Add, evaluations ?? new EvaluationBudget());
 
         private static CatalogEntry<Settings, BenchmarkTask> SuiteTask(string name) => Catalog.Tasks.Single(task => task.Name == name);
 
@@ -81,14 +82,14 @@ namespace SnpEvolution.Tests.Cli
             settings.MaxGenerations = 40;
             settings.StagnationPatience = 4;
             settings.ProposalBudget = 5_000;
-            var evaluations = new EvaluationCounter();
+            var evaluations = new EvaluationBudget();
 
             IGeneticAlgorithm run = Run(settings, seed: 3, evaluations);
             RunOutput.Save(run, Path.Combine(folder, "run"), "Net", log.Add);
 
             string parts = File.ReadAllText(Path.Combine(folder, "run", "Net-parts.txt"));
             Assert.Contains("part(s) proposed", parts);
-            Assert.Contains("proposed parts", evaluations.Describe());
+            Assert.Contains("proposed parts", evaluations.Report().Describe());
             Assert.Matches(@"generation \d+: delay \d+ \(failing checks, nothing passes gap \d+ \(\d+\)\): (solved in \d+ evaluations, kept as module \d+|not solved)", parts);
         }
 

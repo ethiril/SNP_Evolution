@@ -19,7 +19,7 @@ namespace SnpEvolution.Evolution.Algorithms
         private readonly GeneticOperators operators;
         private readonly int elitism;
         private readonly Action<string> log;
-        private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
+        private readonly ScoreHistory fitnessHistory = new ScoreHistory();
         private List<Individual> population;
 
         public GeneticAlgorithm(
@@ -47,9 +47,7 @@ namespace SnpEvolution.Evolution.Algorithms
         public Individual? Best { get; private set; }
 
         // One row per generation after the first, holding every in-range fitness that generation scored.
-        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory;
-
-        public static bool IsRecordableFitness(float fitness) => fitness >= 0 && fitness <= 1;
+        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory.Rows;
 
         private static bool IsViableFitness(float fitness) => fitness > 0 && fitness <= 1;
 
@@ -66,20 +64,16 @@ namespace SnpEvolution.Evolution.Algorithms
             else
             {
                 Evaluate(population);
-                fitnessHistory.Add(population.Select(individual => individual.Fitness).Where(IsRecordableFitness).ToList());
+                fitnessHistory.Record(population);
             }
             population = Ranking.Rank(population);
-            Best = population.FirstOrDefault(individual => IsRecordableFitness(individual.Fitness)) ?? population[0];
+            Best = population.FirstOrDefault(individual => ScoreHistory.IsRecordable(individual.Fitness)) ?? population[0];
             population = Breed();
             Generation++;
         }
 
         // The population waiting to be scored is ranked elite first, so newcomers replace the last children bred.
-        public void Immigrate(IReadOnlyList<Network> newcomers)
-        {
-            int keep = Math.Max(elitism, population.Count - newcomers.Count);
-            population = population.Take(keep).Concat(newcomers.Take(population.Count - keep).Select(network => new Individual(network))).ToList();
-        }
+        public void Immigrate(IReadOnlyList<Network> newcomers) => population = Immigrants.ReplaceWeakest(population, newcomers, elitism);
 
         // Every network waiting for the next generation is scored then anyway, so only the best is forgotten.
         public void Rescore() => Best = null;

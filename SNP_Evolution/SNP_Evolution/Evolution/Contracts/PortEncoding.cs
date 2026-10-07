@@ -13,7 +13,7 @@ namespace SnpEvolution.Evolution.Contracts
         public static IReadOnlyList<int> Trigger(int step = 0) => new[] { step };
 
         public static IReadOnlyList<int> Interval(int n, int from = 0) => n >= 1
-            ? new[] { from, from + n }
+            ? InputSpikes.Interval(n, from)
             : throw new ArgumentOutOfRangeException(nameof(n), n, "An interval is two spikes n steps apart, so n must be at least 1.");
 
         public static IReadOnlyList<int> Count(int n, int from = 0) => n >= 0

@@ -5,7 +5,7 @@ using SnpEvolution.Simulation;
 namespace SnpEvolution.Evolution.Tasks
 {
     // The network runs with no input and should generate exactly the expected set, scored by a pluggable function.
-    public sealed class GeneratorTask : ITask
+    public sealed class GeneratorTask : ISetTask
     {
         private readonly IFitnessFunction fitness;
 
@@ -24,11 +24,13 @@ namespace SnpEvolution.Evolution.Tasks
 
         public IReadOnlyList<TaskCase> Cases { get; } = new[] { new TaskCase(InputSpikes.None, Readout.Output) };
 
-        public float Score(IReadOnlyList<TrialResult> results) => fitness.Score(results[0].Outputs);
+        public float Score(IReadOnlyList<TrialResult> results) => Score(results[0].Outputs);
 
-        // Whether each expected number is among the outputs.
-        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) =>
-            ExpectedSet.Select(number => results[0].Outputs.Contains(number) ? 1f : 0f).ToList();
+        public float Score(IReadOnlyList<int> outputs) => fitness.Score(outputs);
+
+        public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) => Checks(results[0].Outputs);
+
+        public IReadOnlyList<float> Checks(IReadOnlyList<int> outputs) => ExpectedSet.Select(number => outputs.Contains(number) ? 1f : 0f).ToList();
 
         public string CheckName(int check) => $"output {ExpectedSet.ElementAt(check)}";
 

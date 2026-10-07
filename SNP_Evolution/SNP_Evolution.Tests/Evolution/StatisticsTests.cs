@@ -1,4 +1,4 @@
-using SnpEvolution.Evolution.Benchmarking;
+using SnpEvolution.Evolution.Accounting;
 
 namespace SnpEvolution.Tests.Evolution
 {

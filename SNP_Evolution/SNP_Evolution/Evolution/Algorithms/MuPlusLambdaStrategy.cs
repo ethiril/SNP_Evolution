@@ -19,9 +19,9 @@ namespace SnpEvolution.Evolution.Algorithms
         private readonly Func<Network> createRandomNetwork;
         private readonly IPopulationEvaluator evaluator;
         private readonly IMutation mutation;
-        private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
+        private readonly ScoreHistory fitnessHistory = new ScoreHistory();
+        private readonly Immigrants immigrants = new Immigrants();
         private List<Individual> parents = new List<Individual>();
-        private List<Network> immigrants = new List<Network>();
 
         public MuPlusLambdaStrategy(int mu, int lambda, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, IMutation mutation)
         {
@@ -39,25 +39,22 @@ namespace SnpEvolution.Evolution.Algorithms
 
         public Individual? Best { get; private set; }
 
-        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory;
+        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory.Rows;
 
         public void NextGeneration()
         {
             List<Individual> children = parents.Count == 0
-                ? Enumerable.Range(0, Math.Max(mu, lambda)).Select(_ => new Individual(createRandomNetwork())).ToList()
-                : immigrants.Take(lambda).Select(network => new Individual(network))
-                    .Concat(Enumerable.Range(0, Math.Max(0, lambda - immigrants.Count)).Select(_ => new Individual(Mutate(parents[random.Next(parents.Count)].Genes))))
-                    .ToList();
-            immigrants = new List<Network>();
+                ? immigrants.Batch(Math.Max(mu, lambda), createRandomNetwork)
+                : immigrants.Batch(lambda, () => Mutate(parents[random.Next(parents.Count)].Genes));
             Evaluation.Evaluate(evaluator, children);
-            fitnessHistory.Add(children.Select(child => child.Fitness).Where(GeneticAlgorithm.IsRecordableFitness).ToList());
+            fitnessHistory.Record(children);
             parents = Ranking.Rank(children.Concat(parents)).Take(mu).ToList();
             Best = parents[0];
             Generation++;
         }
 
         // Newcomers take the place of children, so they must still beat the parents to survive.
-        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants = newcomers.ToList();
+        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants.Arrive(newcomers);
 
         public void Rescore()
         {

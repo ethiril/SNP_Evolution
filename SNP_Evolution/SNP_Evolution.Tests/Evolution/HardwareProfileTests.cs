@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Search;
@@ -36,7 +37,7 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void NoNetworkMadeOrMutatedByAnyAlgorithmUnderTheProfileBreaksIt()
         {
-            foreach (AlgorithmChoice choice in AlgorithmCatalog.All.Where(choice => !AlgorithmCatalog.IsComposition(choice.Name)))
+            foreach (EvolutionSearch choice in SearchCatalog.Evolution.Where(search => search is not CompositionSearch))
             {
                 NetworkFactory factory = Factory(choice.Name.Length);
                 var evaluator = Evaluator();
@@ -73,9 +74,9 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void PartSearchUnderTheProfileFindsAndShrinksAProfilePart()
         {
-            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.ChoiceFor(Catalog.StructuralDefault), () => new ExhaustiveCpuEngine(), HardwareProfile: true);
+            var settings = new PartSearchSettings(5_000, 1_000, 30, Catalog.StructuralDefault, () => new ExhaustiveCpuEngine(), HardwareProfile: true);
 
-            PartOutcome outcome = PartEvolution.Evolve(PartFixtures.DelayContract(2), 1, settings, _ => { });
+            PartOutcome outcome = PartSearch.Evolve(PartFixtures.DelayContract(2), 1, settings, new EvaluationBudget(), _ => { });
 
             Assert.True(outcome.Solved);
             Assert.Empty(HardwareProfile.Problems(outcome.Part!.Network));
@@ -86,7 +87,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             var random = new Random(4);
             var factory = new NetworkFactory(new GenomeSpace(InputCount: 1, MaxDelay: 3, HardwareProfile: true), new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
-            (var crossover, var edits) = PartEvolution.ShrinkOperators(factory, hardwareProfile: true);
+            (var crossover, var edits) = ShrinkSearch.Operators(factory);
             Network network = factory.NewNetwork();
 
             for (int step = 0; step < 300; step++)
@@ -169,7 +170,7 @@ namespace SnpEvolution.Tests.Evolution
         public void IsOffUnlessAskedFor()
         {
             Assert.False(new GenomeSpace().HardwareProfile);
-            Assert.False(new PartSearchSettings(1, 1, 1, AlgorithmCatalog.All[0], () => null!).HardwareProfile);
+            Assert.False(new PartSearchSettings(1, 1, 1, SearchCatalog.Evolution[0], () => null!).HardwareProfile);
         }
     }
 }

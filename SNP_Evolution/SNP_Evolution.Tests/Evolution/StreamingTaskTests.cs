@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
@@ -13,7 +14,7 @@ namespace SnpEvolution.Tests.Evolution
         private static readonly StreamingTask RateDetector = StreamingTask.RateDetector(spikes: 3, within: 6);
 
         private static FitnessResult Evaluate(ITask task, Network network) =>
-            new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(0, 5, OutputTiming.Interval), solvedRetestCount: 3, new Random(0))
+            new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(0, 5, OutputTiming.Interval), solvedRetestCount: 3, new Random(0), new EvaluationBudget())
                 .Evaluate(network);
 
         // The input and two relays bring each input spike to the counter on three steps running, so the counter holds

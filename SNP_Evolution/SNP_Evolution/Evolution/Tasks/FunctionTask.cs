@@ -33,8 +33,7 @@ namespace SnpEvolution.Evolution.Tasks
         public static FunctionTask Of(string name, Func<int, int, int> function, IEnumerable<(int, int)> arguments) =>
             new FunctionTask(name, arguments.Select(pair => new FunctionExample(new[] { pair.Item1, pair.Item2 }, function(pair.Item1, pair.Item2))).ToList());
 
-        public float Score(IReadOnlyList<TrialResult> results) =>
-            Examples.Select((example, index) => ScoreCase(results[index].Outputs, example.Result)).Average();
+        public float Score(IReadOnlyList<TrialResult> results) => Checks(results).Average();
 
         public string Describe(IReadOnlyList<TrialResult> results) =>
             string.Join("  ", Examples.Select((example, index) =>

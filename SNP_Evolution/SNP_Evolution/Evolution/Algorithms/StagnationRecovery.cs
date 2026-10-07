@@ -22,7 +22,6 @@ namespace SnpEvolution.Evolution.Algorithms
     public sealed class StagnationRecovery : IGeneticAlgorithm
     {
         private const int HeavyEdits = 4;
-        private const float ImprovementTolerance = 1e-6f;
 
         private readonly IGeneticAlgorithm inner;
         private readonly StagnationPolicy policy;
@@ -32,8 +31,7 @@ namespace SnpEvolution.Evolution.Algorithms
         private readonly IMutation heavyMutation;
         private readonly Random random;
         private readonly Action<string> log;
-        private float? bestFitness;
-        private int stale;
+        private readonly StallDetector stall;
 
         public StagnationRecovery(
             IGeneticAlgorithm inner,
@@ -53,6 +51,7 @@ namespace SnpEvolution.Evolution.Algorithms
             this.heavyMutation = heavyMutation;
             this.random = random;
             this.log = log ?? Console.WriteLine;
+            stall = new StallDetector(policy.Patience);
         }
 
         public IGeneticAlgorithm Inner => inner;
@@ -72,26 +71,19 @@ namespace SnpEvolution.Evolution.Algorithms
         public void NextGeneration()
         {
             inner.NextGeneration();
-            if (inner.Best is not Individual best || !GeneticAlgorithm.IsRecordableFitness(best.Fitness))
+            if (inner.Best is not Individual best || !ScoreHistory.IsRecordable(best.Fitness))
             {
                 return;
             }
-            if (bestFitness == null || best.Fitness > bestFitness + ImprovementTolerance)
+            switch (stall.Observe(best.Fitness))
             {
-                bestFitness = best.Fitness;
-                stale = 0;
-                if (pressure.ExtraEdits > 0)
-                {
+                case Progress.Improved when pressure.ExtraEdits > 0:
                     pressure.ExtraEdits = 0;
                     log("Fitness improved, so mutation is back to normal.");
-                }
-                return;
+                    return;
+                case Progress.Improved or Progress.Waiting:
+                    return;
             }
-            if (++stale < policy.Patience)
-            {
-                return;
-            }
-            stale = 0;
             if (pressure.ExtraEdits >= policy.MaxExtraEdits)
             {
                 Restart(best);
@@ -108,8 +100,7 @@ namespace SnpEvolution.Evolution.Algorithms
         public void Rescore()
         {
             inner.Rescore();
-            bestFitness = null;
-            stale = 0;
+            stall.Reset();
             pressure.ExtraEdits = 0;
         }
 

@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Operators;
@@ -15,7 +16,7 @@ namespace SnpEvolution.Tests.Evolution
         public void SequenceChecksScoreEachGapInPlaceEvenAfterAMistake()
         {
             var task = new SequenceTask("test", new[] { 2, 1, 2 });
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(20, 2, OutputTiming.Interval), 1, new Random(1));
+            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(20, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
 
             FitnessResult result = evaluator.Evaluate(PingPong());
 
@@ -58,7 +59,7 @@ namespace SnpEvolution.Tests.Evolution
         public void ATriggeredPartCountsItsGapsFromTheTrigger()
         {
             var task = (TriggeredSequenceTask)new SequenceTask("test", new[] { 1, 2, 2, 2, 7 }).Triggered(1)!;
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, new Random(1));
+            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, new Random(1), new EvaluationBudget());
 
             FitnessResult result = evaluator.Evaluate(TriggeredTwos());
             Cut cut = ModuleCuts.Whole(TriggeredTwos());

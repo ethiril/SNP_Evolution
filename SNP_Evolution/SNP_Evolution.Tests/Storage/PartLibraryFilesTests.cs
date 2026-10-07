@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -19,7 +20,7 @@ namespace SnpEvolution.Tests.Storage
         }
 
         private static LibraryPart Measured(Part part, int seed = 7) =>
-            Verifier.Measure(part).ToLibraryPart(part, new PartOrigin(seed, "evolve-parts --seed 1", 1234));
+            Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, new PartOrigin(seed, "evolve-parts --seed 1", 1234));
 
         private static Part FirstPartRegister()
         {

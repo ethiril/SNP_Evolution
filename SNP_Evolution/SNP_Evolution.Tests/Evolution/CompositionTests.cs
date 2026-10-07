@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
@@ -205,7 +206,7 @@ namespace SnpEvolution.Tests.Evolution
         {
             ModuleLibrary library = Library();
             BenchmarkSettings settings = BenchmarkSettings.Default with { Seeds = 1, Parts = library.Parts.Select(module => module.Part!).ToList() };
-            AlgorithmChoice algorithm = AlgorithmCatalog.All.First(choice => AlgorithmCatalog.IsComposition(choice.Name));
+            EvolutionSearch algorithm = SearchCatalog.CompositionMapElites;
 
             RunOutcome outcome = Benchmark.RunOnce(algorithm, TaskSuite.Functions.First(task => task.Name == "Compute n + 1"), seed: 1, budget: 400, settings);
 
@@ -215,16 +216,16 @@ namespace SnpEvolution.Tests.Evolution
         // Every network a composition run keeps is exactly glue and library parts: no part neuron is ever changed.
         [Theory]
         [Slow]
-        [InlineData("MAP-Elites")]
-        [InlineData("tournament")]
-        public void ARunInCompositionModeNeverChangesAPartNeuron(string algorithm)
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ARunInCompositionModeNeverChangesAPartNeuron(bool mapElites)
         {
             ModuleLibrary library = Library();
             var random = new Random(5);
             NetworkFactory factory = Factory(1, random);
             var task = FunctionTask.Of("n + 2", n => n + 2, new[] { 1, 2, 3 });
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, random);
-            IGeneticAlgorithm run = AlgorithmCatalog.All.Single(choice => AlgorithmCatalog.IsComposition(choice.Name) && choice.Name.Contains(algorithm))
+            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(30, 2, OutputTiming.Interval), 1, random, new EvaluationBudget());
+            IGeneticAlgorithm run = (mapElites ? SearchCatalog.CompositionMapElites : SearchCatalog.CompositionTournament)
                 .Create(new EvolutionContext(16, 0.5f, random, factory.NewNetwork, evaluator, factory, _ => { }, Parts: library));
 
             bool sawParts = false;

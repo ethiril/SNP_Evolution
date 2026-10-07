@@ -1,3 +1,5 @@
+using SnpEvolution.Evolution.Accounting;
+using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
@@ -11,7 +13,7 @@ namespace SnpEvolution.Tests.Evolution
             Create(expectedSet, repetitions: 10, solvedRetestCount: 5, new Random(0));
 
         private static FitnessEvaluator Create(int[] expectedSet, int repetitions, int solvedRetestCount, Random random) =>
-            new FitnessEvaluator(new SequentialCpuEngine(), new SetCoverageFitness(expectedSet), new SimulationOptions(MaxSteps: 10, repetitions), solvedRetestCount, random);
+            new FitnessEvaluator(new SequentialCpuEngine(), new SetCoverageFitness(expectedSet), new SimulationOptions(MaxSteps: 10, repetitions), solvedRetestCount, random, new EvaluationBudget());
 
         // Scores every network the same, on the cases of a one-gap sequence.
         private class FixedScoreTask : ITask
@@ -42,10 +44,10 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void ATaskThatCountsOnlyAPerfectScoreRejectsOneJustShortOfIt()
         {
-            FitnessEvaluator Evaluator(ITask task) => new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(MaxSteps: 10, 2), solvedRetestCount: 3, new Random(0));
+            FitnessEvaluator Evaluator(ITask task) => new FitnessEvaluator(new SequentialCpuEngine(), task, new SimulationOptions(MaxSteps: 10, 2), solvedRetestCount: 3, new Random(0), new EvaluationBudget());
 
-            Assert.True(Evaluator(new FixedScoreTask(0.99f)).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
-            Assert.False(Evaluator(new FixedScoreContract(0.99f)).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
+            Assert.True(Evaluator(new FixedScoreTask(0.99f)).ConfirmSolved(TestNetworks.AlwaysOutputsOne()).Solved);
+            Assert.False(Evaluator(new FixedScoreContract(0.99f)).ConfirmSolved(TestNetworks.AlwaysOutputsOne()).Solved);
         }
 
         [Fact]
@@ -60,13 +62,13 @@ namespace SnpEvolution.Tests.Evolution
         [Fact]
         public void NetworkThatAlwaysHitsTheExpectedSetIsReliablySolved()
         {
-            Assert.True(EvaluatorExpecting(1).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
+            Assert.True(EvaluatorExpecting(1).ConfirmSolved(TestNetworks.AlwaysOutputsOne()).Solved);
         }
 
         [Fact]
         public void NetworkMissingPartOfTheExpectedSetIsNotSolved()
         {
-            Assert.False(EvaluatorExpecting(1, 2).IsReliablySolved(TestNetworks.AlwaysOutputsOne()));
+            Assert.False(EvaluatorExpecting(1, 2).ConfirmSolved(TestNetworks.AlwaysOutputsOne()).Solved);
         }
 
         [Fact]
@@ -80,7 +82,7 @@ namespace SnpEvolution.Tests.Evolution
             });
             var evaluator = Create(new[] { 1 }, repetitions: 2, solvedRetestCount: 2, new ScriptedRandom(0, 0, 1, 1));
 
-            Assert.False(evaluator.IsReliablySolved(network));
+            Assert.False(evaluator.ConfirmSolved(network).Solved);
         }
 
         [Fact]
@@ -96,7 +98,7 @@ namespace SnpEvolution.Tests.Evolution
             var lucky = new Individual(network);
             lucky.Record(new FitnessResult(1f, new[] { 1, 1 }));
 
-            Assert.False(evaluator.ConfirmSolved(lucky));
+            Assert.False(SolveCheck.Confirms(lucky, evaluator));
             Assert.False(Solved.Solves(lucky.Fitness));
         }
 
@@ -106,7 +108,7 @@ namespace SnpEvolution.Tests.Evolution
             var solved = new Individual(TestNetworks.AlwaysOutputsOne());
             solved.Record(new FitnessResult(1f, new[] { 1 }, "held"));
 
-            Assert.True(EvaluatorExpecting(1).ConfirmSolved(solved));
+            Assert.True(SolveCheck.Confirms(solved, EvaluatorExpecting(1)));
             Assert.Equal("held", solved.Description);
         }
 

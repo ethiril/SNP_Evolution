@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
@@ -64,44 +65,36 @@ namespace SnpEvolution.Evolution.Benchmarking
 
     public static class Benchmark
     {
-        // Runs the algorithm on the task until it is solved or the budget is spent.
-        public static RunOutcome RunOnce(AlgorithmChoice algorithm, BenchmarkTask task, int seed, long budget, BenchmarkSettings settings)
+        // Runs the search on the task until it is solved or the budget is spent.
+        public static RunOutcome RunOnce(ISearch<Individual> search, BenchmarkTask task, int seed, long budget, BenchmarkSettings settings)
         {
             var random = new Random(seed);
             GenomeSpace space = settings.Space with { InputCount = task.Task.InputCount, RuleForm = task.RuleForm };
             var factory = new NetworkFactory(space, new ExpressionGenerator(settings.Templates, settings.MaxSpikeGroupSize, random), random);
-            var evaluator = new FitnessEvaluator(
-                settings.CreateEngine(), task.Task, new SimulationOptions(settings.MaxSteps, settings.Repetitions, task.Timing), solvedRetestCount: 5, random);
+            var scoring = new NetworkScoring(settings.CreateEngine, new SimulationOptions(settings.MaxSteps, settings.Repetitions, task.Timing), SolvedRetests: 5);
             // Each run gets a library of its own, since copies and credit are counted in it and a solved composition is promoted into it.
             ModuleLibrary? library = settings.Parts is { Count: > 0 } parts ? ModuleLibrary.Of(parts) : null;
-            IGeneticAlgorithm run = algorithm.Create(new EvolutionContext(
-                settings.PopulationSize, settings.MutationRate, random, factory.NewNetwork, evaluator, factory, _ => { }, Lexicase: settings.Lexicase, Parts: library));
-            IReadOnlyList<PartCount>? Reuse(Individual? best) => library != null && best != null ? PartReuse.Count(best.Genes, library) : null;
-            while (evaluator.Evaluations < budget)
-            {
-                run.NextGeneration();
-                if (run.Best is Individual best && Solved.Solves(best.Fitness) && evaluator.ConfirmSolved(best))
-                {
-                    IReadOnlyList<PartCount>? reuse = Reuse(best);
-                    bool promoted = library != null && AlgorithmCatalog.IsComposition(algorithm.Name) && task.Task is ContractTask contractTask
-                        && Promotion.PromoteSolved(best.Genes, contractTask, library, new PartOrigin(seed, $"benchmark, {algorithm.Name}", evaluator.Evaluations), _ => { }).Verdict is Verdict.Passed;
-                    return new RunOutcome(algorithm.Name, task.Name, seed, true, evaluator.Evaluations, best.Fitness, best, reuse, promoted);
-                }
-            }
-            return new RunOutcome(algorithm.Name, task.Name, seed, false, evaluator.Evaluations, run.Best?.Fitness ?? 0, run.Best, Reuse(run.Best));
+            var setup = new NetworkSetup(settings.PopulationSize, settings.MutationRate, factory, factory.NewNetwork, scoring) { Lexicase = settings.Lexicase, Parts = library };
+            var spent = new EvaluationBudget(budget);
+            SearchOutcome<Individual> outcome = search.Run(new SearchRequest<Individual>(task.Task, spent, random, _ => { }) { Networks = setup });
+            Individual? best = outcome.Best;
+            IReadOnlyList<PartCount>? reuse = library != null && best != null ? PartReuse.Count(best.Genes, library) : null;
+            bool promoted = outcome.Solved && best != null && library != null && search is CompositionSearch && task.Task is IContractTask contractTask
+                && Promotion.PromoteSolved(best.Genes, ContractTask.Of(contractTask), library, new PartOrigin(seed, $"benchmark, {search.Name}", outcome.Spent.Networks), spent, _ => { }).Verdict is Verdict.Passed;
+            return new RunOutcome(search.Name, task.Name, seed, outcome.Solved, outcome.Spent.Networks, outcome.Fitness, best, reuse, promoted);
         }
 
         // Every algorithm on every task over every seed, run in parallel. Seeds are shared between algorithms, so
         // each one starts from the same random state on the same task.
         public static IReadOnlyList<BenchmarkRow> Run(
-            IReadOnlyList<AlgorithmChoice> algorithms, IReadOnlyList<BenchmarkTask> tasks, BenchmarkSettings settings, Action<string>? progress = null)
+            IReadOnlyList<ISearch<Individual>> algorithms, IReadOnlyList<BenchmarkTask> tasks, BenchmarkSettings settings, Action<string>? progress = null)
         {
             var jobs = (from algorithm in algorithms from task in tasks from seed in Enumerable.Range(1, settings.Seeds) select (algorithm, task, seed)).ToList();
             var outcomes = new RunOutcome[jobs.Count];
             int finished = 0;
             Parallel.For(0, jobs.Count, index =>
             {
-                (AlgorithmChoice algorithm, BenchmarkTask task, int seed) = jobs[index];
+                (ISearch<Individual> algorithm, BenchmarkTask task, int seed) = jobs[index];
                 outcomes[index] = RunOnce(algorithm, task, seed, settings.EvaluationBudget, settings);
                 progress?.Invoke($"[{Interlocked.Increment(ref finished)}/{jobs.Count}] {algorithm.Name} on {task.Name}, seed {seed}: "
                     + (outcomes[index].Solved ? $"solved in {outcomes[index].Evaluations} evaluations" : $"best {outcomes[index].BestFitness:0.###}"));
@@ -120,7 +113,7 @@ namespace SnpEvolution.Evolution.Benchmarking
                         group.Key.Task,
                         group.Count(),
                         solved.Count,
-                        solved.Count == 0 ? null : Median(solved.Select(outcome => (double)outcome.Evaluations)),
+                        solved.Count == 0 ? null : Statistics.Median(solved.Select(outcome => (double)outcome.Evaluations)),
                         group.Average(outcome => outcome.BestFitness),
                         solved.Count == 0 ? null : solved.Average(outcome => outcome.Best!.Genes.Size),
                         Uses(group.ToList()));
@@ -181,11 +174,5 @@ namespace SnpEvolution.Evolution.Benchmarking
 
         private static string Quote(string value) => "\"" + value.Replace("\"", "\"\"") + "\"";
 
-        private static double Median(IEnumerable<double> values)
-        {
-            List<double> sorted = values.OrderBy(value => value).ToList();
-            int middle = sorted.Count / 2;
-            return sorted.Count % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
-        }
     }
 }

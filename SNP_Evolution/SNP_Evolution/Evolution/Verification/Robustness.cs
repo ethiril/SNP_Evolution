@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
@@ -14,6 +15,8 @@ namespace SnpEvolution.Evolution.Verification
     // which every case still stays quiet before start, fires the right done once with the right outputs, and leaves every
     // neuron with the spikes it began with. Latency bounds are not checked, since jitter changes timing by design, which is
     // what a time-free SN P system asks of its result. Runs get 1 + j times the steps a lockstep run has, for the delays.
+    // Each network measured is charged to the budget as one jitter run, apart from network evaluations, so measuring
+    // robustness never eats into a search's limit.
     public static class Robustness
     {
         public const int Runs = 100;
@@ -24,10 +27,11 @@ namespace SnpEvolution.Evolution.Verification
         // The jitters the evolve-parts summary reports.
         public static IReadOnlyList<int> Reported { get; } = new[] { 1, 2 };
 
-        public static float Of(Part part, int jitter, int runs = Runs, int seed = 1) => Of(part.Network, part.Task(), jitter, runs, seed);
+        public static float Of(Part part, int jitter, EvaluationBudget budget, int runs = Runs, int seed = 1) => Of(part.Network, part.Task(), jitter, budget, runs, seed);
 
-        public static float Of(Network network, ContractTask task, int jitter, int runs = Runs, int seed = 1)
+        public static float Of(Network network, ContractTask task, int jitter, EvaluationBudget budget, int runs = Runs, int seed = 1)
         {
+            budget.Charge(EvaluationKind.JitterRun, 1);
             int slack = 1 + jitter;
             List<Trial> trials = task.Cases
                 .Select(@case => new Trial(network, @case.Input, @case.Readout, @case.Watch! with { StepsAfterDone = @case.Watch.StepsAfterDone * slack }))
@@ -40,10 +44,10 @@ namespace SnpEvolution.Evolution.Verification
 
         // A MAP-Elites cell of robustness in tenths by neuron count, so a run keeps the best network at every level of
         // robustness and selection can work towards parts that survive jitter. Each network is measured once.
-        public static Func<Network, (int, int)> Cells(ContractTask task, int jitter, int runs = CellRuns)
+        public static Func<Network, (int, int)> Cells(ContractTask task, int jitter, EvaluationBudget budget, int runs = CellRuns)
         {
             var measured = new ConditionalWeakTable<Network, StrongBox<float>>();
-            return network => (Tenths(measured.GetValue(network, _ => new StrongBox<float>(Of(network, task, jitter, runs))).Value), network.Neurons.Count);
+            return network => (Tenths(measured.GetValue(network, _ => new StrongBox<float>(Of(network, task, jitter, budget, runs))).Value), network.Neurons.Count);
         }
 
         public static int Tenths(float robustness) => (int)Math.Floor(robustness * 10 + 1e-4);

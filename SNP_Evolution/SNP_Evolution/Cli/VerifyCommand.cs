@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Verification;
@@ -45,7 +46,7 @@ namespace SnpEvolution.Cli
             foreach ((LibraryPart part, string path) in parts)
             {
                 var clock = Stopwatch.StartNew();
-                BoundedResult result = BoundedCheck.Prove(part.Part, limits);
+                BoundedResult result = BoundedCheck.Prove(part.Part, limits, new EvaluationBudget());
                 Console.WriteLine($"{part.Contract.Name}: {result.Proven} in {clock.Elapsed.TotalSeconds:0.0} s.");
                 if (result.Verdict is Verdict.Failed failed)
                 {

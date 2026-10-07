@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Fitness;
@@ -13,7 +14,7 @@ namespace SnpEvolution.Tests.Evolution
     public class ContractTaskTests
     {
         private static FitnessResult Verify(ContractTask task, Network network) =>
-            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, new Random(0)).Evaluate(network);
+            new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, new Random(0), new EvaluationBudget()).Evaluate(network);
 
         private static FitnessResult Verify(Part part) => Verify(part.Task(), part.Network);
 
@@ -128,6 +129,11 @@ namespace SnpEvolution.Tests.Evolution
         public void ReadsIntervalTriggerAndBinaryOutputs() =>
             Assert.Equal(new[] { 1f, 1f, 1f, 1f }, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 10, 12 }));
 
+        // Start is sent on step 2, so a firing then is no part of the gap.
+        [Fact]
+        public void AnOutputFiringOnTheStartStepIsNotPartOfItsValue() =>
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 2, 5 }, flag: new[] { 5 }, word: new[] { 10, 12 })[(int)ContractRule.DoneOnce], 4);
+
         // The gap is one too long (0.25), the flag fires twice (0) and the word has one wrong bit of three (1/3).
         [Fact]
         public void ScoresWrongIntervalTriggerAndBinaryOutputs() =>
@@ -209,8 +215,8 @@ namespace SnpEvolution.Tests.Evolution
                 new GenomeSpace(InputCount: task.InputCount, RuleForm: RuleForm.Standard, MinNeurons: task.Binding.NeuronsNeeded),
                 new ExpressionGenerator(ExpressionGenerator.SimpleTemplates, 4, random),
                 random);
-            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, random);
-            IGeneticAlgorithm algorithm = AlgorithmCatalog.All.Single(choice => choice.Name == name)
+            var evaluator = new FitnessEvaluator(new ExhaustiveCpuEngine(), task, new SimulationOptions(1, 5, OutputTiming.Interval), 1, random, new EvaluationBudget());
+            IGeneticAlgorithm algorithm = SearchCatalog.Evolution.Single(search => search.Name == name)
                 .Create(new EvolutionContext(12, 0.5f, random, factory.NewNetwork, evaluator, factory, _ => { }));
 
             for (int generation = 0; generation < 5; generation++)

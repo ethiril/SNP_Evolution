@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Contracts;
@@ -56,7 +57,7 @@ namespace SnpEvolution.Cli
             BenchmarkTask task = settings.SelectedTask;
             Console.WriteLine("Composing a network for {0} with {1}.", task.Name, settings.Algorithm.Name);
             EvolutionSession.Notes(settings, task).ToList().ForEach(Console.WriteLine);
-            var evaluations = new EvaluationCounter();
+            EvaluationBudget evaluations = settings.RunBudget();
             IGeneticAlgorithm run;
             try
             {
@@ -67,7 +68,7 @@ namespace SnpEvolution.Cli
                 Console.Error.WriteLine(exception.Message);
                 return 1;
             }
-            RunOutput.Save(run, EvolutionSession.NewOutputFolder(), "ComposedNet", Console.WriteLine, evaluations);
+            RunOutput.Save(run, EvolutionSession.NewOutputFolder(), "ComposedNet", Console.WriteLine, evaluations.Report());
             return EvolutionSession.IsSolved(run, task.Task) ? 0 : 2;
         }
 
@@ -88,13 +89,13 @@ namespace SnpEvolution.Cli
                 Task = matching[0],
                 RuleForm = suiteTask.RuleForm,
                 OutputTiming = suiteTask.Timing,
-                Algorithm = Catalog.Algorithms.First(entry => AlgorithmCatalog.IsComposition(entry.Name) && entry.Name.Contains("tournament")),
+                Algorithm = SearchCatalog.CompositionTournament,
                 MaxEvaluations = 30_000,
                 MaxGenerations = 5_000,
                 Lexicase = true,
             };
             ApplyOptions(settings, options);
-            if (!AlgorithmCatalog.IsComposition(settings.Algorithm.Name))
+            if (settings.Algorithm is not CompositionSearch)
             {
                 Console.Error.WriteLine("compose needs a composition search --algorithm; run 'algorithms' to list them.");
                 return null;

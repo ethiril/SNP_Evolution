@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Fitness;
 
 namespace SnpEvolution.Evolution.Operators
@@ -17,23 +18,26 @@ namespace SnpEvolution.Evolution.Operators
 
         public LexicaseSelection(IParentSelection? fallback = null) => this.fallback = fallback ?? new TournamentSelection(3);
 
-        public Func<Individual> Prepare(IReadOnlyList<Individual> ranked, Random random)
+        public Func<Individual> Prepare(IReadOnlyList<Individual> ranked, Random random) => Picker(ranked, random) ?? fallback.Prepare(ranked, random);
+
+        // Picks from any scored candidates, networks or programs; null when they have no checks to go through.
+        public static Func<T>? Picker<T>(IReadOnlyList<T> ranked, Random random) where T : IScored
         {
-            int checks = ranked.Count == 0 ? 0 : ranked.Min(individual => individual.Checks.Count);
+            int checks = ranked.Count == 0 ? 0 : ranked.Min(candidate => candidate.Checks.Count);
             if (checks == 0)
             {
-                return fallback.Prepare(ranked, random);
+                return null;
             }
-            float[] epsilon = Enumerable.Range(0, checks).Select(check => MedianAbsoluteDeviation(ranked.Select(individual => individual.Checks[check]).ToList())).ToArray();
+            float[] epsilon = Enumerable.Range(0, checks).Select(check => MedianAbsoluteDeviation(ranked.Select(candidate => candidate.Checks[check]).ToList())).ToArray();
             int[] order = Enumerable.Range(0, checks).ToArray();
             return () =>
             {
                 random.Shuffle(order);
-                List<Individual> pool = ranked.ToList();
+                List<T> pool = ranked.ToList();
                 foreach (int check in order)
                 {
-                    float best = pool.Max(individual => individual.Checks[check]);
-                    pool = pool.Where(individual => individual.Checks[check] >= best - epsilon[check]).ToList();
+                    float best = pool.Max(candidate => candidate.Checks[check]);
+                    pool = pool.Where(candidate => candidate.Checks[check] >= best - epsilon[check]).ToList();
                     if (pool.Count == 1)
                     {
                         break;
@@ -45,14 +49,8 @@ namespace SnpEvolution.Evolution.Operators
 
         private static float MedianAbsoluteDeviation(List<float> scores)
         {
-            float median = Median(scores);
-            return Median(scores.Select(score => Math.Abs(score - median)).ToList());
-        }
-
-        private static float Median(List<float> values)
-        {
-            values.Sort();
-            return values.Count % 2 == 1 ? values[values.Count / 2] : (values[values.Count / 2 - 1] + values[values.Count / 2]) / 2;
+            float median = Statistics.Median(scores);
+            return Statistics.Median(scores.Select(score => Math.Abs(score - median)));
         }
     }
 }

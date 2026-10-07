@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Fitness;
@@ -34,8 +35,7 @@ namespace SnpEvolution.Cli
             }
             if (IsOn(options, "pilot"))
             {
-                AlgorithmChoice winner = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
-                settings.Algorithm = Catalog.Algorithms.First(entry => entry.Name == winner.Name);
+                settings.Algorithm = RunAdvisor.Pilot(settings, PilotBudget, Console.WriteLine);
             }
             var random = options.ContainsKey("seed") ? new Random((int)Number(options, "seed", 0)) : new Random();
             BenchmarkTask task = settings.SelectedTask;
@@ -44,9 +44,9 @@ namespace SnpEvolution.Cli
             {
                 Console.WriteLine(note);
             }
-            var evaluations = new EvaluationCounter();
+            EvaluationBudget evaluations = settings.RunBudget();
             IGeneticAlgorithm geneticAlgorithm = EvolutionSession.Evolve(settings, task, factory => factory.NewNetwork(), random, Console.WriteLine, evaluations);
-            RunOutput.Save(geneticAlgorithm, EvolutionSession.NewOutputFolder(), "TargetNet", Console.WriteLine, evaluations);
+            RunOutput.Save(geneticAlgorithm, EvolutionSession.NewOutputFolder(), "TargetNet", Console.WriteLine, evaluations.Report());
             return EvolutionSession.IsSolved(geneticAlgorithm) ? 0 : 2;
         }
 

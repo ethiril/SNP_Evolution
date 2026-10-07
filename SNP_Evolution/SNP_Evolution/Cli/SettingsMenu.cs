@@ -74,7 +74,7 @@ namespace SnpEvolution.Cli
                         settings.FitnessFunction = ChooseEntry(settings, "Score set targets with:", Catalog.FitnessFunctions, settings.FitnessFunction);
                         break;
                     case 3:
-                        settings.Algorithm = ChooseEntry(settings, "Evolve networks with:", Catalog.Algorithms, settings.Algorithm);
+                        settings.Algorithm = Choose(settings, "Evolve networks with:", Catalog.Algorithms, settings.Algorithm, search => search.Name);
                         break;
                     case 4:
                         PromptFor<int>("Population size", NotPositiveInteger, InputParsing.TryPositiveInt, value => settings.PopulationSize = value);

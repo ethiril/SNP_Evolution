@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Networks;
 using SnpEvolution.Simulation;
@@ -26,22 +26,29 @@ namespace SnpEvolution.Evolution.Fitness
         ITask Task { get; }
     }
 
+    // Whether retests confirmed a solve; Failed is the first retest that did not solve the task, which the caller
+    // should record as the network's score, since an elite kept with a lucky score is never rescored.
+    public sealed record Confirmation(FitnessResult? Failed)
+    {
+        public bool Solved => Failed == null;
+    }
+
     public sealed class FitnessEvaluator : ITaskEvaluator
     {
         private readonly ISimulationEngine engine;
         private readonly SimulationOptions options;
         private readonly int solvedRetestCount;
         private readonly Random random;
-        private readonly EvaluationCounter? counter;
+        private readonly EvaluationBudget budget;
         private readonly EvaluationSource source;
-        private long evaluations;
 
-        // Retests that confirm a solve are counted as verification whatever source the evaluator was given.
+        // Every network scored is charged to the budget. Retests that confirm a solve are charged as verification
+        // whatever source the evaluator was given.
         public FitnessEvaluator(ISimulationEngine engine, ITask task, SimulationOptions options, int solvedRetestCount, Random random,
-            EvaluationCounter? counter = null, EvaluationSource source = EvaluationSource.Main)
+            EvaluationBudget budget, EvaluationSource source = EvaluationSource.Main)
         {
             this.engine = engine;
-            this.counter = counter;
+            this.budget = budget;
             this.source = source;
             Task = task;
             this.options = options with { MaxSteps = Math.Max(options.MaxSteps, task.StepsNeeded) };
@@ -49,22 +56,18 @@ namespace SnpEvolution.Evolution.Fitness
             this.random = random;
         }
 
-        public FitnessEvaluator(ISimulationEngine engine, IFitnessFunction fitness, SimulationOptions options, int solvedRetestCount, Random random)
-            : this(engine, new GeneratorTask("Generator", Array.Empty<int>(), fitness), options, solvedRetestCount, random)
+        public FitnessEvaluator(ISimulationEngine engine, IFitnessFunction fitness, SimulationOptions options, int solvedRetestCount, Random random, EvaluationBudget budget)
+            : this(engine, new GeneratorTask("Generator", Array.Empty<int>(), fitness), options, solvedRetestCount, random, budget)
         {
         }
 
         public ITask Task { get; }
 
-        // How many networks have been scored, which is the budget algorithms are compared on.
-        public long Evaluations => Interlocked.Read(ref evaluations);
-
         public IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks) => EvaluateAll(networks, source);
 
         private IReadOnlyList<FitnessResult> EvaluateAll(IReadOnlyList<Network> networks, EvaluationSource spentOn)
         {
-            Interlocked.Add(ref evaluations, networks.Count);
-            counter?.Add(spentOn, networks.Count);
+            budget.Charge(EvaluationKind.Network, networks.Count, spentOn);
             IReadOnlyList<TaskCase> cases = Task.Cases;
             var trials = networks.SelectMany(network => cases.Select(@case => new Trial(network, @case.Input, @case.Readout, @case.Watch))).ToList();
             IReadOnlyList<TrialResult> results = engine.Run(trials, options, random);
@@ -78,18 +81,7 @@ namespace SnpEvolution.Evolution.Fitness
         public FitnessResult Evaluate(Network network) => EvaluateAll(new[] { network })[0];
 
         // Sampled runs are stochastic, so one lucky score is not enough to stop the evolution; an exact one is.
-        public bool IsReliablySolved(Network network) => FailedRetest(network) == null;
-
-        // A failed retest becomes the individual's score, since an elite kept with a lucky score is never rescored and fails every retest.
-        public bool ConfirmSolved(Individual individual)
-        {
-            if (FailedRetest(individual.Genes) is not FitnessResult failed)
-            {
-                return true;
-            }
-            individual.Record(failed);
-            return false;
-        }
+        public Confirmation ConfirmSolved(Network network) => new Confirmation(FailedRetest(network));
 
         // The first retest that does not solve the task, or null when they all do.
         private FitnessResult? FailedRetest(Network network)

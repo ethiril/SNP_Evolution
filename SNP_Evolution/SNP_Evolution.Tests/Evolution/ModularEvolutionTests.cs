@@ -64,6 +64,31 @@ namespace SnpEvolution.Tests.Evolution
         }
 
         [Fact]
+        public void EveryOtherSideRunBuildsAPartThatWaitsForATrigger()
+        {
+            var task = new SequenceTask("test", new[] { 2, 2, 5, 2 });
+            var main = new StubAlgorithm();
+            main.Individuals.AddRange(new[] { Scored(PingPong(), 0.5f, 1, 1, 0, 0), Scored(Chain(), 0.4f, 1, 0, 0, 0) });
+            var parts = new List<ITask>();
+            var modular = new ModularEvolution(main, new ModuleLibrary(), null, () => task, (part, _) =>
+            {
+                parts.Add(part);
+                var side = new StubAlgorithm();
+                side.Individuals.Add(Scored(AlwaysOutputsOne(), 1));
+                return side;
+            }, new ModulePolicy(Patience: 2, SideGenerations: 5, CompositeFraction: 0.5, IncubationGenerations: 0), 4, 10, new Random(1), _ => { });
+
+            for (int generation = 0; generation < 5; generation++)
+            {
+                modular.NextGeneration();
+            }
+
+            Assert.Equal(2, parts.Count);
+            Assert.IsType<SequenceTask>(parts[0]);
+            Assert.IsType<TriggeredSequenceTask>(parts[1]);
+        }
+
+        [Fact]
         public void NetworksGivenAModuleIncubateAndASolvedPartIsNotEvolvedAgain()
         {
             var library = new ModuleLibrary();

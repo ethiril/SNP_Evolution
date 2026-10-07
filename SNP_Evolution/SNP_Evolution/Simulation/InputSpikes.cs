@@ -21,9 +21,11 @@ namespace SnpEvolution.Simulation
         // -1 when there is no input at all.
         public int LastStep { get; }
 
-        // The usual SN P encoding: each number n becomes two spikes n steps apart, so input k receives 1 0^(n-1) 1.
-        public static InputSpikes Numbers(params int[] numbers) =>
-            new InputSpikes(numbers.Select(number => (IReadOnlyList<int>)new[] { 0, number }).ToArray());
+        // The usual SN P encoding of a number n, which an interval port uses too: two spikes n steps apart, from the given step.
+        public static IReadOnlyList<int> Interval(int n, int from = 0) => new[] { from, from + n };
+
+        // Each number on its own input, so input k receives 1 0^(n-1) 1.
+        public static InputSpikes Numbers(params int[] numbers) => new InputSpikes(numbers.Select(number => Interval(number)).ToArray());
 
         // One spike on each given step, all to the first input, as a sensor would send them.
         public static InputSpikes Train(IEnumerable<int> steps) => new InputSpikes(new[] { (IReadOnlyList<int>)steps.ToArray() });

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Algorithms;
 using SnpEvolution.Evolution.Benchmarking;
 using SnpEvolution.Evolution.Genome;
@@ -12,7 +13,7 @@ namespace SnpEvolution.Cli
 {
     internal sealed class Settings
     {
-        public const int Elitism = AlgorithmCatalog.Elitism;
+        public const int Elitism = SearchCatalog.Elitism;
         public const int MaxSpikeGroupSize = 4;
 
         public int MaxSteps { get; set; } = 50;
@@ -23,6 +24,8 @@ namespace SnpEvolution.Cli
 
         // Network evaluations a run may spend in all, side runs and retests included; 0 for no limit but the generations.
         public long MaxEvaluations { get; set; }
+
+        public EvaluationBudget RunBudget() => new EvaluationBudget(MaxEvaluations > 0 ? MaxEvaluations : null);
         public int SolvedRetestCount { get; set; } = 5;
         public OutputTarget Target { get; set; } = OutputTarget.Set(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         public bool ExperimentalRules { get; set; } = true;
@@ -82,7 +85,7 @@ namespace SnpEvolution.Cli
         public CatalogEntry<Settings, BenchmarkTask> Task { get; set; } = Catalog.Tasks[0];
         public CatalogEntry<Settings, ISimulationEngine> Engine { get; set; } = Catalog.Engines[0];
         public CatalogEntry<Settings, IFitnessFunction> FitnessFunction { get; set; } = Catalog.FitnessFunctions[0];
-        public CatalogEntry<EvolutionContext, IGeneticAlgorithm> Algorithm { get; set; } = Catalog.StructuralDefault;
+        public EvolutionSearch Algorithm { get; set; } = Catalog.StructuralDefault;
 
         public SimulationOptions SimulationOptions => new SimulationOptions(MaxSteps, Repetitions, OutputTiming);
 
@@ -99,7 +102,7 @@ namespace SnpEvolution.Cli
         // The stages for an iterative run, automatic unless a start length or step has been set.
         public CurriculumPlan CurriculumFor(IPrefixTask task)
         {
-            CurriculumPlan automatic = CurriculumPlan.For(task);
+            CurriculumPlan automatic = task.Curriculum;
             return new CurriculumPlan(
                 IterativeStartLength > 0 ? IterativeStartLength : automatic.StartLength,
                 IterativeStep > 0 ? IterativeStep : automatic.Step);

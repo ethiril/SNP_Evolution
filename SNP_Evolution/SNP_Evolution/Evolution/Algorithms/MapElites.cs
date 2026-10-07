@@ -27,9 +27,9 @@ namespace SnpEvolution.Evolution.Algorithms
         private readonly IParentSelection? parents;
         private readonly Func<Network, (int, int)>? cells;
         private readonly Dictionary<(bool Behaviour, int, int), Individual> archive = new Dictionary<(bool, int, int), Individual>();
-        private readonly List<IReadOnlyList<float>> fitnessHistory = new List<IReadOnlyList<float>>();
+        private readonly ScoreHistory fitnessHistory = new ScoreHistory();
+        private readonly Immigrants immigrants = new Immigrants();
         private List<Individual> elites = new List<Individual>();
-        private List<Network> immigrants = new List<Network>();
 
         public MapElites(int batchSize, Random random, Func<Network> createRandomNetwork, IPopulationEvaluator evaluator, ICrossover crossover, IMutation mutation,
             IParentSelection? parents = null, Func<Network, (int, int)>? cells = null)
@@ -51,7 +51,7 @@ namespace SnpEvolution.Evolution.Algorithms
 
         public Individual? Best { get; private set; }
 
-        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory;
+        public IReadOnlyList<IReadOnlyList<float>> FitnessHistory => fitnessHistory.Rows;
 
         public static (int Neurons, int Rules) Cell(Network network) => (network.Neurons.Count, network.RuleCount);
 
@@ -68,19 +68,15 @@ namespace SnpEvolution.Evolution.Algorithms
         public void NextGeneration()
         {
             Func<Individual> chooseParent = parents != null && elites.Count > 0 ? parents.Prepare(elites, random) : () => elites[random.Next(elites.Count)];
-            List<Individual> batch = immigrants.Take(batchSize)
-                .Concat(Enumerable.Range(0, Math.Max(0, batchSize - immigrants.Count)).Select(_ => NewNetwork(chooseParent)))
-                .Select(network => new Individual(network))
-                .ToList();
-            immigrants = new List<Network>();
+            List<Individual> batch = immigrants.Batch(batchSize, () => NewNetwork(chooseParent));
             Evaluation.Evaluate(evaluator, batch);
-            fitnessHistory.Add(batch.Select(individual => individual.Fitness).Where(GeneticAlgorithm.IsRecordableFitness).ToList());
+            fitnessHistory.Record(batch);
             Archive(batch);
             Generation++;
         }
 
         // Newcomers make up part of the next batch, and only displace an elite they beat.
-        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants = newcomers.ToList();
+        public void Immigrate(IReadOnlyList<Network> newcomers) => immigrants.Arrive(newcomers);
 
         // Every elite is scored again and the archive rebuilt, since both scores and behaviours can change.
         public void Rescore()

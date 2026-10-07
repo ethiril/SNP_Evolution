@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Genome;
 using SnpEvolution.Evolution.Parts;
@@ -46,7 +47,7 @@ namespace SnpEvolution.Tests.Export
         [MemberData(nameof(Parts))]
         public void PartsMeetTheirContractsSoTheirTracesAreWorthMatching(string name)
         {
-            Assert.IsType<Verdict.Passed>(Verifier.Measure(Named(name)).Verdict);
+            Assert.IsType<Verdict.Passed>(Verifier.Measure(Named(name), new EvaluationBudget()).Verdict);
         }
 
         [IverilogFact]
@@ -124,7 +125,7 @@ namespace SnpEvolution.Tests.Export
 
             VerilogDesign design = VerilogExporter.Export(register);
 
-            long width = Verifier.Measure(register).Cost.RegisterWidth;
+            long width = Verifier.Measure(register, new EvaluationBudget()).Cost.RegisterWidth;
             Assert.Equal(VerilogExporter.BitsFor(width), design.CounterWidth);
             Assert.Contains("module register (", design.Module);
             Assert.Contains("input  wire [", design.Module);

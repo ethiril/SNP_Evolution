@@ -43,13 +43,13 @@ namespace SnpEvolution.Cli
                     target => target.Target = fixedTarget));
             }
 
-            if (Catalog.EvolvesRulesOnly(settings.Algorithm))
+            if (settings.Algorithm.EvolvesRulesOnly)
             {
                 suggestions.Add(new Suggestion("Genetic algorithm", settings.Algorithm.Name, Catalog.StructuralDefault.Name,
                     "This algorithm only changes rule expressions, so it can never grow the structure a new system needs.",
                     target => target.Algorithm = Catalog.StructuralDefault));
             }
-            else if (task.Task is IPrefixTask && !settings.Algorithm.Name.StartsWith("MAP-Elites"))
+            else if (task.Task is IPrefixTask && settings.Algorithm != Catalog.StructuralDefault)
             {
                 suggestions.Add(new Suggestion("Genetic algorithm", settings.Algorithm.Name, Catalog.StructuralDefault.Name,
                     "MAP-Elites keeps the best network for each behaviour (how much of the target it gets right, how long a gap it makes), so stepping stones survive.",
@@ -137,7 +137,7 @@ namespace SnpEvolution.Cli
 
         // Races the structural algorithms on an early stage of the task by successive halving, with the current
         // settings, and returns the winner. Early stages are short, so this is quick next to the run itself.
-        public static AlgorithmChoice Pilot(Settings settings, long initialBudget, Action<string> log)
+        public static EvolutionSearch Pilot(Settings settings, long initialBudget, Action<string> log)
         {
             BenchmarkTask task = settings.SelectedTask;
             if (task.Task is IPrefixTask prefixTask)
@@ -147,7 +147,7 @@ namespace SnpEvolution.Cli
                 task = task with { Task = length >= prefixTask.Length ? prefixTask : prefixTask.Prefix(length) };
             }
             BenchmarkSettings benchmark = settings.BenchmarkSettings with { Seeds = 2, PopulationSize = settings.PopulationSize };
-            List<AlgorithmChoice> candidates = AlgorithmCatalog.All.Where(choice => !Catalog.EvolvesRulesOnly(choice.Name)).ToList();
+            List<EvolutionSearch> candidates = Catalog.Algorithms.Where(search => !search.EvolvesRulesOnly).ToList();
             log($"Pilot: racing {candidates.Count} algorithms on {task.Name}" + (task.Task is IPrefixTask stage && task.Task != settings.SelectedTask.Task ? $", first {stage.Length} values" : "") + ".");
             return AlgorithmSelector.Select(candidates, task, benchmark, initialBudget, log).Winner;
         }
@@ -162,7 +162,7 @@ namespace SnpEvolution.Cli
                     "Known small SN P systems use far fewer neurons; a higher cap mostly makes the space to search bigger.",
                     target => target.MaxNeurons = MaxUsefulNeurons));
             }
-            if (task.Task is not SequenceTask sequence)
+            if (task.Task is not ISequenceTask sequence)
             {
                 return;
             }

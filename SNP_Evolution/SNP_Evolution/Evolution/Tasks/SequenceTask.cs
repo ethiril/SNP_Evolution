@@ -12,7 +12,7 @@ namespace SnpEvolution.Evolution.Tasks
     // that first wrong gap; anything after a mistake earns nothing, since a right value in the wrong place is no
     // step towards the sequence. A nondeterministic network is scored on the mean and the worst of its sampled runs,
     // so a network that gives the sequence every time beats one that only sometimes does.
-    public sealed class SequenceTask : IPrefixTask
+    public sealed class SequenceTask : IPrefixTask, ISequenceTask, IFocusable, ITriggerable, IProposing
     {
         private const int MaxGapBucket = 12;
         private const int FocusLength = 3;
@@ -73,24 +73,15 @@ namespace SnpEvolution.Evolution.Tasks
             List<int> intervals = SpikeTrains.Intervals(results[0].SpikeTrains[0]).Take(Expected.Count + 2).ToList();
             int longest = intervals.Count == 0 ? 0 : intervals.Max();
             int bucket = longest == 0 ? 0 : Math.Min(MaxGapBucket, (int)Math.Log2(longest) + 1);
-            return (CorrectPrefix(intervals), bucket);
+            return (TaskScoring.CorrectPrefix(intervals, Expected), bucket);
         }
 
         // Each gap, in its place, scored by the share of runs that get it right. Unlike the fitness this counts a gap
         // even after an earlier mistake, so a network that can already make the later gaps stands out.
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results)
         {
-            IReadOnlyList<IReadOnlyList<int>> trains = results[0].SpikeTrains;
-            var checks = new float[Expected.Count];
-            foreach (IReadOnlyList<int> train in trains)
-            {
-                List<int> intervals = SpikeTrains.Intervals(train).Take(Expected.Count).ToList();
-                for (int gap = 0; gap < intervals.Count; gap++)
-                {
-                    checks[gap] += intervals[gap] == Expected[gap] ? 1f / trains.Count : 0;
-                }
-            }
-            return checks;
+            List<List<int>> runs = results[0].SpikeTrains.Select(SpikeTrains.Intervals).ToList();
+            return Enumerable.Range(0, Expected.Count).Select(gap => TaskScoring.ShareOfRuns(runs, intervals => gap < intervals.Count && intervals[gap] == Expected[gap])).ToList();
         }
 
         public string CheckName(int check) => $"gap {check + 1} ({Expected[check]})";
@@ -116,19 +107,9 @@ namespace SnpEvolution.Evolution.Tasks
                 Expected.Skip(start).Take(FocusLength).ToList());
         }
 
-        public int CorrectPrefix(IReadOnlyList<int> intervals)
-        {
-            int prefix = 0;
-            while (prefix < Expected.Count && prefix < intervals.Count && intervals[prefix] == Expected[prefix])
-            {
-                prefix++;
-            }
-            return prefix;
-        }
-
         private float ScoreRun(IReadOnlyList<int> intervals)
         {
-            int prefix = CorrectPrefix(intervals);
+            int prefix = TaskScoring.CorrectPrefix(intervals, Expected);
             float close = prefix < Expected.Count && prefix < intervals.Count
                 ? CloseCredit.Score(intervals[prefix], Expected[prefix])
                 : 0;

@@ -48,7 +48,7 @@ namespace SnpEvolution.Cli
             }
             if (options.GetValueOrDefault("algorithm") is string algorithm)
             {
-                settings.Algorithm = Catalog.Algorithms.FirstOrDefault(entry => entry.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
+                settings.Algorithm = Catalog.Algorithms.FirstOrDefault(search => search.Name.Contains(algorithm, StringComparison.OrdinalIgnoreCase)) ?? settings.Algorithm;
             }
         }
 

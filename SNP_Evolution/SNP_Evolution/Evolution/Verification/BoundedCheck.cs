@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Parts;
 using SnpEvolution.Evolution.Tasks;
@@ -16,14 +17,15 @@ namespace SnpEvolution.Evolution.Verification
     public sealed record ProofLimits(TimeSpan Time, int MaxBound = int.MaxValue, int MaxConfigurations = Verifier.MaxConfigurations);
 
     // Checks a part on every input up to growing bounds, each bound through the Verifier. A case too wide for the
-    // exhaustive engine to follow exactly stops the proof, since sampling is not proof.
+    // exhaustive engine to follow exactly stops the proof, since sampling is not proof. Each bound checked is charged as a
+    // proof step, and its run on the exhaustive engine as a check.
     public static class BoundedCheck
     {
         // A part entering the library is checked up to twice the largest value its cases test, where a composition built
         // from it is likely to call it, or for as long as this allows.
         public static readonly TimeSpan AdmissionTime = TimeSpan.FromSeconds(10);
 
-        public static BoundedResult Prove(Part part, ProofLimits limits)
+        public static BoundedResult Prove(Part part, ProofLimits limits, EvaluationBudget budget)
         {
             Contract contract = part.Contract;
             if (Specification.For(contract) is not Specification specification)
@@ -40,7 +42,8 @@ namespace SnpEvolution.Evolution.Verification
                 }
                 if (AtBound(contract, specification, bound) is Contract atBound)
                 {
-                    switch (new Verifier(new ContractTask(atBound, part.Binding), limits.MaxConfigurations).Check(part.Network))
+                    budget.Charge(EvaluationKind.ProofStep, 1);
+                    switch (new Verifier(new ContractTask(atBound, part.Binding), budget, limits.MaxConfigurations).Check(part.Network))
                     {
                         case Verdict.Unknown unknown:
                             return Stopped(proven, unknown.Reason);
@@ -77,9 +80,9 @@ namespace SnpEvolution.Evolution.Verification
             new ProofLimits(AdmissionTime, 2 * contract.Cases.SelectMany(@case => @case.Inputs.Values).DefaultIfEmpty(0).Max());
 
         // The bounded check a part entering the library gets; a counterexample keeps it out, and is logged.
-        public static BoundedResult Admit(Part part, Action<string> log)
+        public static BoundedResult Admit(Part part, EvaluationBudget budget, Action<string> log)
         {
-            BoundedResult result = Prove(part, Admission(part.Contract));
+            BoundedResult result = Prove(part, Admission(part.Contract), budget);
             if (result.Verdict is Verdict.Failed failed)
             {
                 log($"Not admitted: the part for {part.Contract.Name} passes its test cases but not every input. {CounterexampleText.Of(part, failed.Counterexample)}");

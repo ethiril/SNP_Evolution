@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
-namespace SnpEvolution.Evolution.Benchmarking
+namespace SnpEvolution.Evolution.Accounting
 {
     // U counts the pairs the first sample wins, ties as a half, and A12 is U over all pairs; P is two-sided.
     public sealed record MannWhitneyResult(double U, double P, double A12, bool Exact);
@@ -34,15 +35,16 @@ namespace SnpEvolution.Evolution.Benchmarking
             return new MannWhitneyResult(u, Math.Min(1, 2 * (1 - NormalCdf(Math.Max(0, z)))), a12, false);
         }
 
-        public static double Median(IEnumerable<double> values)
+        // Worked out in the values' own type, so a median of floats is the same float wherever it is taken; NaN when there are none.
+        public static T Median<T>(IEnumerable<T> values) where T : IFloatingPointIeee754<T>
         {
-            List<double> sorted = values.OrderBy(value => value).ToList();
+            List<T> sorted = values.OrderBy(value => value).ToList();
             if (sorted.Count == 0)
             {
-                return double.NaN;
+                return T.NaN;
             }
             int middle = sorted.Count / 2;
-            return sorted.Count % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+            return sorted.Count % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / T.CreateChecked(2);
         }
 
         // Ranks from 1, with tied values sharing the mean of the ranks they span.

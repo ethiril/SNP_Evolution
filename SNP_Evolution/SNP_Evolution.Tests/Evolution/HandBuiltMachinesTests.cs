@@ -1,3 +1,4 @@
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Contracts;
 using SnpEvolution.Evolution.Modules;
 using SnpEvolution.Evolution.Parts;
@@ -25,7 +26,7 @@ namespace SnpEvolution.Tests.Evolution
             Specification specification = Assert.IsType<Specification>(Specification.For(contract));
             ContractCase largeA = specification.Expected(new Dictionary<string, int> { ["a"] = 14, ["b"] = 0, ["n"] = 0 });
 
-            PartMeasurement measurement = Verifier.Measure(new Part(contract with { Cases = contract.Cases.Append(largeA).ToList() }, loop.Flatten(library), binding));
+            PartMeasurement measurement = Verifier.Measure(new Part(contract with { Cases = contract.Cases.Append(largeA).ToList() }, loop.Flatten(library), binding), new EvaluationBudget());
 
             output.WriteLine($"{measurement.Cost}, latency {measurement.Latency}");
             output.WriteLine(measurement.Description);

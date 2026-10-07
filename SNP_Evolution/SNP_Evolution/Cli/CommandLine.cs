@@ -87,8 +87,8 @@ namespace SnpEvolution.Cli
                 Lexicase = Switch(options, "lexicase", false),
                 Repetitions = (int)Number(options, "repetitions", settings.Repetitions),
             };
-            List<AlgorithmChoice> algorithms = Matching(AlgorithmCatalog.All, algorithm => algorithm.Name, options.GetValueOrDefault("algorithm"));
-            if (args[0].ToLowerInvariant() is "benchmark" or "select" && algorithms.Any(algorithm => AlgorithmCatalog.IsComposition(algorithm.Name)))
+            List<ISearch<Individual>> algorithms = Matching(SearchCatalog.FromScratch, algorithm => algorithm.Name, options.GetValueOrDefault("algorithm"));
+            if (args[0].ToLowerInvariant() is "benchmark" or "select" && algorithms.Any(algorithm => algorithm is CompositionSearch))
             {
                 string folder = options.GetValueOrDefault("library", settings.PartLibraryFolder);
                 ModuleLibrary library = PartLibrary(options, folder);
@@ -122,13 +122,13 @@ namespace SnpEvolution.Cli
                     TaskSuite.All.ToList().ForEach(task => Console.WriteLine(task.Name));
                     return 0;
                 case "algorithms":
-                    AlgorithmCatalog.All.ToList().ForEach(algorithm => Console.WriteLine(algorithm.Name));
+                    SearchCatalog.All.ToList().ForEach(search => Console.WriteLine(search.Name));
                     return 0;
                 case "benchmark" when tasks.Count > 0 && algorithms.Count > 0:
                     Console.WriteLine(Benchmark.FormatTable(Benchmark.Run(algorithms, tasks, benchmark, Console.Error.WriteLine)));
                     return 0;
                 case "select" when tasks.Count == 1 && algorithms.Count > 0:
-                    SelectionResult result = AlgorithmSelector.Select(algorithms, tasks[0], benchmark, Math.Max(1, benchmark.EvaluationBudget / 8), Console.WriteLine);
+                    SelectionResult<ISearch<Individual>> result = AlgorithmSelector.Select(algorithms, tasks[0], benchmark, Math.Max(1, benchmark.EvaluationBudget / 8), Console.WriteLine);
                     Console.WriteLine("Best algorithm for {0}: {1}", tasks[0].Name, result.Winner.Name);
                     if (result.BestFound is Individual best)
                     {

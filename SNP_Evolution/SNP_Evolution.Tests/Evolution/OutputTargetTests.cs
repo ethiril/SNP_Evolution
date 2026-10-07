@@ -1,4 +1,5 @@
 using SnpEvolution.Cli;
+using SnpEvolution.Evolution.Accounting;
 using SnpEvolution.Evolution.Fitness;
 using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Simulation;
@@ -11,7 +12,7 @@ namespace SnpEvolution.Tests.Evolution
         private static TrialResult Trains(params int[][] trains) => new TrialResult(Array.Empty<int>(), false, TrialCoverage.Sampled, trains);
 
         private static FitnessResult Evaluate(ITask task, int maxSteps) =>
-            new FitnessEvaluator(new ParallelCpuEngine(), task, new SimulationOptions(maxSteps, 5, OutputTiming.Interval), 3, new Random(0)).Evaluate(PingPong());
+            new FitnessEvaluator(new ParallelCpuEngine(), task, new SimulationOptions(maxSteps, 5, OutputTiming.Interval), 3, new Random(0), new EvaluationBudget()).Evaluate(PingPong());
 
         [Theory]
         [InlineData("1,1,2,3,5,8,13", new[] { 1, 1, 2, 3, 5, 8, 13 })]
