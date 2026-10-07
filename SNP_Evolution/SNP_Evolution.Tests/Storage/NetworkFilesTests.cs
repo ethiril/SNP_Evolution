@@ -1,5 +1,6 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Storage;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Storage
 {
@@ -65,6 +66,40 @@ namespace SnpEvolution.Tests.Storage
         public void RejectsAMissingFile()
         {
             Assert.Null(NetworkFiles.Load(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json")));
+        }
+
+        [Fact]
+        public void StandardRulesAndInputNeuronsRoundTripThroughJson()
+        {
+            var network = new Network(new[]
+            {
+                InputNeuron(new[] { 2 }, Standard("a(aa)*", 1, produce: 2, delay: 1)),
+                OutputNeuron(0, new Rule("a", 0, true)),
+            });
+
+            string json = NetworkFiles.ToJson(network);
+            Network loaded = Assert.IsType<Network>(NetworkFiles.FromJson(json));
+
+            Rule rule = loaded.Neurons[0].Rules[0];
+            Assert.Equal((1L, 2, 1), (rule.Consume!.Value, rule.Produce, rule.Delay));
+            Assert.True(loaded.Neurons[0].IsInput);
+            Assert.Null(loaded.Neurons[1].Rules[0].Consume);
+            Assert.DoesNotContain("\"Size\"", json);
+            Assert.Equal(json, NetworkFiles.ToJson(loaded));
+        }
+
+        [Fact]
+        public void SavesTheAxonalFlagOnlyWhenSet()
+        {
+            var network = new Network(new[] { Neuron(1, new[] { 2 }, Axonal("a+", 2)), OutputNeuron(0, new Rule("a", 1, true)) });
+
+            string json = NetworkFiles.ToJson(network);
+            Network loaded = Assert.IsType<Network>(NetworkFiles.FromJson(json));
+
+            Assert.True(loaded.Neurons[0].Rules[0].Axonal);
+            Assert.False(loaded.Neurons[1].Rules[0].Axonal);
+            Assert.Single(json.Split("Axonal").Skip(1));
+            Assert.Equal("a+ -> a;2 axonal", NetworkNotation.Rule(loaded.Neurons[0].Rules[0]));
         }
     }
 }

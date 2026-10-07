@@ -1,12 +1,18 @@
 <Project>
 
-  <!-- Settings both projects share. -->
+  <!-- Settings every project shares. Each layer is SnpEvolution.<folder>, and lets the tests see its internals. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>SnpEvolution.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>SnpEvolution.$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SNP_Evolution.Tests" />
+  </ItemGroup>
 
 </Project>

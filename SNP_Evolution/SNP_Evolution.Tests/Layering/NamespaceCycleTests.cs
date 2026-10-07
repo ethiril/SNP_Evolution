@@ -1,7 +1,7 @@
 namespace SnpEvolution.Tests.Layering
 {
-    // The project split later in the milestone needs the namespaces to form layers, so no namespace may depend on
-    // itself through others.
+    // The build keeps projects from depending on each other in a cycle, but not the namespaces inside one project, so
+    // no namespace may depend on itself through others.
     public class NamespaceCycleTests
     {
         [Fact]

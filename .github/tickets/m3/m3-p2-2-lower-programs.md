@@ -20,7 +20,7 @@ The lowering should only use parts from the library and plain relays, because a 
 Where the lowering needs a part the library lacks (a join, a merge, a timer), it should say which, because that is a proposal the run can make.
 A disagreement between the interpreter and the network should be reported with the case and both readings, because it means either a lowering bug or a part whose contract does not say enough about timing.
 
-Where: `SNP_Evolution/Evolution/Modules/Composition.cs`, `SNP_Evolution/Evolution/Modules/PartWiring.cs`, `SNP_Evolution/Evolution/Modules/Promotion.cs`; the n1 x n2 and Fibonacci programs from the previous ticket as tests.
+Where: `Specs/Parts/Composition.cs`, `Specs/Parts/PartWiring.cs`, `Search/Modules/Promotion.cs`; the n1 x n2 and Fibonacci programs from the previous ticket as tests.
 
 Done when:
 - [ ] The hand-written n1 x n2 program lowers to a network that passes the multiply contract on the exhaustive engine and is promoted

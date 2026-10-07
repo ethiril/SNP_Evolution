@@ -1,12 +1,11 @@
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Genome;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
+using SnpEvolution.Search.Genome;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Verification;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Export
 {
@@ -22,15 +21,9 @@ namespace SnpEvolution.Tests.Export
             var cases = SpikeTrace.Cases(part.Contract);
             List<InputSpikes> inputs = cases.Select(@case => @case.Input).ToList();
             List<int> steps = cases.Select(@case => @case.Steps).ToList();
-            string folder = Path.Combine(Path.GetTempPath(), "snp-verilog-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                return (Iverilog.Simulate(design, VerilogTestbench.For(design, inputs, steps), folder), VerilogTestbench.ExpectedOutput(part.Network, inputs, steps));
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            using var temp = new TempFolder("snp-verilog");
+            string folder = temp.Path;
+            return (Iverilog.Simulate(design, VerilogTestbench.For(design, inputs, steps), folder), VerilogTestbench.ExpectedOutput(part.Network, inputs, steps));
         }
 
         public static TheoryData<string> Parts() => new TheoryData<string> { "library delay 2", "register", "add", "increment" };
@@ -57,7 +50,7 @@ namespace SnpEvolution.Tests.Export
             {
                 (string simulated, string expected) = CoSimulate(Named(name));
 
-                Assert.True(expected == simulated, $"{name} differs from our engine first at: {FirstDifference(expected, simulated)}");
+                Assert.True(expected == simulated, $"{name} differs from our engine. {TextDifference.FirstDifference(expected, simulated)}");
                 Assert.EndsWith("overflow 0\n", simulated);
             }
         }
@@ -69,7 +62,7 @@ namespace SnpEvolution.Tests.Export
         {
             var random = new Random(5);
             var space = new GenomeSpace(InputCount: 2, RuleForm: RuleForm.Mixed, MaxNeurons: 6, MaxDelay: 3, MaxRulesPerNeuron: 2);
-            var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+            var factory = Factories.Networks(space, random);
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0, 1, 1, 4, 9 }, new[] { 2, 3, 7 } });
             int exported = 0;
             var delays = new HashSet<DelayKind>();
@@ -84,17 +77,11 @@ namespace SnpEvolution.Tests.Export
                 delays.UnionWith(network.Neurons.SelectMany(neuron => neuron.Rules).Where(rule => rule.Delay > 0).Select(rule => rule.DelayKind));
                 long mostHeld = SpikeTrace.Run(network, input, 40).MostHeld;
                 VerilogDesign design = VerilogExporter.Export(network, $"random {attempt}", NetworkPort.Plain(network), mostHeld);
-                string folder = Path.Combine(Path.GetTempPath(), "snp-verilog-" + Guid.NewGuid().ToString("N"));
-                try
-                {
-                    string simulated = Iverilog.Simulate(design, VerilogTestbench.For(design, new[] { input }, new[] { 40 }), folder);
-                    string expected = VerilogTestbench.ExpectedOutput(network, new[] { input }, new[] { 40 });
-                    Assert.True(expected == simulated, $"{NetworkNotation.Format(network)}\ndiffers first at: {FirstDifference(expected, simulated)}");
-                }
-                finally
-                {
-                    Directory.Delete(folder, recursive: true);
-                }
+                using var temp = new TempFolder("snp-verilog");
+                string folder = temp.Path;
+                string simulated = Iverilog.Simulate(design, VerilogTestbench.For(design, new[] { input }, new[] { 40 }), folder);
+                string expected = VerilogTestbench.ExpectedOutput(network, new[] { input }, new[] { 40 });
+                Assert.True(expected == simulated, $"{NetworkNotation.Format(network)}\ndiffers from our engine. {TextDifference.FirstDifference(expected, simulated)}");
             }
             Assert.Equal(25, exported);
             Assert.Equal(new[] { DelayKind.Closing, DelayKind.Holding, DelayKind.Axonal }, delays.OrderBy(kind => kind));
@@ -142,12 +129,5 @@ namespace SnpEvolution.Tests.Export
         private static Network AxonalCopy(Network network, Random random) =>
             new Network(network.Neurons.Select(neuron => neuron.WithRules(neuron.Rules.Select(rule => rule.Delay > 0 && random.Next(2) == 0 ? rule.WithAxonal(true) : rule))).ToList());
 
-        private static string FirstDifference(string expected, string simulated)
-        {
-            string[] want = expected.Split('\n');
-            string[] got = simulated.Split('\n');
-            int line = Enumerable.Range(0, Math.Min(want.Length, got.Length)).FirstOrDefault(index => want[index] != got[index], Math.Min(want.Length, got.Length));
-            return $"line {line + 1}: expected '{want.ElementAtOrDefault(line)}', got '{got.ElementAtOrDefault(line)}'";
-        }
     }
 }

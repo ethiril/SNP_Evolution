@@ -19,7 +19,7 @@ Its responsibilities are:
 A replacement should be kept only when the whole network still passes the verifier, because a window can be correct on its observed traces and still break timing the rest of the network relies on.
 Windows should follow start and done boundaries where they exist, because those are the boundaries where timing is already contracted.
 
-Where: the exact synthesis from this epic; `SNP_Evolution/Evolution/Modules/PartWiring.cs`, `SNP_Evolution/Evolution/Modules/Composition.cs`; the superoptimiser from M4.
+Where: the exact synthesis from this epic; `Specs/Parts/PartWiring.cs`, `Specs/Parts/Composition.cs`; the superoptimiser from M4.
 
 Done when:
 - [ ] On the compiled add and multiply networks and the hand-built Fibonacci composition, windowed improvement returns a smaller verified network, with each replacement reported

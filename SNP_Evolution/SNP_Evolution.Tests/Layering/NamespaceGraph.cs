@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
-using SnpEvolution.Networks;
 
 namespace SnpEvolution.Tests.Layering
 {
@@ -89,8 +88,7 @@ namespace SnpEvolution.Tests.Layering
 
         private static IEnumerable<(string From, string To)> UsingLines()
         {
-            string folder = Path.Combine(RepositoryFiles.Root, "SNP_Evolution", "SNP_Evolution");
-            foreach (string path in Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories).Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")))
+            foreach (string path in Layers.Projects.SelectMany(project => Directory.GetFiles(Layers.Folder(project), "*.cs", SearchOption.AllDirectories)).Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")))
             {
                 string text = File.ReadAllText(path);
                 if (NamespaceLine().Match(text) is not { Success: true } declared)
@@ -112,8 +110,8 @@ namespace SnpEvolution.Tests.Layering
         // Each type reference across namespaces, with the types at each end, to say why an edge is there.
         public static IEnumerable<(string From, string To, string FromType, string ToType)> TypeReferencesWithTypes()
         {
-            Assembly assembly = typeof(Network).Assembly;
-            foreach (Type type in assembly.GetTypes())
+            Assembly[] assemblies = Layers.Projects.Select(Layers.Assembly).ToArray();
+            foreach (Type type in assemblies.SelectMany(assembly => assembly.GetTypes()))
             {
                 string? from = OwnNamespace(type);
                 if (from == null)
@@ -124,7 +122,7 @@ namespace SnpEvolution.Tests.Layering
                 {
                     foreach (Type part in Parts(referenced))
                     {
-                        if (part.Assembly == assembly && OwnNamespace(part) is string to && to != from)
+                        if (assemblies.Contains(part.Assembly) && OwnNamespace(part) is string to && to != from)
                         {
                             yield return (from, to, Outermost(type).Name, Outermost(part).Name);
                         }

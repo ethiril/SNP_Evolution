@@ -1,12 +1,10 @@
 using System.Text;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Evolution.Verification;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 using SnpEvolution.Simulation.Metal;
-using SnpEvolution.Tests.Simulation;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Tasks;
+using SnpEvolution.Specs.Verification;
 
 namespace SnpEvolution.Tests.Golden
 {

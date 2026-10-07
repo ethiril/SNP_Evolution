@@ -1,26 +1,19 @@
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Storage
 {
     public sealed class PartLibraryFilesTests : IDisposable
     {
-        private readonly string folder = Path.Combine(Path.GetTempPath(), "part-library-" + Guid.NewGuid().ToString("N"));
+        private readonly TempFolder temp = new TempFolder("part-library");
 
-        public void Dispose()
-        {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-        }
+        private string folder => temp.Path;
 
-        private static LibraryPart Measured(Part part, int seed = 7) =>
-            Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, new PartOrigin(seed, "evolve-parts --seed 1", 1234));
+        public void Dispose() => temp.Dispose();
+
+        private static readonly PartOrigin Evolved = new PartOrigin(7, "evolve-parts --seed 1", 1234);
 
         private static Part FirstPartRegister()
         {
@@ -33,7 +26,7 @@ namespace SnpEvolution.Tests.Storage
             var library = new ModuleLibrary();
             foreach (Part part in parts)
             {
-                library.AddPart(Measured(part), "a test");
+                library.AddPart(PartFixtures.Measured(part, Evolved), "a test");
             }
             return library;
         }
@@ -79,7 +72,7 @@ namespace SnpEvolution.Tests.Storage
         public void TheNetworkIsWrittenInTheNetworkFileFormat()
         {
             Part delay = ReferenceParts.Delay(2);
-            string json = PartLibraryFiles.ToJson(Measured(delay));
+            string json = PartLibraryFiles.ToJson(PartFixtures.Measured(delay, Evolved));
 
             string network = Newtonsoft.Json.Linq.JObject.Parse(json)["Network"]!.ToString();
 
@@ -115,5 +108,17 @@ namespace SnpEvolution.Tests.Storage
 
         [Fact]
         public void AMissingFolderLoadsAsAnEmptyLibrary() => Assert.Empty(PartLibraryFiles.Load(folder).Parts);
+
+        [Fact]
+        public void ALibraryFileKeepsItsProvenBound()
+        {
+            Part delay = ReferenceParts.Delay(2);
+            LibraryPart part = PartFixtures.Measured(delay, new PartOrigin(0, "by hand", 0)) with { Proven = new ProvenBound(0, true, new StopReason(Stop.EveryInputChecked)) };
+
+            LibraryPart read = PartLibraryFiles.Read(PartLibraryFiles.ToJson(part), "delay-2.json");
+
+            Assert.Equal(part.Proven, read.Proven);
+            Assert.Contains("\"Stopped\": \"every input checked\"", PartLibraryFiles.ToJson(part));
+        }
     }
 }

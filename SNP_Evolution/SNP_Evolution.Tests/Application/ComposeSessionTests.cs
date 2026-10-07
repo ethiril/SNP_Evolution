@@ -1,32 +1,27 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Algorithms;
-using SnpEvolution.Evolution.Benchmarking;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Fitness;
-using SnpEvolution.Evolution.Genome;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Search;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
+using SnpEvolution.Search;
+using SnpEvolution.Search.Algorithms;
+using SnpEvolution.Search.Benchmarking;
+using SnpEvolution.Search.Fitness;
+using SnpEvolution.Search.Genome;
 using SnpEvolution.Simulation;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Storage;
-using static SnpEvolution.Tests.Evolution.ModuleFixtures;
+using static SnpEvolution.Tests.Fixtures.ModuleFixtures;
 
 namespace SnpEvolution.Tests.Application
 {
     public sealed class ComposeSessionTests : IDisposable
     {
-        private readonly string folder = Path.Combine(Path.GetTempPath(), "snp-compose-" + Guid.NewGuid().ToString("N"));
+        private readonly TempFolder temp = new TempFolder("snp-compose");
         private readonly List<string> log = new List<string>();
 
-        public void Dispose()
-        {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-        }
+        private string folder => temp.Path;
+
+        public void Dispose() => temp.Dispose();
 
         private Settings Composing(CatalogEntry<Settings, BenchmarkTask> task) => new Settings
         {

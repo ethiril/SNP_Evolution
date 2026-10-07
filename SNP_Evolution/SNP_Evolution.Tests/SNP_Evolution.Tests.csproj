@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <AssemblyName>SNP_Evolution.Tests</AssemblyName>
+    <RootNamespace>SnpEvolution.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,11 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SNP_Evolution\SNP_Evolution.csproj" />
+    <ProjectReference Include="..\Cli\Cli.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="SnpEvolution.Tests.Fixtures" />
   </ItemGroup>
 
 </Project>

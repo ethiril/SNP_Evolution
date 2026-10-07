@@ -19,7 +19,7 @@ Its responsibilities are:
 Both arms should get the same evaluation budget counted the same way, because otherwise the comparison measures the budget.
 Synthesis should not be given the compiled seed in any form, including as a library part, because that would make it superoptimisation.
 
-Where: `SNP_Evolution/Evolution/Benchmarking/Benchmark.cs`, `SNP_Evolution/Evolution/Benchmarking/Statistics.cs`, `SNP_Evolution/Evolution/Modules/CompositionSearch.cs`, the part-program search from M3 Part 2, the superoptimiser from this epic; results in RESEARCH.md.
+Where: `Search/Benchmarking/Benchmark.cs`, `Specs/Accounting/Statistics.cs`, `Search/EvolutionSearch.cs` (`CompositionSearch`), the part-program search from M3 Part 2, the superoptimiser from this epic; results in RESEARCH.md.
 
 Done when:
 - [ ] Seeds 1 to 10 run in both modes on the add, multiply and Fibonacci recurrence specs, with solved counts, median evaluations, best cost and the training-only rate in RESEARCH.md

@@ -21,7 +21,7 @@ The loop should stop after a set number of counterexamples (8 by default) and re
 The counterexample should be the structured one the M2.5 verifier returns, because a counterexample as text cannot be scored.
 A counterexample should be added as a full case from the specification, so lexicase sees it as one more case, because a special penalty would be one more scoring rule to tune.
 
-Where: `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs` (`Admit`), `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`, `SNP_Evolution/Evolution/Tasks/ContractTask.cs`, `SNP_Evolution/Evolution/Proposals/PartProposals.cs`, `SNP_Evolution/Evolution/Modules/Promotion.cs`, `SNP_Evolution/Storage/PartLibraryFiles.cs`.
+Where: `Specs/Verification/BoundedCheck.cs` (`Admit`), `Search/PartSearch.cs`, `Specs/Tasks/ContractTask.cs`, `Search/Proposals/PartProposals.cs`, `Search/Modules/Promotion.cs`, `Storage/PartLibraryFiles.cs`.
 
 Done when:
 - [ ] Given the add loop as it was before its done waited for the accumulator, composition search with the counterexample loop on finds a version that passes admission past a = 14

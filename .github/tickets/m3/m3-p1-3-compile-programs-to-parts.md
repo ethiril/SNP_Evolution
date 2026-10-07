@@ -22,7 +22,7 @@ Shrinking should keep the cheapest network that still verifies, as parts from se
 The part file should record that it came from a compiled program and keep the program, because the paper must say which parts came from the compiler.
 A `--route search|compile|both` option should choose the route (both by default for count contracts: compile, then search from the shrunk part), because the routes should be comparable.
 
-Where: `SNP_Evolution/Compilation/RegisterMachineCompiler.cs`, `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`, `SNP_Evolution/Evolution/Contracts/PortBinding.cs`, `SNP_Evolution/Storage/PartLibraryFiles.cs`, `SNP_Evolution/Cli/PartsSession.cs`.
+Where: `Compilation/RegisterMachineCompiler.cs`, `Search/PartSearch.cs`, `Specs/Contracts/PortBinding.cs`, `Storage/PartLibraryFiles.cs`, `Application/PartsService.cs`.
 
 Done when:
 - [ ] The hand-written function programs for register, add, increment, fan-out and zero test compile to parts that pass their contracts on the exhaustive engine

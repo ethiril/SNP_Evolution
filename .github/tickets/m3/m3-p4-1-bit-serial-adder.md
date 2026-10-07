@@ -16,7 +16,7 @@ The comparison should give neurons, synapses and steps against Aimone et al.'s 4
 The contract should be a family over width, because the binary primitives of the verified library in M5 are built on it.
 If the profile run also solves it, the part should be exported to NIR and checked by co-simulation, because a bit-serial adder is the part that fits integrate-and-fire hardware.
 
-Where: `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Contracts/PortEncoding.cs`, `SNP_Evolution/Evolution/Contracts/PartEvolution.cs`; the published-circuit table in RESEARCH.md.
+Where: `Specs/Contracts/ArithmeticParts.cs`, `Specs/Contracts/Specification.cs`, `Specs/Contracts/PortEncoding.cs`, `Search/PartSearch.cs`; the published-circuit table in RESEARCH.md.
 
 Done when:
 - [ ] The binary add contracts and their specifications are in the catalogue

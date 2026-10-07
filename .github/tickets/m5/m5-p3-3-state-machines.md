@@ -18,7 +18,7 @@ Its responsibilities are:
 Generated trains should cover every transition at least once in training and in held-out runs, because a transition never exercised is never checked.
 Simultaneous inputs should be stated in the table (a priority, or an error output), because otherwise the machine's behaviour on them is undefined.
 
-Where: the stream spec from M4 Part 1 and the spec file format from M4 Part 3; `SNP_Evolution/Evolution/Tasks/StreamingTask.cs`.
+Where: the stream spec from M4 Part 1 and the spec file format from M4 Part 3; `Specs/Tasks/StreamingTask.cs`.
 
 Done when:
 - [ ] The three examples are tables that make stream specs, and the debouncer's matches the existing debouncer task

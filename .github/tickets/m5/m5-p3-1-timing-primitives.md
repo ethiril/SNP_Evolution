@@ -20,7 +20,7 @@ Ties should be specified, not left to the network, because a part that breaks ti
 Parameters (k, w, r, d) should use the part-family form, because one contract per value does not scale.
 The published size of each primitive, where a paper gives one, should be recorded beside the spec, because the comparison is the result.
 
-Where: the spec type from M4; `SNP_Evolution/Evolution/Contracts/FirstParts.cs`, the part families from M3; RESEARCH.md "A verified spiking parts library, and search beyond evolution" for the published designs.
+Where: the spec type from M4; `Specs/Contracts/FirstParts.cs`, the part families from M3; RESEARCH.md "A verified spiking parts library, and search beyond evolution" for the published designs.
 
 Done when:
 - [ ] Each primitive is a spec with ties stated, for k up to 4 and w, r, d up to 8

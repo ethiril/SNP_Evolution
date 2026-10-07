@@ -16,7 +16,7 @@ Reuse should be reported per level: which promoted parts appear in each solution
 An n^k contract should be added to `ArithmeticParts` with a specification, keeping its cases small enough for the exhaustive engine, because it has to be verifiable to count.
 Sizes and steps should be added to the published-circuit table, because Zeng et al. give hand-built sizes for the same four operations.
 
-Where: `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Modules/PartReuse.cs`; results in RESEARCH.md "Evolved against hand-designed arithmetic".
+Where: `Specs/Contracts/ArithmeticParts.cs`, `Specs/Contracts/Specification.cs`, `Specs/Parts/PartReuse.cs`; results in RESEARCH.md "Evolved against hand-designed arithmetic".
 
 Done when:
 - [ ] Solved counts over 5 seeds for subtraction, division, comparison and n^k, by part-program and by composition search, are in RESEARCH.md

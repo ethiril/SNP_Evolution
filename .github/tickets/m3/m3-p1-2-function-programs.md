@@ -20,7 +20,7 @@ The interpreter should follow every choice when the program has one, because a c
 A program should leave every register but the outputs at zero when it halts, and the search should check this, because a compiled part must end as it began.
 Each count contract in `FirstParts` and `ArithmeticParts.Count` should be a valid search target without special cases, because the route has to be general.
 
-Where: `SNP_Evolution/Compilation/RegisterMachine.cs`, `SNP_Evolution/Compilation/ProgramSearch.cs`, `SNP_Evolution/Evolution/Contracts/Contract.cs`; tests in `SNP_Evolution.Tests/Compilation/CompilerTests.cs`.
+Where: `Compilation/RegisterMachine.cs`, `Search/ProgramSearch.cs`, `Specs/Contracts/Contract.cs`; tests in `SNP_Evolution.Tests/Compilation/RegisterProgramTests.cs` and `SNP_Evolution.Tests/Search/ProgramSearchTests.cs`.
 
 Done when:
 - [ ] Hand-written function programs for add, increment, double, fan-out, register and zero test pass their contracts' cases in the interpreter

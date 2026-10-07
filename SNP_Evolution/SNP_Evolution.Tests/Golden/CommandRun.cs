@@ -2,20 +2,20 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
+using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Golden
 {
-    // Swaps the process-wide console, working directory and culture, so tests using it belong to GoldenCollection.
+    // Swaps the process-wide console, working directory and culture, so tests using it belong to ProcessStateCollection.
     internal sealed partial class CommandRun : IDisposable
     {
         // Pictures of a network, which only lay out what the .json and .txt files already hold.
         private static readonly string[] Drawings = { ".html", ".svg" };
 
-        public string Folder { get; } = Path.Combine(Path.GetTempPath(), "snp-golden-" + Guid.NewGuid().ToString("N"));
+        private readonly TempFolder folder = new TempFolder("snp-golden");
+
+        public string Folder => folder.Path;
 
         // The .git marker makes the folder the root the commands find runs/ and parts/ from, wherever the temp folder lies.
         public CommandRun()
@@ -40,7 +40,7 @@ namespace SnpEvolution.Tests.Golden
 
         // Saves a hand-built part as a library file, measured the way evolve-parts measures the parts it saves.
         public void Save(Part part, string file) =>
-            File.WriteAllText(Path.Combine(Folder, file), PartLibraryFiles.ToJson(Verifier.Measure(part, new EvaluationBudget()).ToLibraryPart(part, new PartOrigin(0, HandBuiltParts.Origin, 0))));
+            File.WriteAllText(Path.Combine(Folder, file), PartLibraryFiles.ToJson(PartFixtures.Measured(part, new PartOrigin(0, HandBuiltParts.Origin, 0))));
 
         // The command line, exit code, output and every file the run left in the folder.
         public string Run(params string[] args)
@@ -57,23 +57,18 @@ namespace SnpEvolution.Tests.Golden
 
         private (int Exit, string Printed, string Errors) RunInFolder(string[] args)
         {
-            TextWriter output = Console.Out, error = Console.Error;
             string directory = Directory.GetCurrentDirectory();
             CultureInfo culture = CultureInfo.CurrentCulture;
-            var printed = new StringWriter { NewLine = "\n" };
-            var errors = new StringWriter { NewLine = "\n" };
+            using var console = new ConsoleCapture();
             try
             {
-                Console.SetOut(printed);
-                Console.SetError(errors);
                 Directory.SetCurrentDirectory(Folder);
                 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-                return (CommandLine.Run(args), printed.ToString(), errors.ToString());
+                int exit = CommandLine.Run(args);
+                return (exit, console.Printed, console.Errors);
             }
             finally
             {
-                Console.SetOut(output);
-                Console.SetError(error);
                 Directory.SetCurrentDirectory(directory);
                 CultureInfo.CurrentCulture = culture;
             }
@@ -105,13 +100,7 @@ namespace SnpEvolution.Tests.Golden
             return NirToolsMissing().Replace(text, "$1<reason>");
         }
 
-        public void Dispose()
-        {
-            if (Directory.Exists(Folder))
-            {
-                Directory.Delete(Folder, recursive: true);
-            }
-        }
+        public void Dispose() => folder.Dispose();
 
         [GeneratedRegex(@"runs[/\\]\d+")]
         private static partial Regex RunFolder();
@@ -121,11 +110,5 @@ namespace SnpEvolution.Tests.Golden
 
         [GeneratedRegex(@"(Not converted to NIR or co-simulated: ).*")]
         private static partial Regex NirToolsMissing();
-    }
-
-    [CollectionDefinition(Name, DisableParallelization = true)]
-    public sealed class GoldenCollection
-    {
-        public const string Name = "Golden runs";
     }
 }

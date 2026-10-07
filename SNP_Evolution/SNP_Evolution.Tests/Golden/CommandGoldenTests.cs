@@ -1,10 +1,9 @@
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
+using SnpEvolution.Specs.Parts;
 
 namespace SnpEvolution.Tests.Golden
 {
     // Populations stay under the GPU's batch threshold, so a Mac with Metal runs these on the CPU exactly as Linux does.
-    [Collection(GoldenCollection.Name)]
+    [Collection(ProcessStateCollection.Name)]
     public class CommandGoldenTests
     {
         [Fact]

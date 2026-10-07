@@ -19,7 +19,7 @@ Its responsibilities are:
 A part that only works at the widths it was found at should be reported as such, because a serial part should not depend on width beyond its carry, and one that does is a lookup table.
 Sizes should be compared with Aimone et al.'s streaming adder and Chen and Guo's binary circuits, because those are the published binary rows.
 
-Where: the spec type from M4; the bit-serial adder from M3 Part 4; `SNP_Evolution/Evolution/Contracts/ArithmeticParts.cs`, `SNP_Evolution/Evolution/Contracts/PortEncoding.cs`.
+Where: the spec type from M4; the bit-serial adder from M3 Part 4; `Specs/Contracts/ArithmeticParts.cs`, `Specs/Contracts/PortEncoding.cs`.
 
 Done when:
 - [ ] Each primitive has a verified network proven for every input at widths 1 to 8 under `generic-if`

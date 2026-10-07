@@ -20,10 +20,10 @@ Its responsibilities are:
 A rule should only apply where its conditions hold in the whole network, because a rewrite that ignores a side input changes behaviour.
 Results should still go through the verifier while the method is new, because the rules are only trusted once their results agree with it.
 
-Where: `SNP_Evolution/Compilation/ShrinkRun.cs`, `SNP_Evolution/Simulation/ExhaustiveCpuEngine.cs`, `SNP_Evolution/Networks/`; results in RESEARCH.md.
+Where: `Search/ShrinkSearch.cs`, `Simulation/ExhaustiveCpuEngine.cs`, `Model/`; results in RESEARCH.md.
 
 Done when:
-- [ ] RESEARCH.md lists the rules found, their conditions, and the shrink they give on the compiled add, multiply and Fibonacci networks next to `ShrinkRun`'s
+- [ ] RESEARCH.md lists the rules found, their conditions, and the shrink they give on the compiled add, multiply and Fibonacci networks next to `ShrinkSearch`'s
 - [ ] Every network shrunk by rules passes the verifier
 - [ ] It ends with a build-or-leave recommendation for e-graphs
 - [ ] `dotnet test` green

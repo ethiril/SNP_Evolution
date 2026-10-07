@@ -1,7 +1,7 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 using SnpEvolution.Simulation.Metal;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
@@ -22,11 +22,8 @@ namespace SnpEvolution.Tests.Simulation
         // sent it on step 3.
         private static Trial LoopTrial() => new Trial(Loop(), InputSpikes.None, Readout.Ports, new PortWatch(new[] { 2, 3 }, new[] { 3 }, StepsAfterDone: 1));
 
-        public static TheoryData<ISimulationEngine> Engines =>
-            new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine(), new ExhaustiveCpuEngine() };
-
         [Theory]
-        [MemberData(nameof(Engines))]
+        [MemberData(nameof(Engines.Cpu), MemberType = typeof(Engines))]
         public void ReportsEachWatchedNeuronsFiringsAndTheFinalSpikes(ISimulationEngine engine)
         {
             TrialResult result = engine.Run(new[] { LoopTrial() }, Options, new Random(1))[0];
@@ -43,7 +40,7 @@ namespace SnpEvolution.Tests.Simulation
         // The done neuron fires on steps 0 to 4, but the run stops one step after the first of them.
         // Neuron 3 holds the two spikes 2 sends it, the most any neuron holds.
         [Theory]
-        [MemberData(nameof(Engines))]
+        [MemberData(nameof(Engines.Cpu), MemberType = typeof(Engines))]
         public void RecordsTheMostSpikesAnyNeuronHeld(ISimulationEngine engine)
         {
             TrialResult result = engine.Run(new[] { LoopTrial() }, Options, new Random(1))[0];
@@ -53,7 +50,7 @@ namespace SnpEvolution.Tests.Simulation
 
         // A shrunken network can lose the neuron a port is bound to; that port then never fires.
         [Theory]
-        [MemberData(nameof(Engines))]
+        [MemberData(nameof(Engines.Cpu), MemberType = typeof(Engines))]
         public void APortPastTheLastNeuronNeverFires(ISimulationEngine engine)
         {
             var trial = new Trial(Loop(), InputSpikes.None, Readout.Ports, new PortWatch(new[] { 3, 5 }, new[] { 5 }, StepsAfterDone: 1));

@@ -19,7 +19,7 @@ Its responsibilities are:
 The report should state what was not checked as plainly as what was, because a user taking a part to hardware needs to know whether it was proven or only tested.
 Exports should only be written when their co-simulation passes, and the report should say why one is missing, because a Verilog file that disagrees with the network is worse than none.
 
-Where: `SNP_Evolution/Cli/ExportCommands.cs`, `SNP_Evolution/Export/VerilogExporter.cs`, `SNP_Evolution/Export/VerilogTestbench.cs`, `SNP_Evolution/Export/NirExporter.cs`, `SNP_Evolution/Storage/NetworkFiles.cs`, the superoptimiser and verifier from M4 Part 2; `README.md`.
+Where: `Cli/Commands/ExportCommands.cs`, `Export/VerilogExporter.cs`, `Export/VerilogTestbench.cs`, `Export/NirExporter.cs`, `Storage/NetworkFiles.cs`, the superoptimiser and verifier from M4 Part 2; `README.md`.
 
 Done when:
 - [ ] `superopt --spec add --profile --out <dir>` writes a bundle whose Verilog and NIR co-simulate against the network, and whose report gives the bound proven

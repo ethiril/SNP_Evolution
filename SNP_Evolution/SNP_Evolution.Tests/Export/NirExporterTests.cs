@@ -1,11 +1,11 @@
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Genome;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Verification;
 using SnpEvolution.Export;
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
+using SnpEvolution.Search.Genome;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Verification;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Export
 {
@@ -19,15 +19,9 @@ namespace SnpEvolution.Tests.Export
 
         private static string Check(NirDescription description)
         {
-            string folder = Path.Combine(Path.GetTempPath(), "snp-nir-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                return NirExporter.WriteAndCheck(description, folder);
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            using var temp = new TempFolder("snp-nir");
+            string folder = temp.Path;
+            return NirExporter.WriteAndCheck(description, folder);
         }
 
         [Fact]
@@ -58,7 +52,7 @@ namespace SnpEvolution.Tests.Export
         {
             var random = new Random(3);
             var space = new GenomeSpace(InputCount: 2, MaxNeurons: 7, MaxDelay: 3, HardwareProfile: true);
-            var factory = new NetworkFactory(space, new ExpressionGenerator(ExpressionGenerator.ExperimentalTemplates, 4, random), random);
+            var factory = Factories.Networks(space, random);
             var input = new InputSpikes(new IReadOnlyList<int>[] { new[] { 0, 1, 1, 2, 5, 6, 6, 6 }, new[] { 0, 3, 4, 4, 9 } });
             int firings = 0, delays = 0, forgetting = 0;
             for (int network = 0; network < 4; network++)

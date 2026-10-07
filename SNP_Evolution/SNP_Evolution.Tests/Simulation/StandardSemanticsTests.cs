@@ -1,14 +1,12 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
-using static SnpEvolution.Tests.TestNetworks;
+using static SnpEvolution.Tests.Fixtures.Runs;
+using static SnpEvolution.Tests.Fixtures.TestNetworks;
 
 namespace SnpEvolution.Tests.Simulation
 {
     public class StandardSemanticsTests
     {
-        private static NetworkSimulation Simulate(Network network, InputSpikes? input = null, OutputTiming timing = OutputTiming.Interval) =>
-            new NetworkSimulation(CompiledNetwork.Of(network), new Random(0), input ?? InputSpikes.None, timing);
-
         [Fact]
         public void ConsumesExactlyItsSpikesAndSendsWhatItProduces()
         {

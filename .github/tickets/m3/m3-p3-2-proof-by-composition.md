@@ -21,7 +21,7 @@ The use check should be stated as what the contract's cases assume and nothing m
 The timing of a child should come from its specification's latency bound, and a composition that relies on exact timing between children should be refused with the reason, because start and done are what make composition timing-safe, and anything else is unproven.
 Where the flattened check and the proof by composition both run, they should agree, and a test should cover this, because the new proof is only trusted where it has been checked.
 
-Where: `SNP_Evolution/Evolution/Contracts/BoundedCheck.cs`, `SNP_Evolution/Evolution/Contracts/Specification.cs`, `SNP_Evolution/Evolution/Modules/Promotion.cs` (recipes), the `verify` command; tests in `SNP_Evolution.Tests/Evolution/BoundedCheckTests.cs`.
+Where: `Specs/Verification/BoundedCheck.cs`, `Specs/Contracts/Specification.cs`, `Search/Modules/Promotion.cs` (recipes), the `verify` command; tests in `SNP_Evolution.Tests/Specs/Verification/BoundedCheckTests.cs`.
 
 Done when:
 - [ ] The add loop and the promoted multiplier are proven by composition to at least five times their flattened bounds in the same time

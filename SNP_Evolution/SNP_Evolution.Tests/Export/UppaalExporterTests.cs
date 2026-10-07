@@ -1,10 +1,9 @@
 using System.Xml;
-using SnpEvolution.Evolution.Contracts;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Tasks;
 using SnpEvolution.Export;
-using SnpEvolution.Networks;
-using SnpEvolution.Tests.Evolution;
+using SnpEvolution.Model;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Specs.Parts;
+using SnpEvolution.Specs.Tasks;
 
 namespace SnpEvolution.Tests.Export
 {
@@ -12,19 +11,11 @@ namespace SnpEvolution.Tests.Export
     {
         private static Part LibraryPart(string folder, string file) => RepositoryFiles.ReadPart(folder, file).Part;
 
-        private static string Folder() => Path.Combine(Path.GetTempPath(), "snp-uppaal-" + Guid.NewGuid().ToString("N"));
-
         private static IReadOnlyList<bool> Check(Part part)
         {
-            string folder = Folder();
-            try
-            {
-                return Verifyta.Check(UppaalExporter.Export(part), folder);
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            using var temp = new TempFolder("snp-uppaal");
+            string folder = temp.Path;
+            return Verifyta.Check(UppaalExporter.Export(part), folder);
         }
 
         private static bool Holds(Part part, string query)
@@ -123,7 +114,7 @@ namespace SnpEvolution.Tests.Export
         [VerifytaFact]
         public void UppaalAgreesWithTheBoundedCheckOnARegisterFailingAtTwenty()
         {
-            Part broken = BoundedCheckTests.RegisterFailingAtTwenty();
+            Part broken = PartFixtures.RegisterFailingAtTwenty();
             Contract upToTwenty = broken.Contract with { Cases = Enumerable.Range(0, 21).Select(n => Specification.For(broken.Contract)!.Expected(new Dictionary<string, int> { ["n"] = n })).ToList(), MaxLatency = Specifications.LatencyFor(20) };
 
             Assert.False(Holds(broken with { Contract = upToTwenty }, "done once, the right one, with the right outputs"));

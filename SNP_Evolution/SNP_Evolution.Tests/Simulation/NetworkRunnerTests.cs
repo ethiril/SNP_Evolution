@@ -1,4 +1,4 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Simulation

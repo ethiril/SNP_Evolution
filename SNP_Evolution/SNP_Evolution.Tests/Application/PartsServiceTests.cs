@@ -1,20 +1,16 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Contracts;
+using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Storage;
 
 namespace SnpEvolution.Tests.Application
 {
     public sealed class PartsServiceTests : IDisposable
     {
-        private readonly string folder = Path.Combine(Path.GetTempPath(), "parts-session-" + Guid.NewGuid().ToString("N"));
+        private readonly TempFolder temp = new TempFolder("parts-session");
 
-        public void Dispose()
-        {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-        }
+        private string folder => temp.Path;
+
+        public void Dispose() => temp.Dispose();
 
         private static readonly IReadOnlyList<Contract> Delays = new[] { FirstParts.Named("delay 2"), FirstParts.Named("delay 4") };
 

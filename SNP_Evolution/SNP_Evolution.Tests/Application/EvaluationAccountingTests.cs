@@ -1,15 +1,10 @@
 using SnpEvolution.Application;
-using SnpEvolution.Evolution.Accounting;
-using SnpEvolution.Evolution.Algorithms;
-using SnpEvolution.Evolution.Fitness;
-using SnpEvolution.Evolution.Modules;
-using SnpEvolution.Evolution.Parts;
-using SnpEvolution.Evolution.Search;
-using SnpEvolution.Evolution.Tasks;
-using SnpEvolution.Evolution.Verification;
-using SnpEvolution.Simulation;
+using SnpEvolution.Search;
+using SnpEvolution.Search.Algorithms;
+using SnpEvolution.Search.Modules;
+using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Parts;
 using SnpEvolution.Storage;
-using static SnpEvolution.Tests.Evolution.ModuleFixtures;
 
 namespace SnpEvolution.Tests.Application
 {
@@ -63,47 +58,27 @@ namespace SnpEvolution.Tests.Application
             Assert.InRange(evaluations.Networks, 300, 300 + Population * (1 + new ModulePolicy().SideGenerations + new ModulePolicy().IncubationGenerations));
         }
 
-        [Fact]
-        public void RetestsOfASolvedNetworkCountAsVerification()
-        {
-            var counter = new EvaluationBudget();
-            var evaluator = new FitnessEvaluator(new SequentialCpuEngine(), FunctionTask.Of("n", n => n, new[] { 1, 2 }),
-                new SimulationOptions(40, 5, OutputTiming.Interval), 3, new Random(1), counter, EvaluationSource.SideRun);
-
-            evaluator.Evaluate(TestNetworks.Identity());
-            Assert.True(evaluator.ConfirmSolved(TestNetworks.Identity()).Solved);
-
-            Assert.Equal(1, counter[EvaluationSource.SideRun]);
-            Assert.Equal(3, counter[EvaluationSource.Verification]);
-        }
-
         // Composition search reads its parts from the library folder, and their recorded cost is reported as paid up front.
         [Fact]
         public void ACompositionRunCountsTheLibrarysPartsAsAnUpFrontCost()
         {
-            string folder = Path.Combine(Path.GetTempPath(), "snp-composition-" + Guid.NewGuid());
-            try
-            {
-                var library = new ModuleLibrary();
-                library.AddPart(Verifier.Measure(ReferenceParts.Delay(2), new EvaluationBudget()).ToLibraryPart(ReferenceParts.Delay(2), new PartOrigin(1, "a test", 1234)), "a test");
-                PartLibraryFiles.Save(library, folder);
-                Settings settings = Stalling(5);
-                settings.Modules = false;
-                settings.PartLibraryFolder = folder;
-                settings.Algorithm = SearchCatalog.CompositionMapElites;
-                var evaluations = new EvaluationBudget();
+            using var temp = new TempFolder("snp-composition");
+            string folder = temp.Path;
+            var library = new ModuleLibrary();
+            library.AddPart(PartFixtures.Measured(ReferenceParts.Delay(2), new PartOrigin(1, "a test", 1234)), "a test");
+            PartLibraryFiles.Save(library, folder);
+            Settings settings = Stalling(5);
+            settings.Modules = false;
+            settings.PartLibraryFolder = folder;
+            settings.Algorithm = SearchCatalog.CompositionMapElites;
+            var evaluations = new EvaluationBudget();
 
-                IGeneticAlgorithm run = EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
+            IGeneticAlgorithm run = EvolutionSession.Evolve(settings, settings.SelectedTask, factory => factory.NewNetwork(), new Random(3), _ => { }, evaluations);
 
-                Assert.Equal(1234, evaluations.UpFront);
-                Assert.Equal(5L * Population, evaluations.Networks);
-                Assert.Contains(run.Population, individual => individual.Genes.Neurons.Any(neuron => neuron.Module != null));
-                Assert.Contains("1,234", evaluations.Report().Describe());
-            }
-            finally
-            {
-                Directory.Delete(folder, recursive: true);
-            }
+            Assert.Equal(1234, evaluations.UpFront);
+            Assert.Equal(5L * Population, evaluations.Networks);
+            Assert.Contains(run.Population, individual => individual.Genes.Neurons.Any(neuron => neuron.Module != null));
+            Assert.Contains("1,234", evaluations.Report().Describe());
         }
     }
 }

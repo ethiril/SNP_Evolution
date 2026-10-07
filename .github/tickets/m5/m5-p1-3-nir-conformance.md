@@ -19,7 +19,7 @@ Its responsibilities are:
 The profile should be stated so another NIR backend can implement it without our code, because the point is that parts move between simulators and chips.
 Expected traces should come from our engine and be checked by co-simulation before they are written, because a conformance suite with a wrong answer fails correct backends.
 
-Where: `SNP_Evolution/Export/NirExporter.cs`, `tools/snp_nir.py`, `SNP_Evolution/Cli/ExportCommands.cs`; the document in `docs/` or RESEARCH.md.
+Where: `Export/NirExporter.cs`, `tools/snp_nir.py`, `Cli/Commands/ExportCommands.cs`; the document in a new `docs/` folder or RESEARCH.md.
 
 Done when:
 - [ ] The profile document exists and every rule in it is covered by at least one conformance case

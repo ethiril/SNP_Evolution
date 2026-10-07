@@ -15,7 +15,7 @@ The table should give, per spec and method: solved seeds, evaluations and wall t
 Methods that are deterministic should be run once and marked so, because seeds mean nothing to them.
 Wall time should be reported beside evaluations, because one solver call and one simulation are not the same cost.
 
-Where: `SNP_Evolution/Evolution/Benchmarking/Benchmark.cs`, `SNP_Evolution/Evolution/Benchmarking/Statistics.cs`; results in RESEARCH.md.
+Where: `Search/Benchmarking/Benchmark.cs`, `Specs/Accounting/Statistics.cs`; results in RESEARCH.md.
 
 Done when:
 - [ ] The table is in RESEARCH.md for delay 1 to 4, join, bit-serial add, add and multiply

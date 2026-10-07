@@ -1,9 +1,10 @@
 using SnpEvolution.Application;
 using SnpEvolution.Cli;
-using SnpEvolution.Evolution.Modules;
+using SnpEvolution.Search.Modules;
 
 namespace SnpEvolution.Tests.Cli
 {
+    [Collection(ProcessStateCollection.Name)]
     public class CommandArgsTests
     {
         private static string Problem(params string[] line)
@@ -59,8 +60,12 @@ namespace SnpEvolution.Tests.Cli
         [InlineData("evolve", "--target", "1,2", "--glue-weight", "-1")]
         [InlineData("compose", "--task", "no such task")]
         [InlineData("evolve", "--target", "1,2", "--algorithm", "no such search")]
-        public void BadCommandLinesExitWithUsage(params string[] line) =>
+        public void BadCommandLinesExitWithUsage(params string[] line)
+        {
+            using var console = new ConsoleCapture();
+
             Assert.Equal((int)ExitCode.Usage, CommandLine.Run(line));
+        }
 
         [Fact]
         public void BudgetAndCompositionOptionsReachTheSettings()

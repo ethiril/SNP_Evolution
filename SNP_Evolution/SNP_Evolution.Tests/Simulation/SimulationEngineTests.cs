@@ -1,4 +1,4 @@
-using SnpEvolution.Networks;
+using SnpEvolution.Model;
 using SnpEvolution.Simulation;
 
 namespace SnpEvolution.Tests.Simulation
@@ -10,10 +10,8 @@ namespace SnpEvolution.Tests.Simulation
         private static Network[] Batch() =>
             new[] { ReferenceNetworks.NaturalNumbers(), TestNetworks.NeverOutputs(), ReferenceNetworks.EvenNumbers(), TestNetworks.AlwaysOutputsOne() };
 
-        public static TheoryData<ISimulationEngine> Engines => new TheoryData<ISimulationEngine> { new SequentialCpuEngine(), new ParallelCpuEngine() };
-
         [Theory]
-        [MemberData(nameof(Engines))]
+        [MemberData(nameof(Engines.Sampling), MemberType = typeof(Engines))]
         public void ReturnsOneSortedOutputListPerNetworkInOrder(ISimulationEngine engine)
         {
             IReadOnlyList<IReadOnlyList<int>> outputs = engine.CollectOutputs(Batch(), Options, new Random(5));
