@@ -8,6 +8,10 @@ first part Count to interval (timer) | count in; interval out | two output spike
 first part Register | count in; count out | holds n until started again, then drains it | register
 first part Zero test | count in; done-zero, done-nonzero | the right branch fires, the other never | zero test
 first part Sequencer | done out xk | fires its outputs in order, each one step after the previous (k = 2, 3) | sequencer 2, sequencer 3
+first part Join | trigger in x2 | done fires once after both inputs, in either order and up to 4 steps apart | join
+first part Fork | trigger out x2 | both outputs fire on one step, then done | fork
+first part Merge | trigger in x2 | done fires once after whichever input fired (never both) | merge
+first part Select | trigger in; done-one, done-zero | done-one when the input fired with start, done-zero when it did not | select
 {
   "Name": "delay 1",
   "Start": {
@@ -258,7 +262,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -384,7 +388,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 43,
+  "MaxLatency": 176,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -510,7 +514,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 76,
+  "MaxLatency": 308,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1062,7 +1066,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 55,
+  "MaxLatency": 224,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1179,7 +1183,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1296,7 +1300,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1422,7 +1426,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1528,7 +1532,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "nonzero"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -1626,6 +1630,341 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
   "MaxLatency": 4,
   "MinLatency": 4,
   "OrderedTriggers": true
+}
+{
+  "Name": "join",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 19,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "fork",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "t1",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "t2",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {},
+      "Outputs": {
+        "t1": 1,
+        "t2": 1
+      },
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 4,
+  "MinLatency": 0,
+  "OrderedTriggers": false,
+  "TogetherTriggers": true
+}
+{
+  "Name": "merge",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "done",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "a",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "b",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "a": 1,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 1
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 2,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 2
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 3,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 3
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 4,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 4
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 5,
+        "b": 0
+      },
+      "Outputs": {},
+      "Done": "done"
+    },
+    {
+      "Inputs": {
+        "a": 0,
+        "b": 5
+      },
+      "Outputs": {},
+      "Done": "done"
+    }
+  ],
+  "MaxLatency": 19,
+  "MinLatency": 0,
+  "OrderedTriggers": false
+}
+{
+  "Name": "select",
+  "Start": {
+    "Name": "start",
+    "Direction": "In",
+    "Kind": "Trigger",
+    "Width": 0
+  },
+  "Done": [
+    {
+      "Name": "one",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    {
+      "Name": "zero",
+      "Direction": "Out",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Data": [
+    {
+      "Name": "x",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    }
+  ],
+  "Cases": [
+    {
+      "Inputs": {
+        "x": 0
+      },
+      "Outputs": {},
+      "Done": "zero"
+    },
+    {
+      "Inputs": {
+        "x": 1
+      },
+      "Outputs": {},
+      "Done": "one"
+    }
+  ],
+  "MaxLatency": 7,
+  "MinLatency": 0,
+  "OrderedTriggers": false
 }
 {
   "Name": "subtract",
@@ -1955,7 +2294,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -2970,7 +3309,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "less"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -5398,7 +5737,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 88,
+  "MaxLatency": 356,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -5515,7 +5854,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -5757,7 +6096,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -6503,7 +6842,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7055,7 +7394,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 55,
+  "MaxLatency": 224,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7181,7 +7520,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 43,
+  "MaxLatency": 176,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7323,7 +7662,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7429,7 +7768,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "nonzero"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7546,7 +7885,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -7788,7 +8127,7 @@ first part Sequencer | done out xk | fires its outputs in order, each one step a
       "Done": "done"
     }
   ],
-  "MaxLatency": 40,
+  "MaxLatency": 164,
   "MinLatency": 0,
   "OrderedTriggers": false
 }

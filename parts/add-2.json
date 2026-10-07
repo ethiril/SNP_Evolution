@@ -1,12 +1,6 @@
-$ snp-evolution export-nir --part register.json --out export
-exit 1
---- stdout
---- stderr
-Only networks within the hardware profile export to NIR, where they map exactly onto integrate-and-fire neurons. Neuron 1, rule 1 (a -> a): it consumes 1 spike(s) rather than all of them.
---- file register.json
 {
   "Contract": {
-    "Name": "register",
+    "Name": "add 2",
     "Start": {
       "Name": "start",
       "Direction": "In",
@@ -41,7 +35,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 0
         },
         "Outputs": {
-          "out": 0
+          "out": 2
         },
         "Done": "done"
       },
@@ -50,7 +44,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 1
         },
         "Outputs": {
-          "out": 1
+          "out": 3
         },
         "Done": "done"
       },
@@ -59,7 +53,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 2
         },
         "Outputs": {
-          "out": 2
+          "out": 4
         },
         "Done": "done"
       },
@@ -68,7 +62,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 3
         },
         "Outputs": {
-          "out": 3
+          "out": 5
         },
         "Done": "done"
       },
@@ -77,7 +71,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 4
         },
         "Outputs": {
-          "out": 4
+          "out": 6
         },
         "Done": "done"
       },
@@ -86,7 +80,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 5
         },
         "Outputs": {
-          "out": 5
+          "out": 7
         },
         "Done": "done"
       },
@@ -95,7 +89,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 6
         },
         "Outputs": {
-          "out": 6
+          "out": 8
         },
         "Done": "done"
       },
@@ -104,7 +98,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 7
         },
         "Outputs": {
-          "out": 7
+          "out": 9
         },
         "Done": "done"
       },
@@ -113,7 +107,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 8
         },
         "Outputs": {
-          "out": 8
+          "out": 10
         },
         "Done": "done"
       },
@@ -122,12 +116,12 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           "n": 12
         },
         "Outputs": {
-          "out": 12
+          "out": 14
         },
         "Done": "done"
       }
     ],
-    "MaxLatency": 164,
+    "MaxLatency": 356,
     "MinLatency": 0,
     "OrderedTriggers": false
   },
@@ -151,7 +145,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
         ],
         "SpikeCount": 0,
         "Connections": [
-          5
+          3
         ],
         "IsOutput": false,
         "IsInput": true
@@ -159,7 +153,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
       {
         "Rules": [
           {
-            "RuleExpression": "a",
+            "RuleExpression": "aa?",
             "Delay": 0,
             "Fire": true,
             "Consume": 1,
@@ -181,12 +175,24 @@ Only networks within the hardware profile export to NIR, where they map exactly 
             "Fire": true,
             "Consume": 1,
             "Produce": 1
-          },
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5,
+          10,
+          11
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
           {
-            "RuleExpression": "aa",
+            "RuleExpression": "a",
             "Delay": 0,
-            "Fire": false,
-            "Consume": 2,
+            "Fire": true,
+            "Consume": 1,
             "Produce": 1
           }
         ],
@@ -198,14 +204,32 @@ Only networks within the hardware profile export to NIR, where they map exactly 
       {
         "Rules": [
           {
-            "RuleExpression": "a",
+            "RuleExpression": "aaa(aa)*",
             "Delay": 0,
-            "Fire": false,
-            "Consume": 1,
+            "Fire": true,
+            "Consume": 3,
             "Produce": 1
           },
           {
-            "RuleExpression": "aa",
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8,
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a?",
             "Delay": 0,
             "Fire": true,
             "Consume": 2,
@@ -213,14 +237,35 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           }
         ],
         "SpikeCount": 0,
-        "Connections": [],
+        "Connections": [
+          5,
+          10,
+          11
+        ],
         "IsOutput": false,
         "IsInput": false
       },
       {
         "Rules": [
           {
-            "RuleExpression": "a(aa)+",
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
             "Delay": 0,
             "Fire": true,
             "Consume": 2,
@@ -229,15 +274,74 @@ Only networks within the hardware profile export to NIR, where they map exactly 
           {
             "RuleExpression": "a",
             "Delay": 0,
-            "Fire": true,
+            "Fire": false,
             "Consume": 1,
-            "Produce": 2
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          3
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
           }
         ],
         "SpikeCount": 0,
         "Connections": [
           3,
-          4
+          7,
+          11
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
         ],
         "IsOutput": false,
         "IsInput": false
@@ -245,17 +349,31 @@ Only networks within the hardware profile export to NIR, where they map exactly 
     ]
   },
   "Cost": {
-    "Neurons": 5,
-    "Synapses": 4,
-    "DistinctRules": 6,
-    "Rules": 8,
+    "Neurons": 11,
+    "Synapses": 17,
+    "DistinctRules": 7,
+    "Rules": 14,
     "RegisterWidth": 25,
-    "LassoTable": 27
+    "LassoTable": 48
   },
-  "Latency": 14,
+  "Latency": 42,
   "Origin": {
-    "Seed": 0,
-    "Run": "hand-built",
-    "Evaluations": 0
+    "Seed": 1979399611,
+    "Run": "evolve-parts --seed 1 --budget 50000 --route compile",
+    "Evaluations": 62530,
+    "Program": "inputs r0 = n; outputs r1 = out; done 0 = done\n0: ADD r1 -> 1\n1: SUB r0 -> 0 else 3\n2: HALT done\n3: ADD r1 -> 2\n",
+    "Compiled": {
+      "Neurons": 23,
+      "Synapses": 28,
+      "DistinctRules": 6,
+      "Rules": 31,
+      "RegisterWidth": 0,
+      "LassoTable": 109
+    }
+  },
+  "Proven": {
+    "UpTo": 1599,
+    "AllInputs": false,
+    "Stopped": "time limit of 20 s"
   }
 }

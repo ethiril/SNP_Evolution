@@ -7,295 +7,312 @@
 == delay 4
 0: latency 4 cases ->done
 == fan-out
-0: latency 40 cases n=0->done,a=0,b=0
-1: latency 40 cases n=1->done,a=1,b=1
-2: latency 40 cases n=2->done,a=2,b=2
-3: latency 40 cases n=3->done,a=3,b=3
-4: latency 40 cases n=4->done,a=4,b=4
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases n=0->done,a=0,b=0
+1: latency 164 cases n=1->done,a=1,b=1
+2: latency 164 cases n=2->done,a=2,b=2
+3: latency 164 cases n=3->done,a=3,b=3
+4: latency 164 cases n=4->done,a=4,b=4
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == increment
-0: latency 43 cases n=0->done,out=1
-1: latency 43 cases n=1->done,out=2
-2: latency 43 cases n=2->done,out=3
-3: latency 43 cases n=3->done,out=4
-4: latency 43 cases n=4->done,out=5
-5: latency 43
-6: latency 43
-7: latency 43
-8: latency 43
-9: latency 43
-10: latency 43
-11: latency 43
-12: latency 43
-13: latency 46
-14: latency 49
-15: latency 52
-16: latency 55
-17: latency 58
-18: latency 61
-19: latency 64
-20: latency 67
-21: latency 70
-22: latency 73
-23: latency 76
-24: latency 79
-25: latency 82
-26: latency 85
-27: latency 88
-28: latency 91
-29: latency 94
-30: latency 97
+0: latency 176 cases n=0->done,out=1
+1: latency 176 cases n=1->done,out=2
+2: latency 176 cases n=2->done,out=3
+3: latency 176 cases n=3->done,out=4
+4: latency 176 cases n=4->done,out=5
+5: latency 176
+6: latency 176
+7: latency 176
+8: latency 176
+9: latency 176
+10: latency 176
+11: latency 176
+12: latency 176
+13: latency 188
+14: latency 200
+15: latency 212
+16: latency 224
+17: latency 236
+18: latency 248
+19: latency 260
+20: latency 272
+21: latency 284
+22: latency 296
+23: latency 308
+24: latency 320
+25: latency 332
+26: latency 344
+27: latency 356
+28: latency 368
+29: latency 380
+30: latency 392
 == double
-0: latency 76 cases n=0->done,out=0
-1: latency 76 cases n=1->done,out=2
-2: latency 76 cases n=2->done,out=4
-3: latency 76 cases n=3->done,out=6
-4: latency 76 cases n=4->done,out=8
-5: latency 76
-6: latency 76
-7: latency 76
-8: latency 76
-9: latency 76
-10: latency 76
-11: latency 76
-12: latency 76
-13: latency 82
-14: latency 88
-15: latency 94
-16: latency 100
-17: latency 106
-18: latency 112
-19: latency 118
-20: latency 124
-21: latency 130
-22: latency 136
-23: latency 142
-24: latency 148
-25: latency 154
-26: latency 160
-27: latency 166
-28: latency 172
-29: latency 178
-30: latency 184
+0: latency 308 cases n=0->done,out=0
+1: latency 308 cases n=1->done,out=2
+2: latency 308 cases n=2->done,out=4
+3: latency 308 cases n=3->done,out=6
+4: latency 308 cases n=4->done,out=8
+5: latency 308
+6: latency 308
+7: latency 308
+8: latency 308
+9: latency 308
+10: latency 308
+11: latency 308
+12: latency 308
+13: latency 332
+14: latency 356
+15: latency 380
+16: latency 404
+17: latency 428
+18: latency 452
+19: latency 476
+20: latency 500
+21: latency 524
+22: latency 548
+23: latency 572
+24: latency 596
+25: latency 620
+26: latency 644
+27: latency 668
+28: latency 692
+29: latency 716
+30: latency 740
 == add
-0: latency 55 cases a=0,b=0->done,sum=0
-1: latency 55 cases a=0,b=1->done,sum=1 a=1,b=0->done,sum=1 a=1,b=1->done,sum=2
-2: latency 55 cases a=0,b=2->done,sum=2 a=1,b=2->done,sum=3 a=2,b=0->done,sum=2 a=2,b=1->done,sum=3 a=2,b=2->done,sum=4
-3: latency 55 cases a=0,b=3->done,sum=3 a=1,b=3->done,sum=4 a=2,b=3->done,sum=5 a=3,b=0->done,sum=3 a=3,b=1->done,sum=4 a=3,b=2->done,sum=5 a=3,b=3->done,sum=6
-4: latency 55 cases a=0,b=4->done,sum=4 a=1,b=4->done,sum=5 a=2,b=4->done,sum=6 a=3,b=4->done,sum=7 a=4,b=0->done,sum=4 a=4,b=1->done,sum=5 a=4,b=2->done,sum=6 a=4,b=3->done,sum=7 a=4,b=4->done,sum=8
-5: latency 55
-6: latency 55
-7: latency 55
-8: latency 55
-9: latency 58
-10: latency 64
-11: latency 70
-12: latency 76
-13: latency 82
-14: latency 88
-15: latency 94
-16: latency 100
-17: latency 106
-18: latency 112
-19: latency 118
-20: latency 124
-21: latency 130
-22: latency 136
-23: latency 142
-24: latency 148
-25: latency 154
-26: latency 160
-27: latency 166
-28: latency 172
-29: latency 178
-30: latency 184
+0: latency 224 cases a=0,b=0->done,sum=0
+1: latency 224 cases a=0,b=1->done,sum=1 a=1,b=0->done,sum=1 a=1,b=1->done,sum=2
+2: latency 224 cases a=0,b=2->done,sum=2 a=1,b=2->done,sum=3 a=2,b=0->done,sum=2 a=2,b=1->done,sum=3 a=2,b=2->done,sum=4
+3: latency 224 cases a=0,b=3->done,sum=3 a=1,b=3->done,sum=4 a=2,b=3->done,sum=5 a=3,b=0->done,sum=3 a=3,b=1->done,sum=4 a=3,b=2->done,sum=5 a=3,b=3->done,sum=6
+4: latency 224 cases a=0,b=4->done,sum=4 a=1,b=4->done,sum=5 a=2,b=4->done,sum=6 a=3,b=4->done,sum=7 a=4,b=0->done,sum=4 a=4,b=1->done,sum=5 a=4,b=2->done,sum=6 a=4,b=3->done,sum=7 a=4,b=4->done,sum=8
+5: latency 224
+6: latency 224
+7: latency 224
+8: latency 224
+9: latency 236
+10: latency 260
+11: latency 284
+12: latency 308
+13: latency 332
+14: latency 356
+15: latency 380
+16: latency 404
+17: latency 428
+18: latency 452
+19: latency 476
+20: latency 500
+21: latency 524
+22: latency 548
+23: latency 572
+24: latency 596
+25: latency 620
+26: latency 644
+27: latency 668
+28: latency 692
+29: latency 716
+30: latency 740
 == interval to count
-1: latency 40 cases n=1->done,out=1
-2: latency 40 cases n=2->done,out=2
-3: latency 40 cases n=3->done,out=3
-4: latency 40 cases n=4->done,out=4
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+1: latency 164 cases n=1->done,out=1
+2: latency 164 cases n=2->done,out=2
+3: latency 164 cases n=3->done,out=3
+4: latency 164 cases n=4->done,out=4
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == count to interval
-1: latency 40 cases n=1->done,out=1
-2: latency 40 cases n=2->done,out=2
-3: latency 40 cases n=3->done,out=3
-4: latency 40 cases n=4->done,out=4
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+1: latency 164 cases n=1->done,out=1
+2: latency 164 cases n=2->done,out=2
+3: latency 164 cases n=3->done,out=3
+4: latency 164 cases n=4->done,out=4
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == register
-0: latency 40 cases n=0->done,out=0
-1: latency 40 cases n=1->done,out=1
-2: latency 40 cases n=2->done,out=2
-3: latency 40 cases n=3->done,out=3
-4: latency 40 cases n=4->done,out=4
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases n=0->done,out=0
+1: latency 164 cases n=1->done,out=1
+2: latency 164 cases n=2->done,out=2
+3: latency 164 cases n=3->done,out=3
+4: latency 164 cases n=4->done,out=4
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == zero test
-0: latency 40 cases n=0->zero
-1: latency 40 cases n=1->nonzero
-2: latency 40 cases n=2->nonzero
-3: latency 40 cases n=3->nonzero
-4: latency 40 cases n=4->nonzero
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases n=0->zero
+1: latency 164 cases n=1->nonzero
+2: latency 164 cases n=2->nonzero
+3: latency 164 cases n=3->nonzero
+4: latency 164 cases n=4->nonzero
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == sequencer 2
 0: latency 3 cases ->done,t1=1,t2=1
 == sequencer 3
 0: latency 4 cases ->done,t1=1,t2=1,t3=1
+== join
+1: latency 19 cases a=1,b=1->done
+2: latency 19 cases a=1,b=2->done a=2,b=1->done a=2,b=2->done
+3: latency 19 cases a=1,b=3->done a=2,b=3->done a=3,b=1->done a=3,b=2->done a=3,b=3->done
+4: latency 19 cases a=1,b=4->done a=2,b=4->done a=3,b=4->done a=4,b=1->done a=4,b=2->done a=4,b=3->done a=4,b=4->done
+5: latency 19
+== fork
+0: latency 4 cases ->done,t1=1,t2=1
+== merge
+1: latency 19 cases a=0,b=1->done a=1,b=0->done
+2: latency 19 cases a=0,b=2->done a=2,b=0->done
+3: latency 19 cases a=0,b=3->done a=3,b=0->done
+4: latency 19 cases a=0,b=4->done a=4,b=0->done
+5: latency 19
+== select
+0: latency 7 cases x=0->zero
+1: latency 7 cases x=1->one
 == subtract
-0: latency 40 cases a=0,b=0->done,difference=0
-1: latency 40 cases a=1,b=0->done,difference=1 a=1,b=1->done,difference=0
-2: latency 40 cases a=2,b=0->done,difference=2 a=2,b=1->done,difference=1 a=2,b=2->done,difference=0
-3: latency 40 cases a=3,b=0->done,difference=3 a=3,b=1->done,difference=2 a=3,b=2->done,difference=1 a=3,b=3->done,difference=0
-4: latency 40 cases a=4,b=0->done,difference=4 a=4,b=1->done,difference=3 a=4,b=2->done,difference=2 a=4,b=3->done,difference=1 a=4,b=4->done,difference=0
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases a=0,b=0->done,difference=0
+1: latency 164 cases a=1,b=0->done,difference=1 a=1,b=1->done,difference=0
+2: latency 164 cases a=2,b=0->done,difference=2 a=2,b=1->done,difference=1 a=2,b=2->done,difference=0
+3: latency 164 cases a=3,b=0->done,difference=3 a=3,b=1->done,difference=2 a=3,b=2->done,difference=1 a=3,b=3->done,difference=0
+4: latency 164 cases a=4,b=0->done,difference=4 a=4,b=1->done,difference=3 a=4,b=2->done,difference=2 a=4,b=3->done,difference=1 a=4,b=4->done,difference=0
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == multiply
 0: latency 400 cases a=0,b=0->done,product=0
 1: latency 400 cases a=0,b=1->done,product=0 a=1,b=0->done,product=0 a=1,b=1->done,product=1
@@ -360,37 +377,37 @@
 29: latency 4680
 30: latency 4960
 == compare
-0: latency 40 cases a=0,b=0->not less
-1: latency 40 cases a=0,b=1->less a=1,b=0->not less a=1,b=1->not less
-2: latency 40 cases a=0,b=2->less a=1,b=2->less a=2,b=0->not less a=2,b=1->not less a=2,b=2->not less
-3: latency 40 cases a=0,b=3->less a=1,b=3->less a=2,b=3->less a=3,b=0->not less a=3,b=1->not less a=3,b=2->not less a=3,b=3->not less
-4: latency 40 cases a=0,b=4->less a=1,b=4->less a=2,b=4->less a=3,b=4->less a=4,b=0->not less a=4,b=1->not less a=4,b=2->not less a=4,b=3->not less a=4,b=4->not less
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases a=0,b=0->not less
+1: latency 164 cases a=0,b=1->less a=1,b=0->not less a=1,b=1->not less
+2: latency 164 cases a=0,b=2->less a=1,b=2->less a=2,b=0->not less a=2,b=1->not less a=2,b=2->not less
+3: latency 164 cases a=0,b=3->less a=1,b=3->less a=2,b=3->less a=3,b=0->not less a=3,b=1->not less a=3,b=2->not less a=3,b=3->not less
+4: latency 164 cases a=0,b=4->less a=1,b=4->less a=2,b=4->less a=3,b=4->less a=4,b=0->not less a=4,b=1->not less a=4,b=2->not less a=4,b=3->not less a=4,b=4->not less
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == subtract 4-bit
 0: latency 28 cases a=0,b=0->done,difference=0
 1: latency 28 cases a=1,b=0->done,difference=1 a=1,b=1->done,difference=0
@@ -459,100 +476,100 @@
 14: latency 28
 15: latency 28
 == add 2
-0: latency 88 cases n=0->done,out=2
-1: latency 88 cases n=1->done,out=3
-2: latency 88 cases n=2->done,out=4
-3: latency 88 cases n=3->done,out=5
-4: latency 88 cases n=4->done,out=6
-5: latency 88
-6: latency 88
-7: latency 88
-8: latency 88
-9: latency 88
-10: latency 88
-11: latency 88
-12: latency 88
-13: latency 94
-14: latency 100
-15: latency 106
-16: latency 112
-17: latency 118
-18: latency 124
-19: latency 130
-20: latency 136
-21: latency 142
-22: latency 148
-23: latency 154
-24: latency 160
-25: latency 166
-26: latency 172
-27: latency 178
-28: latency 184
-29: latency 190
-30: latency 196
+0: latency 356 cases n=0->done,out=2
+1: latency 356 cases n=1->done,out=3
+2: latency 356 cases n=2->done,out=4
+3: latency 356 cases n=3->done,out=5
+4: latency 356 cases n=4->done,out=6
+5: latency 356
+6: latency 356
+7: latency 356
+8: latency 356
+9: latency 356
+10: latency 356
+11: latency 356
+12: latency 356
+13: latency 380
+14: latency 404
+15: latency 428
+16: latency 452
+17: latency 476
+18: latency 500
+19: latency 524
+20: latency 548
+21: latency 572
+22: latency 596
+23: latency 620
+24: latency 644
+25: latency 668
+26: latency 692
+27: latency 716
+28: latency 740
+29: latency 764
+30: latency 788
 == decrement
-1: latency 40 cases n=1->done,out=0
-2: latency 40 cases n=2->done,out=1
-3: latency 40 cases n=3->done,out=2
-4: latency 40 cases n=4->done,out=3
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+1: latency 164 cases n=1->done,out=0
+2: latency 164 cases n=2->done,out=1
+3: latency 164 cases n=3->done,out=2
+4: latency 164 cases n=4->done,out=3
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == gate
-0: latency 40 cases n=0,open=0->done,out=0
-1: latency 40 cases n=0,open=1->done,out=0 n=1,open=0->done,out=0 n=1,open=1->done,out=1
-2: latency 40 cases n=2,open=0->done,out=0 n=2,open=1->done,out=2
-3: latency 40 cases n=3,open=0->done,out=0 n=3,open=1->done,out=3
-4: latency 40 cases n=4,open=0->done,out=0 n=4,open=1->done,out=4
-5: latency 40
-6: latency 40
-7: latency 40
-8: latency 40
-9: latency 40
-10: latency 40
-11: latency 40
-12: latency 40
-13: latency 43
-14: latency 46
-15: latency 49
-16: latency 52
-17: latency 55
-18: latency 58
-19: latency 61
-20: latency 64
-21: latency 67
-22: latency 70
-23: latency 73
-24: latency 76
-25: latency 79
-26: latency 82
-27: latency 85
-28: latency 88
-29: latency 91
-30: latency 94
+0: latency 164 cases n=0,open=0->done,out=0
+1: latency 164 cases n=0,open=1->done,out=0 n=1,open=0->done,out=0 n=1,open=1->done,out=1
+2: latency 164 cases n=2,open=0->done,out=0 n=2,open=1->done,out=2
+3: latency 164 cases n=3,open=0->done,out=0 n=3,open=1->done,out=3
+4: latency 164 cases n=4,open=0->done,out=0 n=4,open=1->done,out=4
+5: latency 164
+6: latency 164
+7: latency 164
+8: latency 164
+9: latency 164
+10: latency 164
+11: latency 164
+12: latency 164
+13: latency 176
+14: latency 188
+15: latency 200
+16: latency 212
+17: latency 224
+18: latency 236
+19: latency 248
+20: latency 260
+21: latency 272
+22: latency 284
+23: latency 296
+24: latency 308
+25: latency 320
+26: latency 332
+27: latency 344
+28: latency 356
+29: latency 368
+30: latency 380
 == add loop
 0: latency 400 cases a=0,b=0,n=0->done,sum=0
 1: latency 400 cases a=0,b=0,n=1->done,sum=0 a=0,b=1,n=0->done,sum=0 a=0,b=1,n=1->done,sum=1 a=1,b=0,n=0->done,sum=1 a=1,b=0,n=1->done,sum=1 a=1,b=1,n=0->done,sum=1 a=1,b=1,n=1->done,sum=2

@@ -6,7 +6,8 @@ namespace SnpEvolution.Specs.Contracts
 {
     // What a part computes for every input rather than for its test cases: its name and ports, which inputs it covers,
     // the case each input should give, and the latency it is allowed on that input. A contract is built from it and the
-    // inputs to test (ContractFor); a bounded check proves a part against it for every input up to a bound.
+    // inputs to test (ContractFor); a bounded check proves a part against it for every input up to a bound, and has
+    // checked them all at LargestInput when the domain has a largest value.
     public sealed record Specification(
         string Name,
         IReadOnlyList<Port> Done,
@@ -15,7 +16,9 @@ namespace SnpEvolution.Specs.Contracts
         Func<IReadOnlyDictionary<string, int>, ContractCase> Expected,
         Func<IReadOnlyDictionary<string, int>, int> Latency,
         int MinLatency = 0,
-        bool OrderedTriggers = false)
+        bool OrderedTriggers = false,
+        bool TogetherTriggers = false,
+        int? LargestInput = null)
     {
         public static Port Start => Port.In("start", PortKind.Trigger);
 
@@ -32,7 +35,7 @@ namespace SnpEvolution.Specs.Contracts
             {
                 throw new ArgumentException($"The input {string.Join(",", outside.Select(pair => $"{pair.Key}={pair.Value}"))} is outside the domain of {Name}.", nameof(values));
             }
-            return new Contract(Name, Start, Done, Data, inputs.Select(Expected).ToList(), inputs.Max(Latency), MinLatency, OrderedTriggers);
+            return new Contract(Name, Start, Done, Data, inputs.Select(Expected).ToList(), inputs.Max(Latency), MinLatency, OrderedTriggers, TogetherTriggers);
         }
 
         // The one data out-port's value for the given values of the data in-ports, in order, for a task that reads it.
@@ -47,7 +50,7 @@ namespace SnpEvolution.Specs.Contracts
         // A contract with no data in-ports is its own specification: its one case, and its own latency.
         public static Specification? Fixed(Contract contract) =>
             !contract.DataIn.Any() && contract.Cases.Count == 1
-                ? new Specification(contract.Name, contract.Done, contract.Data, _ => true, _ => contract.Cases[0], _ => contract.MaxLatency, contract.MinLatency, contract.OrderedTriggers)
+                ? new Specification(contract.Name, contract.Done, contract.Data, _ => true, _ => contract.Cases[0], _ => contract.MaxLatency, contract.MinLatency, contract.OrderedTriggers, contract.TogetherTriggers)
                 : null;
 
         private IReadOnlyDictionary<string, int> Inputs(IReadOnlyList<int> values) =>

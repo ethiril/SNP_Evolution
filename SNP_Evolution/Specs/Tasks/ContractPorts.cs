@@ -51,13 +51,19 @@ namespace SnpEvolution.Specs.Tasks
         // Each trigger out-port's first firing after start comes on a later step than the one listed before it.
         public bool TriggersInOrder(PortRun run, int caseIndex)
         {
-            List<int> firstSteps = dataOut.Select((port, slot) => (port, slot))
+            List<int> firstSteps = FirstTriggerSteps(run, caseIndex);
+            return firstSteps.Zip(firstSteps.Skip(1)).All(pair => pair.First < pair.Second);
+        }
+
+        // The trigger out-ports that fire after start all first fire on one step.
+        public bool TriggersTogether(PortRun run, int caseIndex) => FirstTriggerSteps(run, caseIndex).Distinct().Count() <= 1;
+
+        private List<int> FirstTriggerSteps(PortRun run, int caseIndex) =>
+            dataOut.Select((port, slot) => (port, slot))
                 .Where(pair => pair.port.Kind == PortKind.Trigger)
                 .Select(pair => AfterStart(run, pair.slot, caseIndex).Select(firing => firing.Step).DefaultIfEmpty(-1).First())
                 .Where(step => step >= 0)
                 .ToList();
-            return firstSteps.Zip(firstSteps.Skip(1)).All(pair => pair.First < pair.Second);
-        }
 
         // Null when the word spills outside its window after done.
         private static int? BinaryWord(int width, List<Firing> firingsAfterStart, int done) =>

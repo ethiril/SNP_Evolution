@@ -37,11 +37,12 @@ namespace SnpEvolution.Specs.Contracts
         {
             PortKind.Interval => Interval(value, from),
             PortKind.Count => Count(value, from),
-            PortKind.Trigger => value == 1 ? Trigger(from) : Array.Empty<int>(),
+            PortKind.Trigger => value >= 1 ? Trigger(from + value - 1) : Array.Empty<int>(),
             _ => Binary(value, port.Width, from),
         };
 
         // Unary values load from step 0 and start follows the last of them, because a part wired after another also receives its data before its start.
+        // Binary words and triggers are timed from start.
         public static EncodedCase ForCase(Contract contract, ContractCase @case, int quietSteps = 0)
         {
             List<Port> inPorts = contract.DataIn.ToList();
@@ -52,7 +53,7 @@ namespace SnpEvolution.Specs.Contracts
                 .Max();
             int start = Math.Max(quietSteps, lastUnary + 1);
             var steps = new List<IReadOnlyList<int>> { Trigger(start) };
-            steps.AddRange(inPorts.Select(port => Encode(port, @case.Inputs[port.Name], port.Kind == PortKind.Binary ? start : 0)));
+            steps.AddRange(inPorts.Select(port => Encode(port, @case.Inputs[port.Name], port.Kind is PortKind.Binary or PortKind.Trigger ? start : 0)));
             return new EncodedCase(new InputSpikes(steps), start);
         }
     }

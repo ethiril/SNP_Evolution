@@ -12,6 +12,14 @@ namespace SnpEvolution.Tests.Specs.Contracts
             Assert.Equal(new[] { 3 }, PortEncoding.Trigger(3));
         }
 
+        // A trigger in-port's value is its step counted from 1 with start, and 0 is no spike.
+        [Theory]
+        [InlineData(0, new int[0])]
+        [InlineData(1, new[] { 2 })]
+        [InlineData(4, new[] { 5 })]
+        public void ATriggerValueIsTheStepItFiresOnFromStart(int value, int[] steps) =>
+            Assert.Equal(steps, PortEncoding.Encode(Port.In("x", PortKind.Trigger), value, from: 2));
+
         [Theory]
         [InlineData(1, new[] { 2, 3 })]
         [InlineData(5, new[] { 2, 7 })]

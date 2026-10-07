@@ -1,0 +1,142 @@
+{
+  "Contract": {
+    "Name": "fork",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "t1",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      },
+      {
+        "Name": "t2",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {
+          "t1": 1,
+          "t2": 1
+        },
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 4,
+    "MinLatency": 0,
+    "OrderedTriggers": false,
+    "TogetherTriggers": true
+  },
+  "Binding": {
+    "Positions": {
+      "t1": 2,
+      "t2": 3,
+      "done": 4
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2,
+          3
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 4,
+    "Synapses": 3,
+    "DistinctRules": 3,
+    "Rules": 4,
+    "RegisterWidth": 2,
+    "LassoTable": 10
+  },
+  "Latency": 2,
+  "Origin": {
+    "Seed": 37107523,
+    "Run": "evolve-parts --seed 2 --budget 50000",
+    "Evaluations": 17285
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SnpEvolution.Compilation;
 using SnpEvolution.Model;
 using SnpEvolution.Search.Algorithms;
 using SnpEvolution.Search.Fitness;
@@ -34,10 +35,14 @@ namespace SnpEvolution.Search
         public static PartSearchSettings Default { get; } = new PartSearchSettings(50_000, 50_000 / 4, 60, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine());
     }
 
-    public sealed record MeasuredPart(Part Part, PartMeasurement Measurement);
+    // Compiled is set when the part was compiled from a register program rather than evolved.
+    public sealed record MeasuredPart(Part Part, PartMeasurement Measurement, CompiledFrom? Compiled = null);
+
+    // The program a part was compiled from and the size of the network the compiler made, before shrinking.
+    public sealed record CompiledFrom(FunctionProgram Program, HardwareCost Compiled);
 
     // Evaluations counts networks scored and checked, which is what a part's record has always held.
-    public sealed record PartOutcome(Contract Contract, int Seed, BudgetReport Spent, Part? Part, PartMeasurement? Measurement)
+    public sealed record PartOutcome(Contract Contract, int Seed, BudgetReport Spent, Part? Part, PartMeasurement? Measurement, CompiledFrom? Compiled = null)
     {
         public bool Solved => Part != null;
 
@@ -128,7 +133,30 @@ namespace SnpEvolution.Search
             }
             request.Log($"{task.Contract.Name}: solved after {searchPhase.Networks} evaluations, {found.Cost}.");
             Individual start = algorithm.Population.First(individual => ReferenceEquals(individual.Genes, found.Network));
-            PartMeasurement kept = Shrink(request, task, verifier, setup, start, found);
+            return Kept(request, task, Shrink(request, task, verifier, setup, start, found));
+        }
+
+        // Verifies a network built some other way, such as by the compiler, and shrinks it as a part found by search is.
+        // Not solved when it fails the contract.
+        public SearchOutcome<MeasuredPart> ShrinkFrom(SearchRequest<MeasuredPart> request, Network network)
+        {
+            ContractTask task = request.Task is IContractTask contractTask ? ContractTask.Of(contractTask) : throw new ArgumentException("A part search needs a contract.", nameof(request));
+            NetworkFactory factory = Factory(task, request.Random);
+            var verifier = new Verifier(task, request.Budget);
+            var setup = new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3));
+            PartMeasurement measured = verifier.Measure(network);
+            if (measured.Verdict is not Verdict.Passed)
+            {
+                request.Log($"{task.Contract.Name}: the network fails its contract: {measured.Description.Replace(Environment.NewLine, "; ")}.");
+                return new SearchOutcome<MeasuredPart>(SearchStop.Stalled, null, 0, measured.Description, request.Budget.Report());
+            }
+            var start = new Individual(network);
+            start.Record(setup.Scoring.Evaluator(task, request.Budget, request.Random).Evaluate(network));
+            return Kept(request, task, Shrink(request, task, verifier, setup, start, measured));
+        }
+
+        private static SearchOutcome<MeasuredPart> Kept(SearchRequest<MeasuredPart> request, ContractTask task, PartMeasurement kept)
+        {
             request.Log($"{task.Contract.Name}: kept {kept.Cost}, latency {kept.Latency}.");
             return new SearchOutcome<MeasuredPart>(SearchStop.Solved, new MeasuredPart(new Part(task.Contract, kept.Network, task.Binding), kept), 1, kept.Description, request.Budget.Report());
         }

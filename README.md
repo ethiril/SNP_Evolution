@@ -87,7 +87,7 @@ Every menu run is one of these commands, so it also runs without the menu, from 
 | `advise` | Prints the settings the advisor suggests for a target or a suite task, without evolving. | `[--target VALUES]` `[--kind set\|sequence\|binary]` `[--task NAME]` `[--generations N]` `[--population N]` `[--neurons N]` `[--mutation-rate X]` `[--experimental on\|off]` `[--fitness NAME]` `[--patience N]` `[--recovery on\|off]` `[--iterative on\|off]` `[--first-stage N]` `[--stage-step N]` `[--max-delay N]` `[--max-produce N]` `[--initial-spikes N]` `[--duplicates on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--rule-form legacy\|standard\|mixed]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--evaluations N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` `[--simulator NAME]` `[--steps N]` `[--repetitions N]` `[--timing legacy\|interval]` |
 | `compile` | Compiles a sequence target's recurrence or a set target's register program into a network that is correct by construction, then shrinks it. | `--target VALUES` `[--kind set\|sequence\|binary]` `[--program FILE]` `[--generations N]` `[--lexicase on\|off]` `[--shrink N]` `[--seed N]` `[--population N]` |
 | `reach` | Runs each setup on seeds 1 to N with the same budget and compares how far into the target they get. | `--target VALUES` `--evaluations N` `[--kind set\|sequence\|binary]` `[--setups flat,modules,composition]` `[--seeds N]` `[--charge-parts on\|off]` `[--generations N]` `[--population N]` `[--neurons N]` `[--mutation-rate X]` `[--experimental on\|off]` `[--fitness NAME]` `[--patience N]` `[--recovery on\|off]` `[--iterative on\|off]` `[--first-stage N]` `[--stage-step N]` `[--max-delay N]` `[--max-produce N]` `[--initial-spikes N]` `[--duplicates on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--rule-form legacy\|standard\|mixed]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` `[--simulator NAME]` `[--steps N]` `[--repetitions N]` `[--timing legacy\|interval]` |
-| `evolve-parts` | Evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for, and reports robustness to jitter. | `[--seed N]` `[--budget N]` `[--only "NAME,NAME"]` `[--library DIR]` `[--engine exact\|sampled]` `[--configurations N]` `[--redo on\|off]` `[--profile hardware\|none]` `[--robust J]` `[--staged on\|off]` |
+| `evolve-parts` | Evolves, verifies, shrinks and saves a part for each first-part contract the library has no part for, and reports robustness to jitter. | `[--seed N]` `[--budget N]` `[--only "NAME,NAME"]` `[--library DIR]` `[--engine exact\|sampled]` `[--configurations N]` `[--redo on\|off]` `[--profile hardware\|none]` `[--robust J]` `[--staged on\|off]` `[--route both\|search\|compile]` |
 | `compose` | Composition search for one suite task; a solved contract is promoted to a part and the library saved. | `--task NAME` `[--seed N]` `[--generations N]` `[--population N]` `[--neurons N]` `[--mutation-rate X]` `[--experimental on\|off]` `[--fitness NAME]` `[--patience N]` `[--recovery on\|off]` `[--iterative on\|off]` `[--first-stage N]` `[--stage-step N]` `[--max-delay N]` `[--max-produce N]` `[--initial-spikes N]` `[--duplicates on\|off]` `[--lexicase on\|off]` `[--profile hardware\|none]` `[--rule-form legacy\|standard\|mixed]` `[--modules on\|off]` `[--freeze on\|off]` `[--triggered on\|off]` `[--incubate N]` `[--evaluations N]` `[--library DIR]` `[--hand-built on\|off\|leaves]` `[--propose on\|off]` `[--proposal-budget N]` `[--max-parts N]` `[--glue N]` `[--glue-weight X]` `[--module-files a.json,b.json]` `[--algorithm NAME]` `[--simulator NAME]` `[--steps N]` `[--repetitions N]` `[--timing legacy\|interval]` |
 | `verify` | Proves each part's contract for every input up to a bound, raised until the time per part runs out, and records it in the part's file. | `[--part FILE]` `[--library DIR]` `[--only "NAME,NAME"]` `[--seconds N]` `[--bound N]` |
 | `parts` | Lists the parts kept in the library, or shows each part asked for in full: contract, ports, cost, proof, origin, what it reads on each case and its network. | `[--library DIR]` `[--only "NAME,NAME"]` `[--part FILE]` |
@@ -219,7 +219,7 @@ The run saves `Program.txt` (the recurrence or program), `Compiled.*` and `Shrun
 
 ## Evolving library parts
 
-`evolve-parts` evolves small verified parts that later runs can build machines from. Each part has a start input, a done output and typed data ports, and a contract it must meet: nothing comes out before start, done fires exactly once with the right values on the outputs, every neuron ends where it began, and done fires in time. The goals are ten general arithmetic parts, none specific to any target (`FirstParts.Table()` prints them):
+`evolve-parts` evolves small verified parts that later runs can build machines from. Each part has a start input, a done output and typed data ports, and a contract it must meet: nothing comes out before start, done fires exactly once with the right values on the outputs, every neuron ends where it began, and done fires in time. The goals are ten general arithmetic parts and four control parts, none specific to any target (`FirstParts.Table()` prints them):
 
 | Part | Ports besides start and done | Contract |
 |---|---|---|
@@ -233,8 +233,12 @@ The run saves `Program.txt` (the recurrence or program), `Compiled.*` and `Shrun
 | Register | count in; count out | holds n until started again, then drains it |
 | Zero test | count in; done-zero, done-nonzero | the right branch fires, the other never |
 | Sequencer | done out xk | fires its outputs in order, each one step after the previous (k = 2, 3) |
+| Join | trigger in x2 | done fires once after both inputs, in either order and up to 4 steps apart |
+| Fork | trigger out x2 | both outputs fire on one step, then done |
+| Merge | trigger in x2 | done fires once after whichever input fired (never both) |
+| Select | trigger in; done-one, done-zero | done-one when the input fired with start, done-zero when it did not |
 
-Count cases run from 0 to 8 plus 12, to catch a part that only memorised small values.
+Count cases run from 0 to 8 plus 12, to catch a part that only memorised small values. A count part may take 12 steps per unit of its largest value plus 20, which admits parts compiled from register programs (see below). A trigger in-port's value is the step it fires on, counted from 1 with start, and 0 means it does not fire. Start opens the round of a control part, and done may not fire before the last trigger input has arrived. Join's cases cover both orders, equal steps and the largest gap. A control part may take 3 steps per step of its last input plus 4.
 
 ```
 snp-evolution evolve-parts --seed 1
@@ -255,10 +259,12 @@ The search learns a contract a few cases at a time: first on the three cases wit
 - `--redo on`: evolve contracts the library already has a part for; the new part replaces the old only if it is cheaper.
 - `--robust J`: shrink towards the most robust part at jitter J rather than the smallest (see Timing robustness).
 - `--staged on|off` (on by default): learn the contract a few cases at a time, smallest inputs first.
+- `--route both|search|compile` (both by default): how a part with count ports is found (see Compiling count parts). Parts without count ports are always searched for.
+- `--only` also takes the building blocks (`add 2`, `decrement`, `gate`, `add loop`). A name that is a contract's own picks only that contract, so `add` does not also pick `add 2`.
 
 The library folder holds one JSON file per contract (`delay-1.json`, `zero-test.json`) with the network (in the usual network file format), contract, port binding, hardware cost, latency, seed, run and evaluations. Loading verifies every part again and refuses a file whose part fails its contract or whose contract differs from the catalogue, naming the file. Two parts that read the same on every case of a contract count as one, and the cheaper is kept under the first one's id.
 
-`parts` shows what the library holds: a table of the kept parts (cost, latency, proof, seed and evaluations) and the first-part contracts with no part yet. `--only NAMES` or `--part FILE` shows each part in full, with its ports, what it reads on each case and its network.
+`parts` shows what the library holds: a table of the kept parts (route, cost, latency, proof, seed and evaluations) and the first-part contracts with no part yet. The route says whether a part was searched for, compiled from a register program or composed from other parts. `--only NAMES` or `--part FILE` shows each part in full, with its ports, what it reads on each case, the program a compiled part came from and its network.
 
 ```
 snp-evolution parts

@@ -57,7 +57,7 @@ namespace SnpEvolution.Specs.Verification
                     }
                 }
                 proven = bound;
-                if (BoundedInputs.Exhausted(contract, bound))
+                if (BoundedInputs.Exhausted(contract, bound) || bound >= specification.LargestInput)
                 {
                     return new BoundedResult(new ProvenBound(proven, true, new StopReason(Stop.EveryInputChecked)), new Verdict.Passed());
                 }

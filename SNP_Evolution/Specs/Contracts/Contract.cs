@@ -54,7 +54,9 @@ namespace SnpEvolution.Specs.Contracts
     }
 
     // MinLatency lets a timer such as a delay demand that done fires no sooner than a given step. OrderedTriggers makes the
-    // trigger out-ports that fire do so on rising steps in the order they are listed, as a sequencer's outputs must.
+    // trigger out-ports that fire do so on rising steps in the order they are listed, as a sequencer's outputs must, and
+    // TogetherTriggers makes them fire on one step, as a fork's must. A trigger data in-port's value is when it fires:
+    // 0 is never, and d is d - 1 steps after the start spike, so 1 is with it.
     public sealed record Contract(
         string Name,
         Port Start,
@@ -63,7 +65,8 @@ namespace SnpEvolution.Specs.Contracts
         IReadOnlyList<ContractCase> Cases,
         int MaxLatency,
         int MinLatency = 0,
-        bool OrderedTriggers = false)
+        bool OrderedTriggers = false,
+        [property: JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)] bool TogetherTriggers = false)
     {
         [JsonIgnore]
         public IEnumerable<Port> DataIn => Data.Where(port => port.Direction == PortDirection.In);
@@ -71,10 +74,16 @@ namespace SnpEvolution.Specs.Contracts
         [JsonIgnore]
         public IEnumerable<Port> DataOut => Data.Where(port => port.Direction == PortDirection.Out);
 
+        // The least latency the case allows: the contract's least, and no less than the latest trigger in-port's value, since
+        // done cannot answer an input before it arrives.
+        public int EarliestDone(ContractCase @case) =>
+            Math.Max(MinLatency, DataIn.Where(port => port.Kind == PortKind.Trigger).Select(port => @case.Inputs[port.Name]).DefaultIfEmpty(0).Max());
+
         // Whether the other contract says the same: name, ports, latencies and every case, in order.
         public bool SameAs(Contract other) =>
             Name == other.Name && Start == other.Start && Done.SequenceEqual(other.Done) && Data.SequenceEqual(other.Data)
             && MaxLatency == other.MaxLatency && MinLatency == other.MinLatency && OrderedTriggers == other.OrderedTriggers
+            && TogetherTriggers == other.TogetherTriggers
             && Cases.Count == other.Cases.Count && Cases.Zip(other.Cases).All(pair => pair.First.SameAs(pair.Second));
 
         // A malformed contract would otherwise only show up as a part that never scores, so each problem names the port or case at fault.
@@ -102,9 +111,9 @@ namespace SnpEvolution.Specs.Contracts
             {
                 problems.Add($"Start port '{Start.Name}' must be an in-port of kind Trigger.");
             }
-            foreach (Port extraStart in DataIn.Where(port => port.Kind == PortKind.Trigger))
+            if (OrderedTriggers && TogetherTriggers)
             {
-                problems.Add($"Data in-port '{extraStart.Name}' is a trigger, which would be a second start; a part has exactly one start.");
+                problems.Add("Trigger out-ports cannot both fire in order and fire together.");
             }
             if (Done == null || Done.Count == 0)
             {
@@ -198,7 +207,7 @@ namespace SnpEvolution.Specs.Contracts
                 {
                     _ when value < 0 => "is negative",
                     PortKind.Interval when value < 1 => "is not a valid interval, which must be at least 1",
-                    PortKind.Trigger when value > 1 => "is not a valid trigger value, which must be 0 or 1",
+                    PortKind.Trigger when role == "out-port" && value > 1 => "is not a valid trigger value, which must be 0 or 1",
                     PortKind.Binary when port.Width is >= 1 and <= Port.MaxBinaryWidth && value >= 1 << port.Width => $"does not fit in {port.Width} bits",
                     _ => null,
                 };

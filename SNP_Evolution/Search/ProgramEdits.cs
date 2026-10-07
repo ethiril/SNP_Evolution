@@ -10,13 +10,27 @@ namespace SnpEvolution.Search
         private readonly int maxInstructions;
         private readonly int registers;
         private readonly Random random;
+        private readonly int dones;
+        private readonly int firstSubtractable;
 
-        public ProgramEdits(int maxInstructions, int registers, Random random)
+        private readonly bool choices;
+
+        // A generator never subtracts from its output register r0, so its SUBs start at r1, and it needs ADDs that choose to
+        // generate more than one number. A function program's SUBs may use any register, its HALTs end on one of several
+        // done ports, and its ADDs never choose: a contract holds on every computation, so a choice can only fail it, and
+        // following both ways of every choice is what makes scoring slow.
+        public ProgramEdits(int maxInstructions, int registers, Random random, int dones = 1, int firstSubtractable = 1, bool choices = true)
         {
             this.maxInstructions = maxInstructions;
             this.registers = registers;
             this.random = random;
+            this.dones = dones;
+            this.firstSubtractable = firstSubtractable;
+            this.choices = choices;
         }
+
+        public static ProgramEdits ForFunctions(int maxInstructions, int registers, Random random, int dones) =>
+            new ProgramEdits(maxInstructions, registers, random, dones, firstSubtractable: 0, choices: false);
 
         public RegisterProgram RandomProgram()
         {
@@ -47,7 +61,7 @@ namespace SnpEvolution.Search
             int roll = random.Next(10);
             if (roll == 0)
             {
-                return new Instruction(Operation.Halt);
+                return new Instruction(Operation.Halt, dones > 1 ? random.Next(dones) : 0);
             }
             List<int> halts = Enumerable.Range(0, Math.Min(length, program.Count)).Where(label => program[label].Operation == Operation.Halt).ToList();
             int next = random.Next(length);
@@ -55,8 +69,8 @@ namespace SnpEvolution.Search
                 : halts.Count > 0 && random.Next(2) == 0 ? halts[random.Next(halts.Count)]
                 : random.Next(length);
             return roll <= 5
-                ? new Instruction(Operation.Add, random.Next(registers), next, otherwise)
-                : new Instruction(Operation.Sub, 1 + random.Next(registers - 1), next, random.Next(length));
+                ? new Instruction(Operation.Add, random.Next(registers), next, choices ? otherwise : next)
+                : new Instruction(Operation.Sub, firstSubtractable + random.Next(registers - firstSubtractable), next, random.Next(length));
         }
 
         private RegisterProgram Edit(RegisterProgram program)
@@ -71,23 +85,34 @@ namespace SnpEvolution.Search
                     instructions.Insert(label, RandomInstruction(instructions.Count + 1, instructions));
                     break;
                 case 1 when instructions.Count > 1:
-                    instructions.RemoveAt(label);
-                    instructions = instructions.Select(instruction => Shift(instruction, target => Math.Min(instructions.Count - 1, target > label ? target - 1 : target))).ToList();
-                    break;
+                    return Without(program, label);
                 case 2:
                     instructions[label] = RandomInstruction(instructions.Count, instructions);
                     break;
                 case 3:
-                    instructions[label] = instructions[label] with { Register = random.Next(registers) };
+                    instructions[label] = instructions[label] with { Register = instructions[label].Operation == Operation.Halt ? random.Next(dones) : random.Next(registers) };
                     break;
                 case 4:
-                    instructions[label] = instructions[label] with { Next = random.Next(instructions.Count) };
+                    instructions[label] = Jump(instructions[label], random.Next(instructions.Count), next: true);
                     break;
                 default:
-                    instructions[label] = instructions[label] with { Else = random.Next(instructions.Count) };
+                    instructions[label] = Jump(instructions[label], random.Next(instructions.Count), next: false);
                     break;
             }
             return new RegisterProgram(registers, instructions);
+        }
+
+        // Without choices an ADD's two targets are one, so changing either moves both.
+        private Instruction Jump(Instruction instruction, int target, bool next) =>
+            !choices && instruction.Operation == Operation.Add ? instruction with { Next = target, Else = target }
+                : next ? instruction with { Next = target } : instruction with { Else = target };
+
+        // The program with one instruction taken out; a jump to it goes on to the instruction after it.
+        public static RegisterProgram Without(RegisterProgram program, int label)
+        {
+            List<Instruction> instructions = program.Instructions.ToList();
+            instructions.RemoveAt(label);
+            return program with { Instructions = instructions.Select(instruction => Shift(instruction, target => Math.Min(instructions.Count - 1, target > label ? target - 1 : target))).ToList() };
         }
 
         private static Instruction Shift(Instruction instruction, Func<int, int> move) =>

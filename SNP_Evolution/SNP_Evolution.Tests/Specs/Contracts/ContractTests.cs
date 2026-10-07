@@ -72,7 +72,7 @@ namespace SnpEvolution.Tests.Specs.Contracts
             { Increment() with { Data = new[] { Port.In("n", PortKind.Count), Port.Out("n", PortKind.Count) } }, "Port name 'n' is used 2 times" },
             { Increment() with { Done = new[] { Port.Out("start", PortKind.Trigger) } }, "Port name 'start' is used 2 times" },
             { Increment() with { Start = Port.In("start", PortKind.Count) }, "Start port 'start' must be an in-port of kind Trigger" },
-            { Increment() with { Data = Increment().Data.Append(Port.In("go", PortKind.Trigger)).ToList() }, "'go' is a trigger, which would be a second start" },
+            { Increment() with { OrderedTriggers = true, TogetherTriggers = true }, "cannot both fire in order and fire together" },
             { Increment() with { Done = Array.Empty<Port>() }, "no done port" },
             { Increment() with { Done = new[] { Port.In("done", PortKind.Trigger) } }, "Done port 'done' must be an out-port of kind Trigger" },
             { Increment() with { Cases = Array.Empty<ContractCase>() }, "no test cases" },

@@ -47,6 +47,10 @@ namespace SnpEvolution.Export
             text.AppendLine($"const int AFTER_DONE = {task.StepsAfterDone};");
             text.AppendLine($"const int SLOTS = {slots};");
             text.AppendLine($"const int MIN_LATENCY = {contract.MinLatency};");
+            if (contract.Cases.Any(@case => contract.EarliestDone(@case) != contract.MinLatency))
+            {
+                text.AppendLine($"const int EARLIEST[CASES] = {Array(contract.Cases.Select(contract.EarliestDone))};");
+            }
             text.AppendLine($"const int MAX_LATENCY = {contract.MaxLatency};");
             text.AppendLine($"const int INITIAL[NEURONS] = {Array(network.Neurons.Select(neuron => (int)neuron.InitialSpikes))};");
             text.AppendLine($"const int START[CASES] = {Array(task.StartSteps)};");
@@ -178,7 +182,8 @@ namespace SnpEvolution.Export
             text.AppendLine("  int i;");
             text.AppendLine("  backOk = true;");
             text.AppendLine("  for (i = 0; i < NEURONS; i++) { if (spikes[i] != INITIAL[i]) backOk = false; }");
-            text.AppendLine("  onTimeOk = firstDone >= 0 && firstDone - (START[caseNo] + 1) >= MIN_LATENCY && firstDone - (START[caseNo] + 1) <= MAX_LATENCY;");
+            string earliest = contract.Cases.Any(@case => contract.EarliestDone(@case) != contract.MinLatency) ? "EARLIEST[caseNo]" : "MIN_LATENCY";
+            text.AppendLine($"  onTimeOk = firstDone >= 0 && firstDone - (START[caseNo] + 1) >= {earliest} && firstDone - (START[caseNo] + 1) <= MAX_LATENCY;");
             text.AppendLine("  doneOk = doneFirings == 1 && doneSlot == EXPECTED_DONE[caseNo];");
             for (int slot = 0; slot < dataOut.Count; slot++)
             {
@@ -201,6 +206,17 @@ namespace SnpEvolution.Export
                     foreach (int second in triggers.Where(slot => slot > first))
                     {
                         text.AppendLine($"  if (outFirst[{first}] >= 0 && outFirst[{second}] >= 0 && outFirst[{first}] >= outFirst[{second}]) doneOk = false;");
+                    }
+                }
+            }
+            if (contract.TogetherTriggers)
+            {
+                text.AppendLine("  // Triggers that fire do so on one step.");
+                foreach (int first in triggers)
+                {
+                    foreach (int second in triggers.Where(slot => slot > first))
+                    {
+                        text.AppendLine($"  if (outFirst[{first}] >= 0 && outFirst[{second}] >= 0 && outFirst[{first}] != outFirst[{second}]) doneOk = false;");
                     }
                 }
             }

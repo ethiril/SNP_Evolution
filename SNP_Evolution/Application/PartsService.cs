@@ -14,8 +14,18 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Application
 {
+    // How a part with count ports is found: by search, by compiling a register program, or both (compile, and search when
+    // no compiled part verifies). A part without count ports is always searched for.
+    public enum PartRoute
+    {
+        Both,
+        Search,
+        Compile,
+    }
+
     // Seed is the run's seed, which each contract's own seed comes from.
-    public sealed record PartsRequest(IReadOnlyList<Contract> Contracts, int Seed = RunSeed.Repeatable, bool Redo = false, EngineChoice? Engine = null, int RobustJitter = 0, bool StagedCases = true);
+    public sealed record PartsRequest(IReadOnlyList<Contract> Contracts, int Seed = RunSeed.Repeatable, bool Redo = false, EngineChoice? Engine = null, int RobustJitter = 0, bool StagedCases = true,
+        PartRoute Route = PartRoute.Both);
 
     // Error says why nothing was evolved, when the library folder cannot be used.
     public sealed record PartsResult(IReadOnlyList<PartsService.Row> Rows, string? Error = null)
@@ -43,7 +53,7 @@ namespace SnpEvolution.Application
             {
                 return new PartsResult(Array.Empty<Row>(), loaded.Error);
             }
-            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.CommandLineFlag}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}{(request.StagedCases ? "" : " --staged off")}";
+            string run = $"evolve-parts --seed {request.Seed} --budget {budget}{engine.CommandLineFlag}{(settings.HardwareProfile ? " --profile hardware" : "")}{(request.RobustJitter > 0 ? $" --robust {request.RobustJitter}" : "")}{(request.StagedCases ? "" : " --staged off")}{(request.Route == PartRoute.Both ? "" : $" --route {request.Route.ToString().ToLowerInvariant()}")}";
             PartSearchSettings search = SearchSettings(budget, engine.Factory) with { HardwareProfile = settings.HardwareProfile, RobustJitter = request.RobustJitter, StagedCases = request.StagedCases };
             var rows = new List<Row>();
             foreach (Contract contract in request.Contracts)
@@ -59,9 +69,12 @@ namespace SnpEvolution.Application
                     rows.Add(new Row(contract.Name, "kept", null, kept.Part));
                     continue;
                 }
-                log($"Evolving a part for {contract.Name}.");
                 var spent = new EvaluationBudget();
-                PartOutcome outcome = PartSearch.Evolve(contract, request.Seed, search, spent, log);
+                if (Find(contract, request, settings, search, spent, log) is not PartOutcome outcome)
+                {
+                    rows.Add(new Row(contract.Name, "not compilable", null, kept?.Part));
+                    continue;
+                }
                 if (outcome.Part is Part part && outcome.Measurement is PartMeasurement measurement)
                 {
                     BoundedResult admission = BoundedCheck.Admit(part, spent, log);
@@ -70,7 +83,8 @@ namespace SnpEvolution.Application
                         rows.Add(new Row(contract.Name, "fails past its cases", outcome.Evaluations, kept?.Part));
                         continue;
                     }
-                    Module module = library.AddPart(measurement.ToLibraryPart(part, new PartOrigin(outcome.Seed, run, outcome.Evaluations)) with { Proven = admission.Proven }, run);
+                    var origin = new PartOrigin(outcome.Seed, run, outcome.Evaluations, outcome.Compiled?.Program.ToString(), outcome.Compiled?.Compiled);
+                    Module module = library.AddPart(measurement.ToLibraryPart(part, origin) with { Proven = admission.Proven }, run);
                     rows.Add(new Row(contract.Name, "solved", outcome.Evaluations, module.Part));
                 }
                 else
@@ -87,6 +101,29 @@ namespace SnpEvolution.Application
         }
 
         public const int Population = 60;
+
+        // The route's outcome for one contract, or null when only compiling was asked for and the contract cannot be. The
+        // textbook modules use rules outside the hardware profile, so under it a part is always searched for.
+        private static PartOutcome? Find(Contract contract, PartsRequest request, Settings settings, PartSearchSettings search, EvaluationBudget spent, Action<string> log)
+        {
+            bool compiles = request.Route != PartRoute.Search && CompiledPartSearch.Applies(contract) && !settings.HardwareProfile;
+            if (!compiles && request.Route == PartRoute.Compile)
+            {
+                log($"{contract.Name}: not compiled, since {(settings.HardwareProfile ? "the compiler's modules are outside the hardware profile" : "it has no count ports")}.");
+                return null;
+            }
+            if (compiles)
+            {
+                log($"Compiling a part for {contract.Name}.");
+                PartOutcome compiled = CompiledPartSearch.Compile(contract, request.Seed, search, CompiledPartSearch.DefaultProgramGenerations, spent, log);
+                if (compiled.Solved || request.Route == PartRoute.Compile)
+                {
+                    return compiled;
+                }
+            }
+            log($"Evolving a part for {contract.Name}.");
+            return PartSearch.Evolve(contract, request.Seed, search, spent, log);
+        }
 
         // How evolve-parts searches for a part, which a run's proposed parts share.
         public static PartSearchSettings SearchSettings(long budget, Func<ISimulationEngine> createEngine) =>

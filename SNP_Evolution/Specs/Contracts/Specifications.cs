@@ -15,8 +15,13 @@ namespace SnpEvolution.Specs.Contracts
         // Generous for loops: a hand-built add loop spends about 4b + 30 steps on each of its n rounds.
         public const int LoopLatency = 400;
 
-        // Generous, so a slow but correct part is kept for MAP-Elites to make quicker and smaller.
-        public static int LatencyFor(int largestValue) => 3 * largestValue + 4;
+        // Generous, so a slow but correct part is kept for MAP-Elites to make quicker and smaller. A part compiled from a
+        // register program with the textbook ADD and SUB modules takes 7 to 11 steps per unit (SUB alone takes 3, and every
+        // input register has to be emptied), and 12 per unit admits it.
+        public static int LatencyFor(int largestValue) => 12 * largestValue + 20;
+
+        // A control part waits for its inputs, not for a count, so it is allowed a little over the last arrival.
+        public static int ControlLatency(int lastArrival) => 3 * lastArrival + 4;
 
         public static Specification Delay(int k) =>
             new Specification($"delay {k}", new[] { Specification.DoneOut }, new Port[0], _ => true, Case(_ => Outputs()), _ => k, MinLatency: k);
@@ -32,6 +37,47 @@ namespace SnpEvolution.Specs.Contracts
             _ => k + 1,
             MinLatency: k + 1,
             OrderedTriggers: true);
+
+        // Both outputs fire on one step, then done.
+        public static Specification Fork { get; } = new Specification(
+            "fork",
+            new[] { Specification.DoneOut },
+            new[] { Port.Out("t1", PortKind.Trigger), Port.Out("t2", PortKind.Trigger) },
+            _ => true,
+            Case(_ => Outputs(("t1", 1), ("t2", 1))),
+            _ => 4,
+            TogetherTriggers: true);
+
+        // A trigger in-port's value is the step it fires on, counted from 1 with start; done waits for both, which may come in
+        // either order and up to gap steps apart.
+        public static Specification Join(int gap) => new Specification(
+            "join",
+            new[] { Specification.DoneOut },
+            new[] { TriggerIn("a"), TriggerIn("b") },
+            v => v["a"] is >= 1 && v["b"] is >= 1 && v["a"] <= gap + 1 && v["b"] <= gap + 1,
+            Case(_ => Outputs()),
+            v => ControlLatency(Math.Max(v["a"], v["b"])),
+            LargestInput: gap + 1);
+
+        // Exactly one of the two fires in a round, and done answers whichever it was.
+        public static Specification Merge(int gap) => new Specification(
+            "merge",
+            new[] { Specification.DoneOut },
+            new[] { TriggerIn("a"), TriggerIn("b") },
+            v => (v["a"] == 0) != (v["b"] == 0) && v["a"] <= gap + 1 && v["b"] <= gap + 1,
+            Case(_ => Outputs()),
+            v => ControlLatency(Math.Max(v["a"], v["b"])),
+            LargestInput: gap + 1);
+
+        // Routes start by a branch: x fires with start (1) or not at all (0).
+        public static Specification Select { get; } = new Specification(
+            "select",
+            new[] { Port.Out("one", PortKind.Trigger), Port.Out("zero", PortKind.Trigger) },
+            new[] { TriggerIn("x") },
+            v => v["x"] <= 1,
+            Case(_ => Outputs(), v => v["x"] == 1 ? "one" : "zero"),
+            _ => ControlLatency(1),
+            LargestInput: 1);
 
         public static Specification FanOut { get; } =
             Count("fan-out", new[] { CountIn("n"), CountOut("a"), CountOut("b") }, n => Outputs(("a", n["n"]), ("b", n["n"])), n => LatencyFor(n["n"]));
@@ -93,10 +139,11 @@ namespace SnpEvolution.Specs.Contracts
             Case(_ => Outputs(), v => v["a"] < v["b"] ? "less" : "not less"),
             kind == PortKind.Binary ? _ => BinaryLatency : v => LatencyFor(Math.Max(v["a"], v["b"])));
 
-        // A binary word is OperandBits steps whatever its value, so every input is allowed what two words' values are.
-        private static int BinaryLatency => LatencyFor(2 * ArithmeticParts.OperandBits);
+        // A binary word is OperandBits steps whatever its value, so every input is allowed a few steps per bit of two words.
+        private static int BinaryLatency => 3 * 2 * ArithmeticParts.OperandBits + 4;
 
-        private static int Loop(int rounds, int length) => Math.Max(LoopLatency, (rounds + 1) * (4 * length + 40));
+        // A compiled loop copies a unit of its operand in about 9 steps, and 12 per unit admits it, as LatencyFor does.
+        private static int Loop(int rounds, int length) => Math.Max(LoopLatency, (rounds + 1) * (12 * length + 40));
 
         private static Specification CountToCount(string name, Func<int, int> function, Func<int, bool>? inDomain = null, Func<int, int>? latency = null) =>
             Count(name, new[] { CountIn("n"), CountOut("out") }, v => Outputs(("out", function(v["n"]))),
@@ -122,6 +169,8 @@ namespace SnpEvolution.Specs.Contracts
         private static Port In(string name, PortKind kind) => Port.In(name, kind, kind == PortKind.Binary ? ArithmeticParts.OperandBits : 0);
 
         private static Port CountIn(string name) => Port.In(name, PortKind.Count);
+
+        private static Port TriggerIn(string name) => Port.In(name, PortKind.Trigger);
 
         private static Port CountOut(string name) => Port.Out(name, PortKind.Count);
 

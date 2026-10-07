@@ -88,6 +88,25 @@ namespace SnpEvolution.Tests.Specs.Verification
             Assert.Equal(24, BoundedCheck.Admission(FirstParts.Named("register")).MaxBound);
         }
 
+        // A join's inputs arrive at most the largest gap after start, so the check ends there having tried every input.
+        [Fact]
+        public void AJoinIsProvenForEveryInputAtItsLargestArrival()
+        {
+            Contract join = FirstParts.Named("join");
+            var network = new Network(new[]
+            {
+                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("aa", 2) }, 0, new int[0], false),
+            });
+
+            BoundedResult result = BoundedCheck.Prove(new Part(join, network, PortLayout.AfterInputs(join)), AMinute, new EvaluationBudget());
+
+            Assert.True(result.Proven.AllInputs);
+            Assert.Equal(FirstParts.LargestGap + 1, result.Proven.UpTo);
+        }
+
         [Fact]
         [Slow]
         public void APartWithNoDataInPortsIsProvenForEveryInput()
