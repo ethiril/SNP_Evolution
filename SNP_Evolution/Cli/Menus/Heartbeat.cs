@@ -54,7 +54,7 @@ namespace SnpEvolution.Cli
                 {
                     return;
                 }
-                string line = $" Still working… {Elapsed(now - started)} so far.";
+                string line = $" Still working… {Elapsed(now - started)} so far. Esc stops it early.";
                 if (!atLineStart)
                 {
                     inner.WriteLine();

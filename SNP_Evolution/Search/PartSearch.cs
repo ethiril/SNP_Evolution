@@ -14,7 +14,8 @@ using SnpEvolution.Specs.Verification;
 
 namespace SnpEvolution.Search
 {
-    // RobustJitter above 0 makes the shrink keep the most robust part that verifies rather than the cheapest.
+    // RobustJitter above 0 makes the shrink keep the most robust part that verifies rather than the cheapest. StagedCases
+    // evolves on the cases with the smallest inputs first, adding more each time a stage is solved (see CaseStages).
     public sealed record PartSearchSettings(
         long Budget,
         long ShrinkBudget,
@@ -27,7 +28,8 @@ namespace SnpEvolution.Search
         int MaxInitialSpikes = 4,
         int MaxProduce = 2,
         bool HardwareProfile = false,
-        int RobustJitter = 0)
+        int RobustJitter = 0,
+        bool StagedCases = true)
     {
         public static PartSearchSettings Default { get; } = new PartSearchSettings(50_000, 50_000 / 4, 60, SearchCatalog.StructuralDefault, () => new ExhaustiveCpuEngine());
     }
@@ -50,6 +52,9 @@ namespace SnpEvolution.Search
 
         // How often a search says how far it has got: once for each of these shares of its budget.
         private const int ProgressReports = 4;
+
+        // The first stage's cases; each later stage doubles them, up to every case.
+        public const int FirstStageCases = 3;
 
         private readonly PartSearchSettings settings;
 
@@ -91,12 +96,19 @@ namespace SnpEvolution.Search
                 Lexicase = settings.Lexicase,
             };
             EvaluationBudget searchPhase = request.Budget.Phase(settings.Budget);
-            IGeneticAlgorithm algorithm = settings.Algorithm.Create(setup.Context(setup.Scoring.Evaluator(task, searchPhase, request.Random), request.Random, request.Log));
+            IGeneticAlgorithm Create(IPopulationEvaluator evaluator) => settings.Algorithm.Create(setup.Context(evaluator, request.Random, request.Log));
+            IReadOnlyList<Stage> stages = settings.StagedCases ? CaseStages(task) : new[] { new Stage(task, task.Contract.Cases.Count) };
+            IGeneticAlgorithm algorithm = stages.Count == 1
+                ? Create(setup.Scoring.Evaluator(task, searchPhase, request.Random))
+                : new IterativeEvolution(stages, task.Contract.Cases.Count, "cases by input size", stageTask => setup.Scoring.Evaluator(stageTask, searchPhase, request.Random), Create,
+                    line => request.Log($"{task.Contract.Name}: {line}"));
             PartMeasurement? found = null;
             int reported = 0;
             (SearchStop stop, _) = GenerationLoop.Run(algorithm, int.MaxValue, () => searchPhase.IsSpent, run =>
             {
-                if ((found = FirstVerified(run, task, verifier)) != null)
+                // Before the last stage a network solves fewer cases than the contract has, so is not worth verifying.
+                bool lastStage = run is not IterativeEvolution staged || staged.Stage == staged.StageCount - 1;
+                if (lastStage && (found = FirstVerified(run, task, verifier)) != null)
                 {
                     return true;
                 }
@@ -110,7 +122,8 @@ namespace SnpEvolution.Search
             if (found == null)
             {
                 string failing = string.Join("; ", (algorithm.Best?.Description ?? "").Split(Environment.NewLine).Take(3));
-                request.Log($"{task.Contract.Name}: not solved in {searchPhase.Networks} evaluations (best fitness {algorithm.Best?.Fitness ?? 0:0.000}, failing {failing}).");
+                string stage = algorithm is IterativeEvolution { IsComplete: false } staged ? $" on stage {staged.Stage + 1} of {staged.StageCount}, {staged.StageLength} cases" : "";
+                request.Log($"{task.Contract.Name}: not solved in {searchPhase.Networks} evaluations (best fitness {algorithm.Best?.Fitness ?? 0:0.000}{stage}, failing {failing}).");
                 return new SearchOutcome<MeasuredPart>(stop, null, algorithm.Best?.Fitness ?? 0, algorithm.Best?.Description ?? "", request.Budget.Report());
             }
             request.Log($"{task.Contract.Name}: solved after {searchPhase.Networks} evaluations, {found.Cost}.");
@@ -118,6 +131,20 @@ namespace SnpEvolution.Search
             PartMeasurement kept = Shrink(request, task, verifier, setup, start, found);
             request.Log($"{task.Contract.Name}: kept {kept.Cost}, latency {kept.Latency}.");
             return new SearchOutcome<MeasuredPart>(SearchStop.Solved, new MeasuredPart(new Part(task.Contract, kept.Network, task.Binding), kept), 1, kept.Description, request.Budget.Report());
+        }
+
+        // The cases with the smallest inputs, three at first, then twice as many each stage, ending with every case. A stage
+        // with more than three quarters of the cases is left out, since the last stage is hardly longer.
+        public static IReadOnlyList<Stage> CaseStages(ContractTask task)
+        {
+            int total = task.Contract.Cases.Count;
+            var stages = new List<Stage>();
+            for (int count = FirstStageCases; count * 4 <= total * 3; count *= 2)
+            {
+                stages.Add(new Stage(task.WithSmallestCases(count), count));
+            }
+            stages.Add(new Stage(task, total));
+            return stages;
         }
 
         private NetworkFactory Factory(ContractTask task, Random random)

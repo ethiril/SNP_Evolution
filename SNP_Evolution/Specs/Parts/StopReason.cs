@@ -14,6 +14,7 @@ namespace SnpEvolution.Specs.Parts
         NotAComposition,
         NotThroughPorts,
         DoesNotFit,
+        StoppedEarly,
 
         // Anything else a part file says, kept as written.
         Other,
@@ -32,6 +33,7 @@ namespace SnpEvolution.Specs.Parts
             Stop.TooWide => $"{Detail} has too many computations to follow exactly",
             Stop.Counterexample => $"counterexample at {Detail}",
             Stop.NoSpecification => "the contract has no specification",
+            Stop.StoppedEarly => "stopped early",
             _ => Detail,
         };
 
@@ -39,6 +41,7 @@ namespace SnpEvolution.Specs.Parts
         {
             "every input checked" => new StopReason(Stop.EveryInputChecked),
             "the contract has no specification" => new StopReason(Stop.NoSpecification),
+            "stopped early" => new StopReason(Stop.StoppedEarly),
             _ when BoundReached().Match(text) is { Success: true } match => new StopReason(Stop.BoundReached, match.Groups[1].Value),
             _ when TimeLimit().Match(text) is { Success: true } match => new StopReason(Stop.TimeLimit, match.Groups[1].Value),
             _ when TooWide().Match(text) is { Success: true } match => new StopReason(Stop.TooWide, match.Groups[1].Value),

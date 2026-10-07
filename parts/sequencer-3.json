@@ -1,0 +1,162 @@
+{
+  "Contract": {
+    "Name": "sequencer 3",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "t1",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      },
+      {
+        "Name": "t2",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      },
+      {
+        "Name": "t3",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {},
+        "Outputs": {
+          "t1": 1,
+          "t2": 1,
+          "t3": 1
+        },
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 4,
+    "MinLatency": 4,
+    "OrderedTriggers": true
+  },
+  "Binding": {
+    "Positions": {
+      "t1": 2,
+      "t2": 3,
+      "t3": 4,
+      "done": 5
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          3,
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 1,
+            "Fire": true,
+            "Produce": 1,
+            "Axonal": true
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 5,
+    "Synapses": 4,
+    "DistinctRules": 2,
+    "Rules": 5,
+    "RegisterWidth": 1,
+    "LassoTable": 10
+  },
+  "Latency": 4,
+  "Origin": {
+    "Seed": 705973962,
+    "Run": "evolve-parts --seed 1 --budget 100000 --profile hardware",
+    "Evaluations": 51306
+  },
+  "Proven": {
+    "UpTo": 0,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

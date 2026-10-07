@@ -85,21 +85,26 @@ namespace SnpEvolution.Search.Benchmarking
         }
 
         // Every algorithm on every task over every seed, run in parallel. Seeds are shared between algorithms, so
-        // each one starts from the same random state on the same task.
+        // each one starts from the same random state on the same task. After an early stop no run starts, and the rows
+        // count only the runs that did.
         public static IReadOnlyList<BenchmarkRow> Run(
             IReadOnlyList<ISearch<Individual>> algorithms, IReadOnlyList<BenchmarkTask> tasks, BenchmarkSettings settings, Action<string>? progress = null)
         {
             var jobs = (from algorithm in algorithms from task in tasks from seed in Enumerable.Range(1, settings.Seeds) select (algorithm, task, seed)).ToList();
-            var outcomes = new RunOutcome[jobs.Count];
+            var outcomes = new RunOutcome?[jobs.Count];
             int finished = 0;
             Parallel.For(0, jobs.Count, index =>
             {
+                if (EarlyStop.Requested)
+                {
+                    return;
+                }
                 (ISearch<Individual> algorithm, BenchmarkTask task, int seed) = jobs[index];
                 outcomes[index] = RunOnce(algorithm, task, seed, settings.EvaluationBudget, settings);
                 progress?.Invoke($"[{Interlocked.Increment(ref finished)}/{jobs.Count}] {algorithm.Name} on {task.Name}, seed {seed}: "
-                    + (outcomes[index].Solved ? $"solved in {outcomes[index].Evaluations} evaluations" : $"best {outcomes[index].BestFitness:0.###}"));
+                    + (outcomes[index]!.Solved ? $"solved in {outcomes[index]!.Evaluations} evaluations" : $"best {outcomes[index]!.BestFitness:0.###}"));
             });
-            return Summarise(outcomes);
+            return Summarise(outcomes.OfType<RunOutcome>());
         }
 
         public static IReadOnlyList<BenchmarkRow> Summarise(IEnumerable<RunOutcome> outcomes) =>

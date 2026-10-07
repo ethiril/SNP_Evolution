@@ -39,7 +39,7 @@ namespace SnpEvolution.Tests.Cli.Menus
             now = TimeSpan.FromSeconds(95);
             heartbeat.Tick();
 
-            Assert.Equal("Evolving a part for fan-out.\n Still working… 15s so far.\n Still working… 1m 35s so far.\n", output.ToString());
+            Assert.Equal("Evolving a part for fan-out.\n Still working… 15s so far. Esc stops it early.\n Still working… 1m 35s so far. Esc stops it early.\n", output.ToString());
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace SnpEvolution.Tests.Cli.Menus
             now = TimeSpan.FromSeconds(15);
             heartbeat.Tick();
 
-            Assert.Equal("Checking\n Still working… 15s so far.\n", output.ToString());
+            Assert.Equal("Checking\n Still working… 15s so far. Esc stops it early.\n", output.ToString());
         }
     }
 }

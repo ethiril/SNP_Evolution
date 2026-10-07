@@ -58,7 +58,7 @@ namespace SnpEvolution.Tests.Search.Modules
 
             Promoted promoted = Promotion.Promote(chain, FirstParts.Named("increment"), binding, library, Origin, new EvaluationBudget(), log.Add);
 
-            Assert.Equal(ContractRule.DoneOnce, Assert.IsType<Verdict.Failed>(promoted.Verdict).Counterexample.Rule);
+            Assert.Equal(ContractRule.Values, Assert.IsType<Verdict.Failed>(promoted.Verdict).Counterexample.Rule);
             Assert.Null(promoted.Module);
             Assert.Single(library.Parts);
             Assert.Contains(log, line => line.Contains("fails the contract"));

@@ -1,7 +1,10 @@
 using SnpEvolution.Model;
 using SnpEvolution.Search;
+using SnpEvolution.Search.Algorithms;
 using SnpEvolution.Simulation;
 using SnpEvolution.Specs.Accounting;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Specs.Verification;
 
 namespace SnpEvolution.Tests.Search
@@ -12,6 +15,23 @@ namespace SnpEvolution.Tests.Search
         public void HardwareProfileIsOffUnlessAskedFor()
         {
             Assert.False(new PartSearchSettings(1, 1, 1, SearchCatalog.Evolution[0], () => null!).HardwareProfile);
+        }
+
+        [Fact]
+        public void CaseStagesStartWithThreeCasesAndDoubleUpToEveryCase()
+        {
+            IReadOnlyList<Stage> register = PartSearch.CaseStages(new ContractTask(FirstParts.Named("register")));
+            IReadOnlyList<Stage> add = PartSearch.CaseStages(new ContractTask(FirstParts.Named("add")));
+
+            Assert.Equal(new[] { 3, 6, 10 }, register.Select(stage => stage.Length));
+            Assert.Equal(register.Select(stage => stage.Length), register.Select(stage => ((ContractTask)stage.Task).Contract.Cases.Count));
+            Assert.Equal(new[] { 3, 6, 12, 24, 51 }, add.Select(stage => stage.Length));
+        }
+
+        [Fact]
+        public void AContractWithOneCaseHasOneStage()
+        {
+            Assert.Single(PartSearch.CaseStages(new ContractTask(PartFixtures.DelayContract(2))));
         }
 
         [Fact]

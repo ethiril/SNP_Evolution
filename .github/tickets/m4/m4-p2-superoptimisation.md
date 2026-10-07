@@ -13,12 +13,14 @@ Its responsibilities are:
 * Verification steps for a spec: training cases, held-out cases, a bounded proof, and counterexamples fed back
 * The superoptimiser: seeds, edits, a cost map, and re-verification of every elite
 * Synthesis from the same spec on the same budget, as the comparison arm
+* Superoptimising what is already solved: kept and hand-built parts against their contracts, the composite parts built from them, and saved networks against their tasks with held-out values
+* Keeping the smallest and the fastest part for each contract
 
 Correctness should be a hard constraint, not a weighted term, because a smaller network that is wrong on one held-out case is not an improvement, and weighting would trade them.
 Cost should be `HardwareCost` under the hardware profile, because results that only hold for regex rules do not transfer to integrate-and-fire chips.
 The superoptimiser should take its search through the search interface from M2.5, with evolution as the first method, because exact synthesis, windowed improvement and rewrites in M5 are further methods for the same command.
 
-Order: after the counterexample loop in M3 Part 3 and the compiled parts in M3 Part 1; verification steps; superoptimiser; synthesis comparison.
+Order: parts first, since they need only what exists today: superoptimise kept parts; keep the smallest and the fastest; rebuild composites; saved networks on their tasks. Then, after the counterexample loop in M3 Part 3 and the compiled parts in M3 Part 1: verification steps; the superoptimiser for specs; synthesis comparison.
 
 Done when: `superopt` on the add and multiply specs, seeded from compiled networks, returns networks smaller than their seeds that pass held-out cases and a bounded proof, and the synthesis arm's results on the same budget are reported next to them.
 

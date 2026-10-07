@@ -33,5 +33,22 @@ namespace SnpEvolution.Tests.Search.Algorithms
 
             Assert.Equal((SearchStop.Cancelled, 0), GenerationLoop.Run(10, () => false, cancel.Token, _ => false));
         }
+
+        [Fact]
+        public void AnEarlyStopEndsTheLoopAfterTheGenerationItCameIn()
+        {
+            using EarlyStop stop = EarlyStop.Begin();
+
+            (SearchStop result, int generations) = GenerationLoop.Run(10, () => false, default, generation =>
+            {
+                if (generation == 2)
+                {
+                    stop.Request();
+                }
+                return false;
+            });
+
+            Assert.Equal((SearchStop.Cancelled, 3), (result, generations));
+        }
     }
 }

@@ -59,15 +59,26 @@ namespace SnpEvolution.Application
             }
             long partCost = library.Value.PartEvaluations;
             var jobs = (from setup in setups from seed in Enumerable.Range(1, seeds) select (setup, seed)).ToList();
-            var outcomes = new Outcome[jobs.Count];
+            var started = new Outcome?[jobs.Count];
             int finished = 0;
             Parallel.For(0, jobs.Count, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, index =>
             {
+                // After an early stop no run starts, and the report covers the setups that ran.
+                if (EarlyStop.Requested)
+                {
+                    return;
+                }
                 (Setup setup, int seed) = jobs[index];
-                outcomes[index] = RunOnce(settings, setup, seed, chargeParts ? partCost : 0);
-                log($"[{Interlocked.Increment(ref finished)}/{jobs.Count}] {setup.Name}, seed {seed}: reach {outcomes[index].Reach}, " +
-                    $"{outcomes[index].Neurons} neurons, {outcomes[index].Evaluations} evaluations, {outcomes[index].Seconds:0}s");
+                Outcome outcome = started[index] = RunOnce(settings, setup, seed, chargeParts ? partCost : 0);
+                log($"[{Interlocked.Increment(ref finished)}/{jobs.Count}] {setup.Name}, seed {seed}: reach {outcome.Reach}, " +
+                    $"{outcome.Neurons} neurons, {outcome.Evaluations} evaluations, {outcome.Seconds:0}s");
             });
+            List<Outcome> outcomes = started.OfType<Outcome>().ToList();
+            setups = setups.Where(setup => outcomes.Any(outcome => outcome.Setup == setup.Name)).ToList();
+            if (setups.Count == 0)
+            {
+                return "Stopped early, before any run finished.";
+            }
             string report = Report(settings, setups, outcomes, partCost, chargeParts, command);
             log("");
             log(report);

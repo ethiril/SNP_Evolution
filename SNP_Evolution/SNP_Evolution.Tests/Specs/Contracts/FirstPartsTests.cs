@@ -97,11 +97,11 @@ namespace SnpEvolution.Tests.Specs.Contracts
         }
 
         [Fact]
-        public void OutputsFiringOutOfOrderFailOnlyDoneOnce()
+        public void OutputsFiringOutOfOrderFailOnlyValues()
         {
             FitnessResult result = Runs.Evaluate(new ContractTask(FirstParts.Named("sequencer 2")), SequencerChain(swapped: true));
 
-            Assert.Equal(new[] { 1f, 0f, 1f, 1f }, result.Checks);
+            Assert.Equal(new[] { 1f, 1f, 0f, 1f, 1f }, result.Checks);
         }
     }
 }

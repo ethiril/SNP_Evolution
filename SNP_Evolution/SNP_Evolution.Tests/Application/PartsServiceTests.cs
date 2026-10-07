@@ -1,4 +1,5 @@
 using SnpEvolution.Application;
+using SnpEvolution.Specs.Accounting;
 using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Storage;
 
@@ -23,6 +24,23 @@ namespace SnpEvolution.Tests.Application
 
         private static Dictionary<string, string> Files(string library) =>
             Directory.GetFiles(library).ToDictionary(path => Path.GetFileName(path), File.ReadAllText);
+
+        [Fact]
+        public void AfterAnEarlyStopNoMoreContractsAreEvolvedAndTheRunStillEnds()
+        {
+            var log = new List<string>();
+            PartsResult result;
+            using (EarlyStop stop = EarlyStop.Begin())
+            {
+                stop.Request();
+                result = Run("stopped", log.Add);
+            }
+
+            Assert.Null(result.Error);
+            Assert.Empty(result.Rows);
+            Assert.Contains("Stopped early: the contracts left are not evolved.", log);
+            Assert.Contains(log, line => line.StartsWith("Saved 0 part(s)"));
+        }
 
         [Fact]
         [Slow]

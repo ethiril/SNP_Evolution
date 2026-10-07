@@ -14,7 +14,7 @@ namespace SnpEvolution.Specs.Tasks
 
         public static readonly int RuleCount = Enum.GetValues<ContractRule>().Length;
 
-        private static readonly string[] RuleNames = { "quiet before start", "done once", "back to start", "on time" };
+        private static readonly string[] RuleNames = { "quiet before start", "done once", "right values", "back to start", "on time" };
 
         private readonly ContractPorts ports;
         private readonly ContractScoring scoring;
@@ -62,11 +62,20 @@ namespace SnpEvolution.Specs.Tasks
         // The task a verifier runs for a task with a contract: the task itself, or one built from its contract.
         public static ContractTask Of(IContractTask task) => task as ContractTask ?? new ContractTask(task.Contract, task.Binding);
 
+        // The same task on only the count cases with the smallest inputs (by their sum, ties in case order), kept in case
+        // order, so a search can learn a part on small values first.
+        public ContractTask WithSmallestCases(int count) =>
+            count >= Contract.Cases.Count ? this : new ContractTask(Contract with
+            {
+                Cases = Contract.Cases.Select((@case, index) => (@case, index)).OrderBy(pair => pair.@case.Inputs.Values.Sum()).ThenBy(pair => pair.index)
+                    .Take(count).OrderBy(pair => pair.index).Select(pair => pair.@case).ToList(),
+            }, Binding);
+
         public static int CheckIndex(int caseIndex, ContractRule rule) => caseIndex * RuleCount + (int)rule;
 
         public static string RuleName(ContractRule rule) => RuleNames[(int)rule];
 
-        public float Score(IReadOnlyList<TrialResult> results) => Checks(results).Average();
+        public float Score(IReadOnlyList<TrialResult> results) => scoring.Fitness(Checks(results));
 
         public IReadOnlyList<float> Checks(IReadOnlyList<TrialResult> results) => scoring.Checks(results);
 

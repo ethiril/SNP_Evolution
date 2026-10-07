@@ -169,6 +169,10 @@ namespace SnpEvolution.Application
             {
                 log($"Fitness over {Solved.Sampled}, stopping . . .");
             }
+            else if (stop == SearchStop.Cancelled)
+            {
+                log("Stopped early, keeping the best so far . . .");
+            }
             else if (stop == SearchStop.BudgetSpent && generations < settings.MaxGenerations)
             {
                 log($"The budget of {settings.MaxEvaluations} evaluations is spent, stopping . . .");

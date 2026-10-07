@@ -35,24 +35,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 1
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -66,24 +66,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 2
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -97,24 +97,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 3
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -128,24 +128,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 4
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -159,24 +159,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 5
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -190,24 +190,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 6
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -221,24 +221,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 7
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -252,24 +252,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 8
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -283,24 +283,24 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 Running Generation 9
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
@@ -314,26 +314,26 @@ n8 [module 5]    -        a -> aa                      n11
 n9 [module 5]    -        a -> a  |  aa -> forget      n4
 n10 [module 5]   -        a -> forget  |  aa -> a      n5
 n11 [module 5]   -        a(aa)+/aa -> a  |  a -> aa   n9, n10
-a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02
-Current best fitness: 0.85559493
+a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02
+Current best fitness: 0.71118987
 The budget of 100 evaluations is spent, stopping . . .
-Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 71 repeated a network already scored on the same task, 0 of them exactly.
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 68 repeated a network already scored on the same task, 0 of them exactly.
 Saved the file to: <work>/runs/<run>/ComposedNet-evaluations.txt
 Saved the file to: <work>/runs/<run>/ComposedNet.csv
 
@@ -341,35 +341,28 @@ Parts:
 No parts were proposed.
 
 Part                 In best (nested)   Mean per network in final population
-register                   1 (0)   0.60
-add loop (promoted)        0 (0)   0.30
-add                        0 (0)   0.10
-delay 4                    0 (0)   0.10
-fan-out                    0 (0)   0.00
-decrement                  0 (0)   0.00
-gate                       0 (0)   0.00
-zero test                  0 (0)   0.00
+register                   1 (0)   1.00
 
 The best network uses no promoted part.
 Saved the file to: <work>/runs/<run>/ComposedNet-parts.txt
 
-Best network found (fitness 0.85559493, a=1,b=0: done once 0.25
-a=1,b=2: done once 0.25
-a=1,b=3: done once 0.17
-a=1,b=4: done once 0.13
-a=2,b=0: done once 0.17
-a=2,b=2: done once 0.17
-a=2,b=3: done once 0.1
-a=2,b=4: done once 0.07
-a=3,b=0: done once 0.13
-a=3,b=2: done once 0.13
-a=3,b=3: done once 0.07
-a=3,b=4: done once 0.05
-a=4,b=0: done once 0.1
-a=4,b=2: done once 0.1
-a=4,b=3: done once 0.06
-a=4,b=4: done once 0.04
-a=6,b=5: done once 0.02):
+Best network found (fitness 0.71118987, a=1,b=0: right values 0.25
+a=1,b=2: right values 0.25
+a=1,b=3: right values 0.17
+a=1,b=4: right values 0.13
+a=2,b=0: right values 0.17
+a=2,b=2: right values 0.17
+a=2,b=3: right values 0.1
+a=2,b=4: right values 0.07
+a=3,b=0: right values 0.13
+a=3,b=2: right values 0.13
+a=3,b=3: right values 0.07
+a=3,b=4: right values 0.05
+a=4,b=0: right values 0.1
+a=4,b=2: right values 0.1
+a=4,b=3: right values 0.06
+a=4,b=4: right values 0.04
+a=6,b=5: right values 0.02):
 Neuron           Spikes   Rules                        Sends to
 n1 (in)          -        a -> a                       n7
 n2 (in)          -        a -> a                       n8
@@ -857,32 +850,25 @@ Saved to <work>/runs/<run>
   }
 }
 --- file runs/<run>/ComposedNet-evaluations.txt
-Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 71 repeated a network already scored on the same task, 0 of them exactly.
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 74,433, so 74,533 with them. 68 repeated a network already scored on the same task, 0 of them exactly.
 --- file runs/<run>/ComposedNet-parts.txt
 No parts were proposed.
 
 Part                 In best (nested)   Mean per network in final population
-register                   1 (0)   0.60
-add loop (promoted)        0 (0)   0.30
-add                        0 (0)   0.10
-delay 4                    0 (0)   0.10
-fan-out                    0 (0)   0.00
-decrement                  0 (0)   0.00
-gate                       0 (0)   0.00
-zero test                  0 (0)   0.00
+register                   1 (0)   1.00
 
 The best network uses no promoted part.
 --- (no newline at end of file)
 --- file runs/<run>/ComposedNet.csv
-0.85559493,0.5,0.80210495,0.80210495,0.83711314,0.80210495,0.80998933,0.80210495,0.84697247,0.80998933
-0.85559493,0.75,0.85559493,0.85045785,0.84697247,0.80210495,0.80210495,0.84697247,0.7948543,0.80998933
-0.85559493,0.80210495,0.84697247,0.85045785,0.80998933,0.84697247,0.84697247,0.80998933,0.80210495,0.80998933
-0.85559493,0.80998933,0.80210495,0.80998933,0.84697247,0.80210495,0.84697247,0.84697247,0.5,0.80998933
-0.85559493,0.80210495,0.54075855,0.7938788,0.84697247,0.2596154,0.85559493,0.80998933,0.80210495,0.85559493
-0.85559493,0.85559493,0.5,0.84697247,0.80210495,0.80210495,0.84697247,0.80998933,0.85559493,0.80998933
-0.85559493,0.85559493,0.85559493,0.80210495,0.85559493,0.80210495,0.84344184,0.75961536,0.85559493,0.85559493
-0.85559493,0.80210495,0.22727273,0.85559493,0.84344184,0.84344184,0.80210495,0.85559493,0.80210495,0.85559493
-0.85559493,0.85559493,0.85559493,0.8143395,0.80210495,0.84344184,0.80210495,0.80210495,0.69498104,0.48164335
+0.71118987,0.6905512,0.71118987,0.6042099,0.69394493,0.6042099,0.6199786,0.43978056,0.662194,0.69394493
+0.71118987,0.69394493,0.69394493,0.6042099,0.7067108,0.6042099,0.6042099,0.6042099,0.6199786,0.6042099
+0.71118987,0.69394493,0.45307243,0.69394493,0.5630107,0.71118987,0.69394493,0.7067108,0.6199786,0.71118987
+0.71118987,0.34493858,0.45307243,0.69394493,0.686592,0.6199786,0.6199786,0.6199786,0.6199786,0.71118987
+0.71118987,0.69394493,0.34493858,0.71118987,0.71118987,0.6199786,0.6199786,0.69164556,0.6199786,0.43384165
+0.71118987,0.69035655,0.7107372,0.6199786,0.6199786,0.71118987,0.71118987,0.6199786,0.71118987,0.4779075
+0.71118987,0.6088942,0.4779075,0.71118987,0.43253046,0.6199786,0.6199786,0.7107372,0.6199786,0.6121661
+0.71118987,0.71118987,0.71118987,0.6215043,0.71118987,0.4779075,0.7107372,0.71118987,0.71118987,0.6938941
+0.71118987,0.7107372,0.4779075,0.7107372,0.4779075,0.71118987,0.4779075,0.71118987,0.71118987,0.7107372
 --- file runs/<run>/ComposedNet.json
 {
   "Neurons": [

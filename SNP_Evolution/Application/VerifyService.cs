@@ -22,6 +22,10 @@ namespace SnpEvolution.Application
             var results = new List<VerifiedPart>();
             foreach ((var part, string path) in parts)
             {
+                if (EarlyStop.Requested)
+                {
+                    break;
+                }
                 var clock = Stopwatch.StartNew();
                 BoundedResult result = BoundedCheck.Prove(part.Part, limits, new EvaluationBudget());
                 string? counterexample = result.Verdict is Verdict.Failed failed ? CounterexampleText.Of(part.Part, failed.Counterexample) : null;

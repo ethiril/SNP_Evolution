@@ -67,7 +67,7 @@ namespace SnpEvolution.Tests.Specs.Tasks
         {
             FitnessResult result = Runs.Evaluate(new ContractTask(PartFixtures.DelayContract(3)), ReferenceParts.Delay(2).Network);
 
-            Assert.Equal(new[] { 1f, 1f, 1f, 0f }, result.Checks);
+            Assert.Equal(new[] { 1f, 1f, 1f, 1f, 0f }, result.Checks);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace SnpEvolution.Tests.Specs.Tasks
             Assert.All(RuleChecks(result, ContractRule.OnTime), score => Assert.Equal(0f, score));
         }
 
-        // The output fires once more than it should: close, so it earns part of the done-once check.
+        // The output fires once more than it should: close, so it earns part of the values check.
         [Fact]
         public void ACountThatIsCloseEarnsPartialCredit()
         {
@@ -102,7 +102,8 @@ namespace SnpEvolution.Tests.Specs.Tasks
 
             FitnessResult result = Runs.Evaluate(new ContractTask(offByOne, register.Binding), register.Network);
 
-            Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.InRange(score, 0.1f, 0.9f));
+            Assert.All(RuleChecks(result, ContractRule.DoneOnce), score => Assert.Equal(1f, score));
+            Assert.All(RuleChecks(result, ContractRule.Values), score => Assert.InRange(score, 0.1f, 0.9f));
             Assert.InRange(result.Fitness, 0.5f, 0.99f);
         }
 
@@ -124,17 +125,17 @@ namespace SnpEvolution.Tests.Specs.Tasks
 
         [Fact]
         public void ReadsIntervalTriggerAndBinaryOutputs() =>
-            Assert.Equal(new[] { 1f, 1f, 1f, 1f }, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 10, 12 }));
+            Assert.Equal(new[] { 1f, 1f, 1f, 1f, 1f }, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 10, 12 }));
 
         // Start is sent on step 2, so a firing then is no part of the gap.
         [Fact]
         public void AnOutputFiringOnTheStartStepIsNotPartOfItsValue() =>
-            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 2, 5 }, flag: new[] { 5 }, word: new[] { 10, 12 })[(int)ContractRule.DoneOnce], 4);
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 2, 5 }, flag: new[] { 5 }, word: new[] { 10, 12 })[(int)ContractRule.Values], 4);
 
         // The gap is one too long (0.25), the flag fires twice (0) and the word has one wrong bit of three (1/3).
         [Fact]
         public void ScoresWrongIntervalTriggerAndBinaryOutputs() =>
-            Assert.Equal((0.25f + 0 + 1 / 3f) / 3, ChecksFor(gap: new[] { 4, 8 }, flag: new[] { 5, 6 }, word: new[] { 10 })[(int)ContractRule.DoneOnce], 4);
+            Assert.Equal((0.25f + 0 + 1 / 3f) / 3, ChecksFor(gap: new[] { 4, 8 }, flag: new[] { 5, 6 }, word: new[] { 10 })[(int)ContractRule.Values], 4);
 
         [Fact]
         public void AFiringOnTheStartStepIsNotQuiet() =>
@@ -142,11 +143,67 @@ namespace SnpEvolution.Tests.Specs.Tasks
 
         [Fact]
         public void ATriggerOnTheDoneStepIsLate() =>
-            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 10 }, word: new[] { 10, 12 })[(int)ContractRule.DoneOnce], 4);
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 10 }, word: new[] { 10, 12 })[(int)ContractRule.Values], 4);
 
         [Fact]
         public void ABinaryWordBeforeDoneIsWrong() =>
-            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 9, 12 })[(int)ContractRule.DoneOnce], 4);
+            Assert.Equal(2 / 3f, ChecksFor(gap: new[] { 4, 7 }, flag: new[] { 5 }, word: new[] { 9, 12 })[(int)ContractRule.Values], 4);
+
+        // Done fires twice, so done once fails, but the values are still read up to the first done.
+        [Fact]
+        public void ValuesAreScoredWhenDoneMisfires()
+        {
+            Firing[] At(params int[] steps) => steps.Select(step => new Firing(step, 1)).ToArray();
+            var run = new PortRun(new[] { At(4, 7), At(5), At(10, 12), At(10, 11) }, new long[5], new long[5]);
+
+            IReadOnlyList<float> checks = new ContractTask(IntervalTriggerAndWord).Checks(new[] { new TrialResult(Array.Empty<int>(), false, TrialCoverage.Exact, PortRuns: new[] { run }) });
+
+            Assert.Equal(0f, checks[(int)ContractRule.DoneOnce]);
+            Assert.Equal(1f, checks[(int)ContractRule.Values]);
+        }
+
+        // A register that fires done on time and ignores its input meets every rule but the values. With every rule
+        // weighted alike it scored about 0.8; with values half of each case it scores well below a register with the
+        // right values that leaves a spike behind.
+        [Fact]
+        public void IgnoringTheInputScoresWellBelowTheRightValuesWithARuleWrong()
+        {
+            Part register = PartFixtures.Register(8);
+            var ignoring = new Network(new[]
+            {
+                new Neuron(new[] { Rule.Standard("a", 1, 1) }, 0, new[] { 4 }, false, isInput: true),
+                new Neuron(new[] { Rule.Standard("a", 1, 1) }, 0, new int[0], false, isInput: true),
+                new Neuron(new Rule[0], 0, new int[0], false),
+                new Neuron(new[] { Rule.Standard("a", 1, 1) }, 0, new int[0], false),
+                new Neuron(new Rule[0], 0, new int[0], false),
+            });
+
+            FitnessResult ignores = Runs.Evaluate(register.Task(), ignoring);
+            float leaves = Verify(PartFixtures.RegisterLeavingASpike(8)).Fitness;
+
+            Assert.All(RuleChecks(ignores, ContractRule.DoneOnce).Concat(RuleChecks(ignores, ContractRule.OnTime)), score => Assert.Equal(1f, score));
+            Assert.InRange(ignores.Fitness, 0.5f, 0.65f);
+            Assert.True(leaves > 0.95f);
+        }
+
+        [Fact]
+        public void PartsWithoutDataOutScoreEveryRuleAlike()
+        {
+            FitnessResult result = Runs.Evaluate(new ContractTask(PartFixtures.DelayContract(3)), ReferenceParts.Delay(2).Network);
+
+            Assert.Equal(0.75f, result.Fitness, 4);
+        }
+
+        [Fact]
+        public void TheSmallestCasesAreTheOnesWithTheSmallestInputsInCaseOrder()
+        {
+            ContractTask add = new ContractTask(FirstParts.Named("add"));
+
+            ContractTask smallest = add.WithSmallestCases(3);
+
+            Assert.Equal(new[] { 0, 1, 1 }, smallest.Contract.Cases.Select(@case => @case.Inputs.Values.Sum()));
+            Assert.Same(add, add.WithSmallestCases(add.Contract.Cases.Count));
+        }
 
         [Fact]
         public void ChecksAreNamedByCaseAndRule()

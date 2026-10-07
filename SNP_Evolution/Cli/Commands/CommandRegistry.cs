@@ -17,6 +17,7 @@ namespace SnpEvolution.Cli
             new EvolvePartsCommand(),
             new ComposeCommand(),
             new VerifyCommand(),
+            new PartsCommand(),
             new ExportVerilogCommand(),
             new ExportNirCommand(),
             new ExportUppaalCommand(),
