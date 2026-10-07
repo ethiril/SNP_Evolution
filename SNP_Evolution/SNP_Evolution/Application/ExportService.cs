@@ -38,7 +38,7 @@ namespace SnpEvolution.Application
         });
 
         public static Loaded<ExportSource> Network(string file, int steps) => NetworkFiles.Load(file) is Network network
-            ? Loaded<ExportSource>.Of(new ExportSource(Path.GetFileNameWithoutExtension(file), network, null, NetworkPort.Plain(network), new[] { ("no input", InputSpikes.None, steps + 1) }))
+            ? Loaded<ExportSource>.Of(new ExportSource(Path.GetFileNameWithoutExtension(file), network, null, NetworkPort.Plain(network), new[] { ("no input", InputSpikes.None, steps) }))
             : Loaded<ExportSource>.Failed($"Could not load a network from {file}.");
 
         // Co-simulates under iverilog when check is set and it is installed.
