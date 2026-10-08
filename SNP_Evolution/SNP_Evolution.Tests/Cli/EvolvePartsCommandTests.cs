@@ -7,6 +7,22 @@ namespace SnpEvolution.Tests.Cli
     [Collection(ProcessStateCollection.Name)]
     public class EvolvePartsCommandTests
     {
+        // Compiling only under the profile refuses every contract at once, so the log names exactly the contracts picked.
+        [Theory]
+        [InlineData("add", "add")]
+        [InlineData("decrement", "decrement")]
+        [InlineData("delay", "delay 1,delay 2,delay 3,delay 4")]
+        public void AContractsOwnNamePicksOnlyItAndAnyOtherNamePicksEveryMatch(string only, string picked)
+        {
+            using var console = new ConsoleCapture();
+            using var temp = new TempFolder("snp-only");
+
+            CommandLine.Run(new[] { "evolve-parts", "--only", only, "--route", "compile", "--profile", "hardware", "--library", temp.Path });
+
+            IEnumerable<string> refused = console.Printed.Split(Environment.NewLine).Where(line => line.Contains(": not compiled")).Select(line => line[..line.IndexOf(':')]);
+            Assert.Equal(picked.Split(','), refused.Order());
+        }
+
         [Fact]
         [Slow]
         public void EvolvePartsUnderTheProfileSavesAProfilePart()

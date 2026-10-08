@@ -12,6 +12,7 @@ namespace SnpEvolution.Compilation
         // Takes one from the register and goes to Next, or goes to Else when the register is already zero.
         Sub,
 
+        // Stops; in a function program its register is the number of the done port it ends on.
         Halt,
     }
 
@@ -22,6 +23,7 @@ namespace SnpEvolution.Compilation
             Operation.Add when Next == Else => $"ADD r{Register} -> {Next}",
             Operation.Add => $"ADD r{Register} -> {Next} | {Else}",
             Operation.Sub => $"SUB r{Register} -> {Next} else {Else}",
+            _ when Register > 0 => $"HALT {Register}",
             _ => "HALT",
         };
     }
@@ -34,8 +36,14 @@ namespace SnpEvolution.Compilation
     {
         public const int OutputRegister = 0;
 
-        // Why the program cannot be compiled, or null when it can.
-        public string? Problem()
+        // Why the program cannot be compiled as a generator, or null when it can.
+        public string? Problem() => StructureProblem() ?? Enumerable.Range(0, Instructions.Count)
+            .Where(label => Instructions[label].Operation == Operation.Sub && Instructions[label].Register == OutputRegister)
+            .Select(label => $"instruction {label} subtracts from the output register r0")
+            .FirstOrDefault();
+
+        // Why the program is not a well-formed list of instructions, whatever it computes, or null when it is.
+        public string? StructureProblem()
         {
             if (Instructions.Count == 0)
             {
@@ -51,10 +59,6 @@ namespace SnpEvolution.Compilation
                 if (instruction.Register < 0 || instruction.Register >= RegisterCount)
                 {
                     return $"instruction {label} uses r{instruction.Register}, but there are {RegisterCount} registers";
-                }
-                if (instruction.Operation == Operation.Sub && instruction.Register == OutputRegister)
-                {
-                    return $"instruction {label} subtracts from the output register r0";
                 }
                 if (new[] { instruction.Next, instruction.Else }.Any(target => target < 0 || target >= Instructions.Count))
                 {
@@ -92,9 +96,8 @@ namespace SnpEvolution.Compilation
                     break;
                 }
                 var next = new List<long[]>();
-                void Go(long[] configuration, int label)
+                void Go(long[] configuration)
                 {
-                    configuration[0] = label;
                     for (int register = 1; register < configuration.Length; register++)
                     {
                         if (register == OutputRegister + 1 ? configuration[register] > outputLimit : configuration[register] > valueLimit)
@@ -112,38 +115,19 @@ namespace SnpEvolution.Compilation
                 foreach (long[] configuration in current)
                 {
                     Instruction instruction = Instructions[(int)configuration[0]];
-                    int register = instruction.Register + 1;
-                    switch (instruction.Operation)
+                    if (instruction.Operation != Operation.Halt)
                     {
-                        case Operation.Halt:
-                            long value = configuration[OutputRegister + 1];
-                            if (value > 0 && value <= int.MaxValue)
-                            {
-                                outputs.Add((int)value);
-                                steps = step;
-                            }
-                            break;
-                        case Operation.Add:
-                            long[] added = (long[])configuration.Clone();
-                            added[register]++;
-                            if (instruction.Else != instruction.Next)
-                            {
-                                Go((long[])added.Clone(), instruction.Else);
-                            }
-                            Go(added, instruction.Next);
-                            break;
-                        default:
-                            long[] after = (long[])configuration.Clone();
-                            if (after[register] > 0)
-                            {
-                                after[register]--;
-                                Go(after, instruction.Next);
-                            }
-                            else
-                            {
-                                Go(after, instruction.Else);
-                            }
-                            break;
+                        foreach ((long[] after, _) in Successors(instruction, configuration))
+                        {
+                            Go(after);
+                        }
+                        continue;
+                    }
+                    long value = configuration[OutputRegister + 1];
+                    if (value > 0 && value <= int.MaxValue)
+                    {
+                        outputs.Add((int)value);
+                        steps = step;
                     }
                 }
                 current = next;
@@ -154,6 +138,35 @@ namespace SnpEvolution.Compilation
                 }
             }
             return (outputs.ToList(), complete && current.Count == 0, steps);
+        }
+
+        // The configurations an ADD or SUB leads to, label moved on, Else first when an ADD chooses; slots past the registers are copied as they are.
+        internal static IEnumerable<(long[] Configuration, bool TookElse)> Successors(Instruction instruction, long[] configuration)
+        {
+            long[] after = (long[])configuration.Clone();
+            int register = instruction.Register + 1;
+            if (instruction.Operation == Operation.Add)
+            {
+                after[register]++;
+                if (instruction.Else != instruction.Next)
+                {
+                    yield return (MovedOn((long[])after.Clone(), instruction, tookElse: true), true);
+                }
+                yield return (MovedOn(after, instruction, tookElse: false), false);
+                yield break;
+            }
+            bool atZero = after[register] == 0;
+            if (!atZero)
+            {
+                after[register]--;
+            }
+            yield return (MovedOn(after, instruction, atZero), atZero);
+        }
+
+        private static long[] MovedOn(long[] configuration, Instruction instruction, bool tookElse)
+        {
+            configuration[0] = tookElse ? instruction.Else : instruction.Next;
+            return configuration;
         }
 
         public override string ToString() =>
@@ -185,7 +198,8 @@ namespace SnpEvolution.Compilation
                 };
                 if (operation == Operation.Halt)
                 {
-                    instructions.Add(new Instruction(Operation.Halt));
+                    // A function program's HALT may name its done port by number.
+                    instructions.Add(new Instruction(Operation.Halt, words.Length > 1 && int.TryParse(words[1], out int done) ? done : 0));
                     continue;
                 }
                 if (words.Length < 3 || !words[1].StartsWith("r", StringComparison.OrdinalIgnoreCase))
@@ -201,7 +215,7 @@ namespace SnpEvolution.Compilation
             return new RegisterProgram(registers, instructions);
         }
 
-        private sealed class ConfigurationComparer : IEqualityComparer<long[]>
+        internal sealed class ConfigurationComparer : IEqualityComparer<long[]>
         {
             public static readonly ConfigurationComparer Instance = new ConfigurationComparer();
 

@@ -1,0 +1,212 @@
+{
+  "Contract": {
+    "Name": "merge",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "a",
+        "Direction": "In",
+        "Kind": "Trigger",
+        "Width": 0
+      },
+      {
+        "Name": "b",
+        "Direction": "In",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 0
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 0
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 0
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 0
+        },
+        "Outputs": {},
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 5
+        },
+        "Outputs": {},
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 19,
+    "MinLatency": 0,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "done": 4
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a*",
+            "Delay": 2,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 3,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 3,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a+",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": true,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 4,
+    "Synapses": 3,
+    "DistinctRules": 4,
+    "Rules": 4,
+    "RegisterWidth": 1,
+    "LassoTable": 9
+  },
+  "Latency": 8,
+  "Origin": {
+    "Seed": 658587542,
+    "Run": "evolve-parts --seed 1 --budget 50000",
+    "Evaluations": 13689
+  },
+  "Proven": {
+    "UpTo": 5,
+    "AllInputs": true,
+    "Stopped": "every input checked"
+  }
+}

@@ -1,0 +1,503 @@
+{
+  "Contract": {
+    "Name": "zero test",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "zero",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      },
+      {
+        "Name": "nonzero",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "n",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {
+          "n": 0
+        },
+        "Outputs": {},
+        "Done": "zero"
+      },
+      {
+        "Inputs": {
+          "n": 1
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 2
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 3
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 4
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 5
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 6
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 7
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 8
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      },
+      {
+        "Inputs": {
+          "n": 12
+        },
+        "Outputs": {},
+        "Done": "nonzero"
+      }
+    ],
+    "MaxLatency": 164,
+    "MinLatency": 0,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "zero": 3,
+      "nonzero": 4
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10,
+          11,
+          14,
+          15
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          12,
+          13
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          3
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          16,
+          17
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          11
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8,
+          18
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          14
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          15
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 18,
+    "Synapses": 23,
+    "DistinctRules": 9,
+    "Rules": 25,
+    "RegisterWidth": 25,
+    "LassoTable": 87
+  },
+  "Latency": 62,
+  "Origin": {
+    "Seed": 299529120,
+    "Run": "evolve-parts --seed 1 --budget 50000 --route compile",
+    "Evaluations": 62529,
+    "Program": "inputs r0 = n; outputs none; done 0 = zero, 1 = nonzero\n0: SUB r0 -> 1 else 3\n1: SUB r0 -> 2 else 4\n2: ADD r0 -> 0\n3: HALT zero\n4: HALT nonzero\n",
+    "Compiled": {
+      "Neurons": 22,
+      "Synapses": 25,
+      "DistinctRules": 6,
+      "Rules": 30,
+      "RegisterWidth": 0,
+      "LassoTable": 106
+    }
+  },
+  "Proven": {
+    "UpTo": 2298,
+    "AllInputs": false,
+    "Stopped": "time limit of 20 s"
+  }
+}

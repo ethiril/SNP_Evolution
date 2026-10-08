@@ -1,4 +1,8 @@
 using SnpEvolution.Compilation;
+using SnpEvolution.Model;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Specs.Tasks;
+using SnpEvolution.Tests.Fixtures;
 using static SnpEvolution.Tests.Fixtures.Runs;
 
 namespace SnpEvolution.Tests.Compilation
@@ -48,6 +52,19 @@ namespace SnpEvolution.Tests.Compilation
 
             Assert.Equal(new[] { 1, 2, 3, 5, 8, 13, 21 }, outputs);
             Assert.Equal(outputs, generated.Where(number => number <= 21));
+        }
+
+        public static TheoryData<string> FunctionContracts => new TheoryData<string>(FunctionPrograms.Texts.Keys);
+
+        // Laid out as evolved parts are, so the contract's own binding reads it.
+        [Theory]
+        [MemberData(nameof(FunctionContracts))]
+        public void ACompiledFunctionProgramMeetsItsContract(string name)
+        {
+            Contract contract = FirstParts.Named(name);
+            Network network = RegisterMachineCompiler.Compile(FunctionPrograms.For(name));
+
+            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(contract), network).Description);
         }
     }
 }

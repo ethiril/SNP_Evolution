@@ -1,4 +1,7 @@
 using SnpEvolution.Compilation;
+using SnpEvolution.Search;
+using SnpEvolution.Specs.Contracts;
+using SnpEvolution.Tests.Fixtures;
 
 namespace SnpEvolution.Tests.Compilation
 {
@@ -43,6 +46,99 @@ namespace SnpEvolution.Tests.Compilation
 
             Assert.Equal(new[] { 2, 4, 6 }, outputs);
             Assert.True(complete);
+        }
+
+        public static TheoryData<string> FunctionContracts => new TheoryData<string>(FunctionPrograms.Texts.Keys);
+
+        [Theory]
+        [MemberData(nameof(FunctionContracts))]
+        public void AHandWrittenFunctionProgramPassesItsContractsCases(string name)
+        {
+            Contract contract = FirstParts.Named(name);
+            FunctionProgram program = FunctionPrograms.For(name);
+
+            Assert.Null(program.Problem());
+            Assert.All(contract.Cases, @case =>
+            {
+                FunctionRun run = program.Run(@case.Inputs, FunctionScoring.StepsFor(@case));
+                Assert.True(run.Complete);
+                FunctionOutcome outcome = Assert.Single(run.Outcomes);
+                Assert.Equal(@case.Done, outcome.Done);
+                Assert.Equal(@case.Outputs.OrderBy(pair => pair.Key), outcome.Outputs.OrderBy(pair => pair.Key));
+                Assert.True(outcome.Clean);
+            });
+        }
+
+        [Fact]
+        public void AFunctionProgramNamesItsDonePortsAndReadsBackTheSame()
+        {
+            FunctionProgram program = FunctionPrograms.For("zero test");
+
+            Assert.Equal(new[] { 0, 1 }, program.Program.Instructions.Where(instruction => instruction.Operation == Operation.Halt).Select(instruction => instruction.Register).Order());
+            Assert.Contains("3: HALT zero", program.ToString());
+            Assert.Equal(program.Program.ToString(), RegisterProgram.Parse(program.Program.ToString()).ToString());
+        }
+
+        [Theory]
+        [InlineData("ADD r0 -> 1\nHALT", 1, "it has 1 registers, but its inputs and outputs need 2")]
+        [InlineData("ADD r0 -> 1\nHALT 1", 2, "instruction 1 halts on done port 1, but there are 1")]
+        [InlineData("SUB r0 -> 1 else 1\nHALT", 2, null)]
+        public void AFunctionProgramNeedsItsRegistersAndDonePortsButMaySubtractFromAnyRegister(string text, int registers, string? problem)
+        {
+            var function = new FunctionProgram(RegisterProgram.Parse(text) with { RegisterCount = registers }, new[] { "n" }, new[] { "out" }, new[] { "done" });
+
+            Assert.Equal(problem, function.Problem());
+        }
+
+        [Fact]
+        public void AGeneratorMayNotSubtractFromItsOutputRegister()
+        {
+            RegisterProgram generator = RegisterProgram.Parse("SUB r0 -> 1 else 1\nHALT");
+
+            Assert.Equal("instruction 0 subtracts from the output register r0", generator.Problem());
+            Assert.Null(generator.StructureProblem());
+        }
+
+        [Fact]
+        public void AnInputLeftInItsRegisterIsNotClean()
+        {
+            FunctionProgram copy = FunctionProgram.Parse("ADD r1 -> 1\nHALT", new[] { "n" }, new[] { "out" }, new[] { "done" });
+
+            FunctionOutcome outcome = Assert.Single(copy.Run(new Dictionary<string, int> { ["n"] = 2 }, 50).Outcomes);
+
+            Assert.False(outcome.Clean);
+            Assert.Equal(1, outcome.Outputs["out"]);
+        }
+
+        [Fact]
+        public void AProgramThatLoopsForeverDoesNotComplete()
+        {
+            FunctionProgram loop = FunctionProgram.Parse("SUB r1 -> 0 else 0\nHALT", new[] { "n" }, new[] { "out" }, new[] { "done" });
+
+            FunctionRun run = loop.Run(new Dictionary<string, int> { ["n"] = 1 }, 50);
+
+            Assert.False(run.Complete);
+            Assert.Empty(run.Outcomes);
+        }
+
+        // Configurations carry their step count, so meeting one twice means two choices rejoined, which the run must not trust.
+        [Fact]
+        public void TwoChoicesThatRejoinLeaveTheRunIncomplete()
+        {
+            FunctionProgram rejoining = FunctionProgram.Parse("ADD r0 -> 1 | 2\nADD r0 -> 4 | 3\nADD r0 -> 3 | 4\nHALT\nHALT", Array.Empty<string>(), new[] { "out" }, new[] { "done" });
+
+            FunctionRun run = rejoining.Run(new Dictionary<string, int>(), 50);
+
+            Assert.NotEmpty(run.Outcomes);
+            Assert.False(run.Complete);
+        }
+
+        [Fact]
+        public void AChoiceIsFollowedBothWays()
+        {
+            FunctionProgram either = FunctionProgram.Parse("ADD r0 -> 1 | 2\nADD r0 -> 2\nHALT", Array.Empty<string>(), new[] { "out" }, new[] { "done" });
+
+            Assert.Equal(new[] { 1, 2 }, either.Run(new Dictionary<string, int>(), 50).Outcomes.Select(outcome => outcome.Outputs["out"]).Order());
         }
     }
 }

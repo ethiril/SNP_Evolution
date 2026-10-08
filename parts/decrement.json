@@ -1,0 +1,767 @@
+{
+  "Contract": {
+    "Name": "decrement",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "n",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "out",
+        "Direction": "Out",
+        "Kind": "Count",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {
+          "n": 1
+        },
+        "Outputs": {
+          "out": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 2
+        },
+        "Outputs": {
+          "out": 1
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 3
+        },
+        "Outputs": {
+          "out": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 4
+        },
+        "Outputs": {
+          "out": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 5
+        },
+        "Outputs": {
+          "out": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 6
+        },
+        "Outputs": {
+          "out": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 7
+        },
+        "Outputs": {
+          "out": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 8
+        },
+        "Outputs": {
+          "out": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "n": 12
+        },
+        "Outputs": {
+          "out": 11
+        },
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 164,
+    "MinLatency": 0,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "out": 3,
+      "done": 4
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          12,
+          13
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          15,
+          16,
+          19,
+          20
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          27,
+          28
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          12,
+          23,
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5,
+          17,
+          18
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5,
+          21,
+          22
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          25,
+          26
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          12
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          29,
+          30
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          15
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          16
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9,
+          14
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          19
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          20
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          23
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          3,
+          6,
+          29,
+          30
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          11
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          27
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          28
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 30,
+    "Synapses": 48,
+    "DistinctRules": 8,
+    "Rules": 42,
+    "RegisterWidth": 25,
+    "LassoTable": 144
+  },
+  "Latency": 78,
+  "Origin": {
+    "Seed": 133975811,
+    "Run": "evolve-parts --seed 1 --budget 50000 --route compile",
+    "Evaluations": 62533,
+    "Program": "inputs r0 = n; outputs r1 = out; done 0 = done\n0: SUB r2 -> 4 else 4\n1: ADD r1 -> 3\n2: SUB r0 -> 3 else 5\n3: SUB r0 -> 1 else 2\n4: SUB r2 -> 4 else 2\n5: HALT done\n",
+    "Compiled": {
+      "Neurons": 36,
+      "Synapses": 52,
+      "DistinctRules": 6,
+      "Rules": 50,
+      "RegisterWidth": 0,
+      "LassoTable": 172
+    }
+  },
+  "Proven": {
+    "UpTo": 1506,
+    "AllInputs": false,
+    "Stopped": "time limit of 20 s"
+  }
+}

@@ -24,6 +24,9 @@ namespace SnpEvolution.Specs.Contracts
 
         public const int LargestAddend = 6;
 
+        // The most steps apart a join's or merge's trigger inputs may arrive.
+        public const int LargestGap = 4;
+
         public static IReadOnlyList<int> Values { get; } = Enumerable.Range(0, Largest + 1).Append(Larger).ToList();
 
         public static IReadOnlyList<FirstPart> All { get; } = new[]
@@ -41,6 +44,12 @@ namespace SnpEvolution.Specs.Contracts
             new FirstPart("Zero test", "count in; done-zero, done-nonzero", "the right branch fires, the other never", new[] { CatalogueEntry.Of(ZeroTest, Each(Values)) }),
             new FirstPart("Sequencer", "done out xk", "fires its outputs in order, each one step after the previous (k = 2, 3)",
                 new[] { CatalogueEntry.OneCase(Sequencer(2)), CatalogueEntry.OneCase(Sequencer(3)) }),
+            new FirstPart("Join", "trigger in x2", $"done fires once after both inputs, in either order and up to {LargestGap} steps apart",
+                new[] { CatalogueEntry.Of(Join(LargestGap), JoinArrivals()) }),
+            new FirstPart("Fork", "trigger out x2", "both outputs fire on one step, then done", new[] { CatalogueEntry.OneCase(Fork) }),
+            new FirstPart("Merge", "trigger in x2", "done fires once after whichever input fired (never both)", new[] { CatalogueEntry.Of(Merge(LargestGap), MergeArrivals()) }),
+            new FirstPart("Select", "trigger in; done-one, done-zero", "done-one when the input fired with start, done-zero when it did not",
+                new[] { CatalogueEntry.Of(Specifications.Select, Each(new[] { 0, 1 })) }),
         };
 
         public static IReadOnlyList<CatalogueEntry> Entries { get; } = All.SelectMany(part => part.Entries).ToList();
@@ -62,6 +71,15 @@ namespace SnpEvolution.Specs.Contracts
 
         // One value per row, for a part with one data in-port.
         public static IEnumerable<IReadOnlyList<int>> Each(IEnumerable<int> values) => values.Select(value => new[] { value });
+
+        // Arrival steps counted from 1 with start: together on each step, each one first by one step and by the largest gap.
+        private static IEnumerable<IReadOnlyList<int>> JoinArrivals() =>
+            Enumerable.Range(1, LargestGap + 1).Select(step => new[] { step, step })
+                .Concat(new[] { new[] { 1, 2 }, new[] { 2, 1 }, new[] { 2, 4 }, new[] { 4, 2 }, new[] { 1, LargestGap + 1 }, new[] { LargestGap + 1, 1 } });
+
+        // One input or the other, on every step the contract allows.
+        private static IEnumerable<IReadOnlyList<int>> MergeArrivals() =>
+            Enumerable.Range(1, LargestGap + 1).SelectMany(step => new[] { new[] { step, 0 }, new[] { 0, step } });
 
         // Every pair up to 6 + 6, then one with a larger addend on each side.
         private static IEnumerable<IReadOnlyList<int>> AddPairs() =>

@@ -127,7 +127,7 @@ Only networks within the hardware profile export to NIR, where they map exactly 
         "Done": "done"
       }
     ],
-    "MaxLatency": 40,
+    "MaxLatency": 164,
     "MinLatency": 0,
     "OrderedTriggers": false
   },

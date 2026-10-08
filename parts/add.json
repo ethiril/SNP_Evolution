@@ -1,0 +1,1100 @@
+{
+  "Contract": {
+    "Name": "add",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "a",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "b",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "sum",
+        "Direction": "Out",
+        "Kind": "Count",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 1
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 1
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 1,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 3,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 9
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 9
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 4,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 10
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 9
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 10
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 11
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 0
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 1
+        },
+        "Outputs": {
+          "sum": 7
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 2
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 3
+        },
+        "Outputs": {
+          "sum": 9
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 4
+        },
+        "Outputs": {
+          "sum": 10
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 11
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 6,
+          "b": 6
+        },
+        "Outputs": {
+          "sum": 12
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 12,
+          "b": 5
+        },
+        "Outputs": {
+          "sum": 17
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 5,
+          "b": 12
+        },
+        "Outputs": {
+          "sum": 17
+        },
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 224,
+    "MinLatency": 0,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "sum": 4,
+      "done": 5
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8,
+          12,
+          16
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          13,
+          14,
+          21,
+          22
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          15,
+          18,
+          19
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10,
+          11
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          16,
+          20
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          23,
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          23,
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          2,
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          17,
+          23,
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          13,
+          20
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          11,
+          14,
+          19
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          4,
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          18
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          17,
+          23,
+          24
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6,
+          15,
+          16
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          21
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          22
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 24,
+    "Synapses": 49,
+    "DistinctRules": 9,
+    "Rules": 35,
+    "RegisterWidth": 35,
+    "LassoTable": 124
+  },
+  "Latency": 99,
+  "Origin": {
+    "Seed": 621702085,
+    "Run": "evolve-parts --seed 1 --budget 50000 --route compile",
+    "Evaluations": 62532,
+    "Program": "inputs r0 = a, r1 = b; outputs r2 = sum; done 0 = done\n0: SUB r3 -> 4 else 4\n1: SUB r0 -> 2 else 3\n2: ADD r2 -> 4\n3: HALT done\n4: SUB r1 -> 2 else 1\n",
+    "Compiled": {
+      "Neurons": 32,
+      "Synapses": 44,
+      "DistinctRules": 6,
+      "Rules": 44,
+      "RegisterWidth": 0,
+      "LassoTable": 152
+    }
+  },
+  "Proven": {
+    "UpTo": 139,
+    "AllInputs": false,
+    "Stopped": "time limit of 20 s"
+  }
+}

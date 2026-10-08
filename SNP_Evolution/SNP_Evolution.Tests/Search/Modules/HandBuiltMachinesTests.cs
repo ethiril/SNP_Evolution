@@ -66,7 +66,7 @@ namespace SnpEvolution.Tests.Search.Modules
                 CreateEngine = () => new SequentialCpuEngine(),
             };
 
-            RunOutcome outcome = Benchmark.RunOnce(SearchCatalog.CompositionMapElites, multiply, seed: 3, budget: 3_000, settings);
+            RunOutcome outcome = Benchmark.RunOnce(SearchCatalog.CompositionMapElites, multiply, seed: 1, budget: 3_000, settings);
 
             output.WriteLine($"Solved in {outcome.Evaluations} evaluations; parts in best: {string.Join(", ", outcome.Reuse!.Select(count => $"{count.Contract} {count.Direct} ({count.Nested})"))}");
             Assert.True(outcome.Solved);

@@ -15,10 +15,11 @@ namespace SnpEvolution.Application
     {
         public static string Table(IReadOnlyList<PartFile> parts)
         {
-            var table = new List<string[]> { new[] { "Contract", "Neurons", "Synapses", "Rules", "Latency", "Proof", "Seed", "Evaluations", "File" } };
+            var table = new List<string[]> { new[] { "Contract", "Route", "Neurons", "Synapses", "Rules", "Latency", "Proof", "Seed", "Evaluations", "File" } };
             table.AddRange(parts.OrderBy(file => file.Part.Contract.Name, StringComparer.Ordinal).Select(file => new[]
             {
                 file.Part.Contract.Name,
+                Route(file.Part),
                 Number(file.Part.Cost.Neurons),
                 Number(file.Part.Cost.Synapses),
                 Number(file.Part.Cost.Rules),
@@ -39,6 +40,9 @@ namespace SnpEvolution.Application
             return text.ToString();
         }
 
+        // Compiled parts keep their program; promoted parts their recipe; the rest were found by search.
+        public static string Route(LibraryPart part) => part.Origin.Program != null ? "compiled" : part.Recipe != null ? "composed" : "searched";
+
         // The first-part contracts the library has no part for, in the order the catalogue lists them.
         public static List<string> Missing(IReadOnlyList<PartFile> parts) =>
             FirstParts.Contracts.Select(contract => contract.Name).Where(name => parts.All(file => file.Part.Contract.Name != name)).ToList();
@@ -58,6 +62,11 @@ namespace SnpEvolution.Application
             text.AppendLine($"Cost: {part.Cost}");
             text.AppendLine($"Proof: {part.Proven?.ToString() ?? "not checked yet (run verify)"}");
             text.AppendLine($"Found by: {part.Origin.Run}, seed {part.Origin.Seed}, {part.Origin.Evaluations} evaluations");
+            if (part.Origin.Program is string program)
+            {
+                text.AppendLine($"Compiled from this register program to {part.Origin.Compiled?.ToString() ?? "a network"}, then shrunk:");
+                text.Append(program);
+            }
             if (part.Recipe is PartRecipe recipe)
             {
                 text.AppendLine($"Built from: {string.Join(", ", recipe.Children)}, with {recipe.Glue.Count} glue neuron(s)");

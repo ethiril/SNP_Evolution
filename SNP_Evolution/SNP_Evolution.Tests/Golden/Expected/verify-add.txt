@@ -553,7 +553,7 @@ add: proven up to 6 (bound 6 reached) in <time> s.
         "Done": "done"
       }
     ],
-    "MaxLatency": 55,
+    "MaxLatency": 224,
     "MinLatency": 0,
     "OrderedTriggers": false
   },

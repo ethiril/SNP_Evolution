@@ -89,6 +89,36 @@ namespace SnpEvolution.Tests.Application
         }
 
         [Fact]
+        public void CompilingOnlyNeverSearchesForAPartTheCompilerCannotMake()
+        {
+            var log = new List<string>();
+            Settings underProfile = Library("compile-only");
+            underProfile.HardwareProfile = true;
+
+            PartsResult noCounts = PartsService.Run(Library("compile-only"), new PartsRequest(Delays, Seed: 1, Route: PartRoute.Compile), log.Add);
+            PartsResult profiled = PartsService.Run(underProfile, new PartsRequest(new[] { FirstParts.Named("register") }, Seed: 1, Route: PartRoute.Compile), log.Add);
+
+            Assert.Equal(new[] { "not compilable", "not compilable", "not compilable" }, noCounts.Rows.Concat(profiled.Rows).Select(row => row.Status));
+            Assert.Contains("delay 2: not compiled, since it has no count ports.", log);
+            Assert.Contains("register: not compiled, since the compiler's modules are outside the hardware profile.", log);
+            Assert.DoesNotContain(log, line => line.StartsWith("Evolving") || line.StartsWith("Compiling"));
+        }
+
+        [Fact]
+        [Slow]
+        public void BothRoutesKeepACompiledPartWithoutSearching()
+        {
+            var log = new List<string>();
+
+            PartsResult result = PartsService.Run(Library("both"), new PartsRequest(new[] { FirstParts.Named("register") }, Seed: 1), log.Add);
+
+            PartsService.Row row = Assert.Single(result.Rows);
+            Assert.Equal("solved", row.Status);
+            Assert.NotNull(row.Part?.Origin.Program);
+            Assert.DoesNotContain(log, line => line.StartsWith("Evolving"));
+        }
+
+        [Fact]
         public void ABrokenLibraryIsReportedAndNothingIsEvolved()
         {
             string library = Path.Combine(folder, "broken");

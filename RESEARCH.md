@@ -214,6 +214,7 @@ Composition search solved n1 x n2 in count encoding by reusing an add loop promo
 | Ours: hand-built add | count (unary), cases up to 12 + 5 | 6 | 5 | 9 (6 distinct) | n1 + n2 + 2 (19 for 12 + 5) | `ReferenceParts.Add`, `HardwareCost`. |
 | Ours: add loop a + n x b, hand-built from 7 parts and 10 glue neurons | count, cases up to 6 x 5, proven up to 30 | 49 | 62 | 79 (15 distinct) | 223 for 2 + 6 x 5 | `HandBuiltMachines.AddLoop`. |
 | Ours: n1 x n2 found by composition search, one add loop and glue | count, cases up to 6 x 5, proven up to 12 | 56 | 68 | 86 (16 distinct) | 261 for 6 x 5 | `compose --task "Contract multiply" --hand-built on --seed 1`. |
+| Ours: n1 x n2 found by composition search from compiled parts only, one compiled add loop and glue | count, cases up to 6 x 5, proven up to 12 | 56 | 82 | 74 (8 distinct) | 501 for 6 x 5 | `compose --task "Contract multiply" --hand-built off --seed 1`, see Parts without hand-building. |
 
 Notes:
 - "Rule types" in Chen and Guo count a rule such as a -> a once however many neurons use it, which is close to our distinct rules.
@@ -440,6 +441,109 @@ Sources for this section:
 - **Date et al. (2022, 2023)**, "Neuromorphic computing is Turing-complete", ICONS, https://arxiv.org/abs/2104.13983 ; virtual-neuron integer encoding — *Abstracts.*
 - **Kwisthout, Donselaar (2020)**, a complexity theory for neuromorphic computing. https://arxiv.org/abs/2001.08439 — *Abstract.*
 - **Dabagia, Papadimitriou, Vempala (2024)**, computation with sequences of assemblies, ALT. https://arxiv.org/abs/2306.03812 — *Abstract.*
+
+### Parts without hand-building
+
+Results from 2026-10-07 for milestone M3 part 1 (items 1 and 2 of "Toward general synthesis").
+
+**Control parts.** Four control contracts joined the first-part catalogue.
+- Each keeps start, which opens the round.
+- A trigger data in-port's value is the step it fires on, counted from 1 with start; 0 means it never fires.
+- Done may not fire before the last trigger input has arrived (part of the on-time rule).
+
+| Part | Ports besides start and done | Contract |
+|---|---|---|
+| Join | trigger in a, b | done once after both; cases cover both orders, equal steps and a gap of 4 |
+| Fork | trigger out t1, t2 | both fire on one step, then done |
+| Merge | trigger in a, b | exactly one fires; done once after it |
+| Select | trigger in x; done ports one, zero | one when x fired with start, zero when it did not |
+
+`evolve-parts --only "join,fork,merge,select"`, seeds 1 to 5, 50,000 evaluations each:
+
+| Contract | Seeds solved | Seeds solved, `--profile hardware` | Kept part (seed) | Kept part, hardware (seed) |
+|---|---|---|---|---|
+| join | 5/5 | 5/5 | 4 neurons, 3 synapses, 4 rules (1) | 4 neurons, 3 synapses, 4 rules (1) |
+| fork | 3/5 | 4/5 | 4 neurons, 3 synapses, 4 rules (2) | 4 neurons, 3 synapses, 4 rules (1) |
+| merge | 5/5 | 5/5 | 4 neurons, 3 synapses, 4 rules (1) | 4 neurons, 3 synapses, 4 rules (1) |
+| select | 2/5 | 0/5 | 4 neurons, 3 synapses, 5 rules (4) | none |
+
+- Every kept part was proven by `verify` for every input: the trigger values are bounded, so the bounded check ends at the largest one.
+- Join and merge solve within about 1,100 evaluations. Fork's failed seeds stall at 0.97 to 0.98 with one neuron still holding a spike.
+- Select fails on one branch every time (best 0.875, done once wrong on x = 0 or x = 1). Under the hardware profile no seed solved it. The zero branch has to fire on one spike and stay silent on two. The hand-written select uses forgetting rules for that, which the profile does not allow, so select may need a different design on chips. This is not proven impossible.
+- The lowest seed that solved each contract was saved to `parts/` and `parts-profile/`.
+
+**Function programs.** A function program is a register program whose inputs are loaded into r0, r1, … when it starts. Its outputs are the registers after the inputs, read when it halts, and each HALT names a done port. The interpreter follows every choice. Each case is scored on:
+- the done port;
+- each output, with partial credit when close;
+- every other register back at zero;
+- the compiled part being on time;
+- every computation halting.
+
+Lexicase works over these checks. The search makes no ADD choices for function programs: a contract must hold on every computation, so a choice can only fail it, and following both ways of every choice made the runs far slower (seeds 6 to 10 went from one or two contracts in ten minutes to nine in four). Hand-written programs for register, increment, double, fan-out, add and zero test pass their contracts in the interpreter (`Tests/Fixtures/FunctionPrograms.cs`). They are tests only, not seeds.
+
+**Compiling programs to parts.** The compiler is built from three pieces:
+- the textbook ADD and SUB modules of Ionescu, Păun and Yokomori (2006);
+- a relay per count in-port, which adds two spikes to its register per input spike;
+- a drain per output register. Each HALT becomes a SUB loop on each output, whose "above zero" gate also fires the out-port, and then the HALT fires its done port.
+
+These are the given knowledge; no hand-built part is used.
+
+Timing follows from the program exactly:
+- 1 step from start to the first instruction;
+- a deterministic ADD takes 1 step;
+- a SUB takes 3 steps above zero and 4 at zero;
+- each drain takes 3 steps a unit plus 4;
+- 1 step from the HALT to its done port.
+
+The interpreter reports this latency, and it matches the compiled network on every case of the six hand-written programs. The search is therefore scored on time without building a network.
+
+Compiled parts take 7 to 11 steps per unit (register 7n + 10, fan-out 11n + 14), and must empty every input register to end as they began. The count contracts' latency was loosened from 3v + 4 to 12v + 20 to admit them. The control and binary contracts keep their old bounds.
+
+Before compiling, instructions are taken out one at a time while the program still passes. Programs found had up to 16 instructions; after this step they had 3 to 10. Shrinking gets the whole part budget (62,500 evaluations), since program search spends no network evaluations.
+
+`evolve-parts --route compile`, 10 seeds per contract. Seeds 1 to 5 ran with the full budget; seeds 6 to 10 ran with a token shrink budget, which still runs the program search, verification and admission.
+
+| Contract | Programs found | Median generations (interpreter runs) | Instructions after taking out | Compiled neurons, median | Kept after shrink, seeds 1–5: neurons (synapses), median | Kept latency, median | Hand-built: neurons, synapses |
+|---|---|---|---|---|---|---|---|
+| register | 10/10 | 5 (497) | 3–6 | 26 | 21 (29) | 84 | 5, 4 |
+| increment | 10/10 | 5 (497) | 3–4 | 23 | 16 (18) | 43 | 5, 5 |
+| double | 10/10 | 16 (1,586) | 4–6 | 28 | 24 (36) | 135 | none |
+| fan-out | 10/10 | 21.5 (2,131) | 4–7 | 38.5 | 34 (52) | 150 | 6, 5 |
+| add | 10/10 | 18.5 (1,834) | 4–6 | 32 | 26 (46) | 168 | 6, 5 |
+| zero test | 10/10 | 71.5 (7,081) | 4–8 | 26 | 23 (33) | 46 | 5, 4 |
+| add 2 | 10/10 | 7 (695) | 4–6 | 23 | 20 (27) | 100 | none |
+| decrement | 10/10 | 12.5 (1,240) | 4–7 | 28.5 | 28 (39) | 79 | 6, 6 |
+| gate | 10/10 | 33 (3,269) | 5–10 | 40.5 | 39 (60) | 152 | 6, 5 |
+| add loop | 2/10 admitted (4/10 programs found) | see below | 11–14 | 55–67 | 50 (77), seed 10 only | 519 | 49, 62 |
+
+- Every compiled part found passed the exhaustive verifier and its admission check (a bounded check up to twice its largest case). Seed 1's parts are in `parts/` and are proven up to N = 139 (add) to 2298 (zero test) in 20 seconds each.
+- These are the first count-port parts found with no hand-built input. Program search succeeded where network search never had: in earlier runs, 10 seeds of 50,000 evaluations solved no count contract.
+- The compiled parts are 3 to 7 times the size of the hand-built ones, and shrinking removes little. MAP-Elites shrinking took register from about 26 to 21 neurons; the hand-built register has 5. The textbook modules spend about 4 neurons per instruction. The shrink's edits probably cannot turn a SUB module into a store that drains one spike a step, which is the parity trick the hand-built parts use; this was not tested.
+- At first the add loop (a + b·n) was never found. The best programs computed the right sum on every case (sum = 30 for b = 6, n = 5) but were too slow. One round costs about 9 steps per unit of b, and the loop latency allowed (n + 1)(4b + 40), at least 400; the best reached fitness 0.992 with latencies of 467 to 603 on that case. The loop latency was loosened to (n + 1)(12b + 40) to match the count change; multiply and divide share it.
+- Under the looser bound, 4 of 10 seeds found a program, and the admission check refused all 4 past their cases:
+  - three were late at larger values (for example a = 7, b = 10, n = 10);
+  - one gave a wrong sum at a = 1, since the cases only put 0 or 2 in a.
+
+**Counterexamples back into the search.** This is item 4 of "Toward general synthesis", brought forward for compiled parts. The compiled part is checked up to twice its largest case before it is shrunk. A counterexample joins the cases the program search is scored on, with the latency the bound allows, and the search starts again from the last program, for up to four rounds. The catalogued contract does not change.
+
+Over the same 10 seeds this admitted 2 add loops:
+- Seed 10's first program gave a wrong sum at a = 1, b = 1, n = 1. With that case added, a fixed program was found in 12 more generations.
+- Seed 9 needed three timing counterexamples (0,7,7, then 6,9,9, then 7,9,9).
+- Seed 8 ran out of rounds. Its counterexamples climbed from 5,6,6 to 7,7,7, so its loop's latency grows faster than the bound.
+- Seed 2 found no program again after its first counterexample.
+- An admitted part is proven only up to the admission bound, so a later counterexample past it is possible.
+
+**n1 x n2 from compiled parts.** Settings as in M1: 10 seeds per algorithm, 6000 evaluations, lexicase parents, 5 sampled runs per network, `--hand-built off`. The library was `parts/`: the timing and control parts, the compiled count parts and seed 10's compiled add loop, shrunk from 55 to 50 neurons with the full budget and proven up to 25. The control was `--hand-built leaves`: the hand-built parts without their add loop, over the timing and control parts only. Both ran under the loosened latencies.
+
+| Library | MAP-Elites | Tournament | All | Add loop in best network |
+|---|---|---|---|---|
+| compiled parts, compiled add loop (`--hand-built off`) | 7/10 (median 2,645 evaluations) | 6/10 (median 2,610) | 13/20 | 17/20 |
+| compiled parts, no add loop (`--hand-built off`) | 0/10 (mean best 0.733) | 0/10 (0.715) | 0/20 | – |
+| hand-built leaves (control) | 0/10 (0.759) | 0/10 (0.755) | 0/20 | – |
+
+- Fisher's exact test, compiled add loop against the control: p = 1.3e-5 (two-sided). With the add loop before shrinking (55 neurons), the same runs solved 9 of 20 (5 and 4; p = 0.0012).
+- This is the first time n1 x n2 has been solved with no hand-built part anywhere in the library. The result rests on the add loop, as in M1, where the hand-built add loop gave 10 of 20 (under the old latencies). Without a loop part neither library solved it, and the best networks hold fan-out, add, double, gate and the control parts.
+- The multiplier promoted from this library (`compose --task "Contract multiply" --hand-built off --seed 1`) is one add loop and glue: 56 neurons, 82 synapses, 74 rules (8 distinct), latency 501 for 6 x 5, proven up to 12. M1's, built on the hand-built add loop, had 56 neurons, 68 synapses, 86 rules (16 distinct) and latency 261. So it has as many neurons, more synapses and about twice the latency, with far fewer kinds of rule, since the compiler's modules reuse a handful of rules.
 
 ## Next steps
 

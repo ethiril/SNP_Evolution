@@ -22,7 +22,7 @@ namespace SnpEvolution.Specs.Tasks
         // Every neuron ends with the spikes it began with, so the part can be started again.
         BackToStart,
 
-        // Done fires within the contract's latency.
+        // Done fires within the contract's latency, and not before the last trigger in-port has fired.
         OnTime,
     }
 
@@ -74,7 +74,7 @@ namespace SnpEvolution.Specs.Tasks
             ContractRule.DoneOnce => ports.Dones(run) is { Count: 1 } dones && dones[0].Port == contract.Cases[caseIndex].Done ? 1 : 0,
             ContractRule.Values => Values(run, caseIndex),
             ContractRule.BackToStart => (float)run.FinalSpikes.Where((spikes, neuron) => spikes == run.InitialSpikes[neuron]).Count() / run.FinalSpikes.Count,
-            _ => ports.Latency(run, caseIndex) is int latency && latency >= contract.MinLatency && latency <= contract.MaxLatency ? 1 : 0,
+            _ => ports.Latency(run, caseIndex) is int latency && latency >= contract.EarliestDone(contract.Cases[caseIndex]) && latency <= contract.MaxLatency ? 1 : 0,
         };
 
         private float OverRuns(ContractRule rule, IReadOnlyList<PortRun> runs, int caseIndex) =>
@@ -86,7 +86,7 @@ namespace SnpEvolution.Specs.Tasks
             {
                 return 1;
             }
-            if (contract.OrderedTriggers && !ports.TriggersInOrder(run, caseIndex))
+            if ((contract.OrderedTriggers && !ports.TriggersInOrder(run, caseIndex)) || (contract.TogetherTriggers && !ports.TriggersTogether(run, caseIndex)))
             {
                 return 0;
             }

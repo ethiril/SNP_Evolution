@@ -5,6 +5,7 @@ using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Specs.Verification;
+using SnpEvolution.Tests.Fixtures;
 
 namespace SnpEvolution.Tests.Specs.Verification
 {
@@ -86,6 +87,18 @@ namespace SnpEvolution.Tests.Specs.Verification
             Assert.IsType<Verdict.Failed>(BoundedCheck.Admit(PartFixtures.RegisterFailingAtTwenty(), new EvaluationBudget(), log.Add).Verdict);
             Assert.Contains(log, line => line.Contains("Not admitted") && line.Contains("n=20"));
             Assert.Equal(24, BoundedCheck.Admission(FirstParts.Named("register")).MaxBound);
+        }
+
+        // A join's inputs arrive at most the largest gap after start, so the check ends there having tried every input.
+        [Fact]
+        public void AJoinIsProvenForEveryInputAtItsLargestArrival()
+        {
+            Contract join = FirstParts.Named("join");
+
+            BoundedResult result = BoundedCheck.Prove(new Part(join, ControlNetworks.JoinOnAPair(relay: false), PortLayout.AfterInputs(join)), AMinute, new EvaluationBudget());
+
+            Assert.True(result.Proven.AllInputs);
+            Assert.Equal(FirstParts.LargestGap + 1, result.Proven.UpTo);
         }
 
         [Fact]
