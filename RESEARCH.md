@@ -214,6 +214,7 @@ Composition search solved n1 x n2 in count encoding by reusing an add loop promo
 | Ours: hand-built add | count (unary), cases up to 12 + 5 | 6 | 5 | 9 (6 distinct) | n1 + n2 + 2 (19 for 12 + 5) | `ReferenceParts.Add`, `HardwareCost`. |
 | Ours: add loop a + n x b, hand-built from 7 parts and 10 glue neurons | count, cases up to 6 x 5, proven up to 30 | 49 | 62 | 79 (15 distinct) | 223 for 2 + 6 x 5 | `HandBuiltMachines.AddLoop`. |
 | Ours: n1 x n2 found by composition search, one add loop and glue | count, cases up to 6 x 5, proven up to 12 | 56 | 68 | 86 (16 distinct) | 261 for 6 x 5 | `compose --task "Contract multiply" --hand-built on --seed 1`. |
+| Ours: n1 x n2 found by composition search from compiled parts only, one compiled add loop and glue | count, cases up to 6 x 5, proven up to 12 | 56 | 82 | 74 (8 distinct) | 501 for 6 x 5 | `compose --task "Contract multiply" --hand-built off --seed 1`, see Parts without hand-building. |
 
 Notes:
 - "Rule types" in Chen and Guo count a rule such as a -> a once however many neurons use it, which is close to our distinct rules.
@@ -513,12 +514,36 @@ Before compiling, instructions are taken out one at a time while the program sti
 | add 2 | 10/10 | 7 (695) | 4–6 | 23 | 20 (27) | 100 | none |
 | decrement | 10/10 | 12.5 (1,240) | 4–7 | 28.5 | 28 (39) | 79 | 6, 6 |
 | gate | 10/10 | 33 (3,269) | 5–10 | 40.5 | 39 (60) | 152 | 6, 5 |
-| add loop | 0/10 | – | – | – | – | – | 49, 62 |
+| add loop | 2/10 admitted (4/10 programs found) | see below | 11–14 | 55–67 | 50 (77), seed 10 only | 519 | 49, 62 |
 
 - Every compiled part found passed the exhaustive verifier and its admission check (a bounded check up to twice its largest case). Seed 1's parts are in `parts/` and are proven up to N = 139 (add) to 2298 (zero test) in 20 seconds each.
 - These are the first count-port parts found with no hand-built input. Program search succeeded where network search never had: in earlier runs, 10 seeds of 50,000 evaluations solved no count contract.
 - The compiled parts are 3 to 7 times the size of the hand-built ones, and shrinking removes little. MAP-Elites shrinking took register from about 26 to 21 neurons; the hand-built register has 5. The textbook modules spend about 4 neurons per instruction. The shrink's edits probably cannot turn a SUB module into a store that drains one spike a step, which is the parity trick the hand-built parts use; this was not tested.
-- The add loop (a + b·n) was never found. The best programs compute the right sum on every case (sum = 30 for b = 6, n = 5) but are too slow: one round costs about 9 steps per unit of b, and the loop latency allows (n + 1)(4b + 40), at least 400. The best got to fitness 0.992 with latencies of 467 to 603 on that case.
+- At first the add loop (a + b·n) was never found. The best programs computed the right sum on every case (sum = 30 for b = 6, n = 5) but were too slow. One round costs about 9 steps per unit of b, and the loop latency allowed (n + 1)(4b + 40), at least 400; the best reached fitness 0.992 with latencies of 467 to 603 on that case. The loop latency was loosened to (n + 1)(12b + 40) to match the count change; multiply and divide share it.
+- Under the looser bound, 4 of 10 seeds found a program, and the admission check refused all 4 past their cases:
+  - three were late at larger values (for example a = 7, b = 10, n = 10);
+  - one gave a wrong sum at a = 1, since the cases only put 0 or 2 in a.
+
+**Counterexamples back into the search.** This is item 4 of "Toward general synthesis", brought forward for compiled parts. The compiled part is checked up to twice its largest case before it is shrunk. A counterexample joins the cases the program search is scored on, with the latency the bound allows, and the search starts again from the last program, for up to four rounds. The catalogued contract does not change.
+
+Over the same 10 seeds this admitted 2 add loops:
+- Seed 10's first program gave a wrong sum at a = 1, b = 1, n = 1. With that case added, a fixed program was found in 12 more generations.
+- Seed 9 needed three timing counterexamples (0,7,7, then 6,9,9, then 7,9,9).
+- Seed 8 ran out of rounds. Its counterexamples climbed from 5,6,6 to 7,7,7, so its loop's latency grows faster than the bound.
+- Seed 2 found no program again after its first counterexample.
+- An admitted part is proven only up to the admission bound, so a later counterexample past it is possible.
+
+**n1 x n2 from compiled parts.** Settings as in M1: 10 seeds per algorithm, 6000 evaluations, lexicase parents, 5 sampled runs per network, `--hand-built off`. The library was `parts/`: the timing and control parts, the compiled count parts and seed 10's compiled add loop, shrunk from 55 to 50 neurons with the full budget and proven up to 25. The control was `--hand-built leaves`: the hand-built parts without their add loop, over the timing and control parts only. Both ran under the loosened latencies.
+
+| Library | MAP-Elites | Tournament | All | Add loop in best network |
+|---|---|---|---|---|
+| compiled parts, compiled add loop (`--hand-built off`) | 7/10 (median 2,645 evaluations) | 6/10 (median 2,610) | 13/20 | 17/20 |
+| compiled parts, no add loop (`--hand-built off`) | 0/10 (mean best 0.733) | 0/10 (0.715) | 0/20 | – |
+| hand-built leaves (control) | 0/10 (0.759) | 0/10 (0.755) | 0/20 | – |
+
+- Fisher's exact test, compiled add loop against the control: p = 1.3e-5 (two-sided). With the add loop before shrinking (55 neurons), the same runs solved 9 of 20 (5 and 4; p = 0.0012).
+- This is the first time n1 x n2 has been solved with no hand-built part anywhere in the library. The result rests on the add loop, as in M1, where the hand-built add loop gave 10 of 20 (under the old latencies). Without a loop part neither library solved it, and the best networks hold fan-out, add, double, gate and the control parts.
+- The multiplier promoted from this library (`compose --task "Contract multiply" --hand-built off --seed 1`) is one add loop and glue: 56 neurons, 82 synapses, 74 rules (8 distinct), latency 501 for 6 x 5, proven up to 12. M1's, built on the hand-built add loop, had 56 neurons, 68 synapses, 86 rules (16 distinct) and latency 261. So it has as many neurons, more synapses and about twice the latency, with far fewer kinds of rule, since the compiler's modules reuse a handful of rules.
 
 ## Next steps
 

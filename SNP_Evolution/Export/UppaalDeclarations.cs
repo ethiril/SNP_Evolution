@@ -30,6 +30,9 @@ namespace SnpEvolution.Export
             return text.ToString();
         }
 
+        // Only a contract whose cases differ in their earliest done needs a per-case table, so other models stay unchanged.
+        private static bool EarliestVaries(Contract contract) => contract.Cases.Any(@case => contract.EarliestDone(@case) != contract.MinLatency);
+
         public static string Array(IEnumerable<int> values) => "{" + string.Join(", ", values.Select(value => value.ToString(CultureInfo.InvariantCulture))) + "}";
 
         private static string Constants(Part part, ContractTask task)
@@ -47,7 +50,7 @@ namespace SnpEvolution.Export
             text.AppendLine($"const int AFTER_DONE = {task.StepsAfterDone};");
             text.AppendLine($"const int SLOTS = {slots};");
             text.AppendLine($"const int MIN_LATENCY = {contract.MinLatency};");
-            if (contract.Cases.Any(@case => contract.EarliestDone(@case) != contract.MinLatency))
+            if (EarliestVaries(contract))
             {
                 text.AppendLine($"const int EARLIEST[CASES] = {Array(contract.Cases.Select(contract.EarliestDone))};");
             }
@@ -182,7 +185,7 @@ namespace SnpEvolution.Export
             text.AppendLine("  int i;");
             text.AppendLine("  backOk = true;");
             text.AppendLine("  for (i = 0; i < NEURONS; i++) { if (spikes[i] != INITIAL[i]) backOk = false; }");
-            string earliest = contract.Cases.Any(@case => contract.EarliestDone(@case) != contract.MinLatency) ? "EARLIEST[caseNo]" : "MIN_LATENCY";
+            string earliest = EarliestVaries(contract) ? "EARLIEST[caseNo]" : "MIN_LATENCY";
             text.AppendLine($"  onTimeOk = firstDone >= 0 && firstDone - (START[caseNo] + 1) >= {earliest} && firstDone - (START[caseNo] + 1) <= MAX_LATENCY;");
             text.AppendLine("  doneOk = doneFirings == 1 && doneSlot == EXPECTED_DONE[caseNo];");
             for (int slot = 0; slot < dataOut.Count; slot++)

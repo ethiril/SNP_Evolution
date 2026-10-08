@@ -5,6 +5,7 @@ using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Specs.Verification;
+using SnpEvolution.Tests.Fixtures;
 
 namespace SnpEvolution.Tests.Specs.Verification
 {
@@ -93,15 +94,8 @@ namespace SnpEvolution.Tests.Specs.Verification
         public void AJoinIsProvenForEveryInputAtItsLargestArrival()
         {
             Contract join = FirstParts.Named("join");
-            var network = new Network(new[]
-            {
-                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
-                new Neuron(new[] { Rule.Standard("aa", 2) }, 0, new int[0], false),
-            });
 
-            BoundedResult result = BoundedCheck.Prove(new Part(join, network, PortLayout.AfterInputs(join)), AMinute, new EvaluationBudget());
+            BoundedResult result = BoundedCheck.Prove(new Part(join, ControlNetworks.JoinOnAPair(relay: false), PortLayout.AfterInputs(join)), AMinute, new EvaluationBudget());
 
             Assert.True(result.Proven.AllInputs);
             Assert.Equal(FirstParts.LargestGap + 1, result.Proven.UpTo);

@@ -96,9 +96,8 @@ namespace SnpEvolution.Compilation
                     break;
                 }
                 var next = new List<long[]>();
-                void Go(long[] configuration, int label)
+                void Go(long[] configuration)
                 {
-                    configuration[0] = label;
                     for (int register = 1; register < configuration.Length; register++)
                     {
                         if (register == OutputRegister + 1 ? configuration[register] > outputLimit : configuration[register] > valueLimit)
@@ -116,38 +115,19 @@ namespace SnpEvolution.Compilation
                 foreach (long[] configuration in current)
                 {
                     Instruction instruction = Instructions[(int)configuration[0]];
-                    int register = instruction.Register + 1;
-                    switch (instruction.Operation)
+                    if (instruction.Operation != Operation.Halt)
                     {
-                        case Operation.Halt:
-                            long value = configuration[OutputRegister + 1];
-                            if (value > 0 && value <= int.MaxValue)
-                            {
-                                outputs.Add((int)value);
-                                steps = step;
-                            }
-                            break;
-                        case Operation.Add:
-                            long[] added = (long[])configuration.Clone();
-                            added[register]++;
-                            if (instruction.Else != instruction.Next)
-                            {
-                                Go((long[])added.Clone(), instruction.Else);
-                            }
-                            Go(added, instruction.Next);
-                            break;
-                        default:
-                            long[] after = (long[])configuration.Clone();
-                            if (after[register] > 0)
-                            {
-                                after[register]--;
-                                Go(after, instruction.Next);
-                            }
-                            else
-                            {
-                                Go(after, instruction.Else);
-                            }
-                            break;
+                        foreach ((long[] after, _) in Successors(instruction, configuration))
+                        {
+                            Go(after);
+                        }
+                        continue;
+                    }
+                    long value = configuration[OutputRegister + 1];
+                    if (value > 0 && value <= int.MaxValue)
+                    {
+                        outputs.Add((int)value);
+                        steps = step;
                     }
                 }
                 current = next;
@@ -158,6 +138,35 @@ namespace SnpEvolution.Compilation
                 }
             }
             return (outputs.ToList(), complete && current.Count == 0, steps);
+        }
+
+        // The configurations an ADD or SUB leads to, label moved on, Else first when an ADD chooses; slots past the registers are copied as they are.
+        internal static IEnumerable<(long[] Configuration, bool TookElse)> Successors(Instruction instruction, long[] configuration)
+        {
+            long[] after = (long[])configuration.Clone();
+            int register = instruction.Register + 1;
+            if (instruction.Operation == Operation.Add)
+            {
+                after[register]++;
+                if (instruction.Else != instruction.Next)
+                {
+                    yield return (MovedOn((long[])after.Clone(), instruction, tookElse: true), true);
+                }
+                yield return (MovedOn(after, instruction, tookElse: false), false);
+                yield break;
+            }
+            bool atZero = after[register] == 0;
+            if (!atZero)
+            {
+                after[register]--;
+            }
+            yield return (MovedOn(after, instruction, atZero), atZero);
+        }
+
+        private static long[] MovedOn(long[] configuration, Instruction instruction, bool tookElse)
+        {
+            configuration[0] = tookElse ? instruction.Else : instruction.Next;
+            return configuration;
         }
 
         public override string ToString() =>

@@ -4,6 +4,7 @@ using SnpEvolution.Specs.Contracts;
 using SnpEvolution.Specs.Parts;
 using SnpEvolution.Specs.Tasks;
 using SnpEvolution.Storage;
+using SnpEvolution.Tests.Fixtures;
 
 namespace SnpEvolution.Tests.Specs.Contracts
 {
@@ -107,20 +108,11 @@ namespace SnpEvolution.Tests.Specs.Contracts
 
             Assert.Equal(new[] { 1f, 1f, 0f, 1f, 1f }, result.Checks);
         }
-    
-        // Start, then a and b, relayed to done, which fires on the pair; with relay true it fires on each spike instead.
-        private static Network JoinOnAPair(bool relay) => new Network(new[]
-        {
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, new int[0], false, isInput: true),
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, new[] { 4 }, false, isInput: true),
-            new Neuron(new[] { relay ? Rule.Standard("a", 1) : Rule.Standard("aa", 2) }, 0, new int[0], false),
-        });
 
         [Fact]
         public void ANeuronFiringOnAPairMeetsTheJoinContract()
         {
-            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("join")), JoinOnAPair(relay: false)).Description);
+            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("join")), ControlNetworks.JoinOnAPair(relay: false)).Description);
         }
 
         // A relay fires as soon as the first input arrives, and again for the second.
@@ -128,7 +120,7 @@ namespace SnpEvolution.Tests.Specs.Contracts
         public void ARelayFailsTheJoinWhenItsInputsComeApart()
         {
             var task = new ContractTask(FirstParts.Named("join"));
-            FitnessResult result = Runs.Evaluate(task, JoinOnAPair(relay: true));
+            FitnessResult result = Runs.Evaluate(task, ControlNetworks.JoinOnAPair(relay: true));
 
             List<string> failing = result.Checks!.Select((score, check) => (score, check)).Where(pair => pair.score < 1).Select(pair => task.CheckName(pair.check)).ToList();
             Assert.Contains("a=1,b=5: on time", failing);
@@ -138,7 +130,7 @@ namespace SnpEvolution.Tests.Specs.Contracts
         [Fact]
         public void ARelayOfEitherInputMeetsTheMergeContract()
         {
-            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("merge")), JoinOnAPair(relay: true)).Description);
+            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("merge")), ControlNetworks.JoinOnAPair(relay: true)).Description);
         }
 
         // Start and x reach both branches; one fires on two spikes and zero on one.
@@ -156,25 +148,16 @@ namespace SnpEvolution.Tests.Specs.Contracts
             Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("select")), network).Description);
         }
 
-        // start -> t1 and t2 -> done; with apart true, t2 hangs off t1 and fires a step later.
-        private static Network Fork(bool apart) => new Network(new[]
-        {
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, apart ? new[] { 2 } : new[] { 2, 3 }, false, isInput: true),
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, apart ? new[] { 3, 4 } : new[] { 4 }, false),
-            new Neuron(new[] { Rule.Standard("a", 1) }, 0, apart ? new[] { 4 } : new int[0], false),
-            new Neuron(new[] { Rule.Standard("a", 1), Rule.Forget("aa", 2) }, 0, new int[0], false),
-        });
-
         [Fact]
         public void TwoRelaysFromStartMeetTheForkContract()
         {
-            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("fork")), Fork(apart: false)).Description);
+            Assert.Equal("meets the contract", Runs.Evaluate(new ContractTask(FirstParts.Named("fork")), ControlNetworks.Fork(apart: false)).Description);
         }
 
         [Fact]
         public void ForkOutputsOnDifferentStepsFailValues()
         {
-            FitnessResult result = Runs.Evaluate(new ContractTask(FirstParts.Named("fork")), Fork(apart: true));
+            FitnessResult result = Runs.Evaluate(new ContractTask(FirstParts.Named("fork")), ControlNetworks.Fork(apart: true));
 
             Assert.Equal(0f, result.Checks![(int)ContractRule.Values]);
         }

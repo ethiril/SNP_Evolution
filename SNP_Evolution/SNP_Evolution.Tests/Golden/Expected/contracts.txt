@@ -2596,7 +2596,7 @@ first part Select | trigger in; done-one, done-zero | done-one when the input fi
       "Done": "done"
     }
   ],
-  "MaxLatency": 400,
+  "MaxLatency": 672,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -3051,7 +3051,7 @@ first part Select | trigger in; done-one, done-zero | done-one when the input fi
       "Done": "done"
     }
   ],
-  "MaxLatency": 400,
+  "MaxLatency": 600,
   "MinLatency": 0,
   "OrderedTriggers": false
 }
@@ -6716,7 +6716,7 @@ first part Select | trigger in; done-one, done-zero | done-one when the input fi
       "Done": "done"
     }
   ],
-  "MaxLatency": 400,
+  "MaxLatency": 672,
   "MinLatency": 0,
   "OrderedTriggers": false
 }

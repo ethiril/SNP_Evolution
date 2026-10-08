@@ -314,68 +314,68 @@
 29: latency 368
 30: latency 380
 == multiply
-0: latency 400 cases a=0,b=0->done,product=0
-1: latency 400 cases a=0,b=1->done,product=0 a=1,b=0->done,product=0 a=1,b=1->done,product=1
-2: latency 400 cases a=0,b=2->done,product=0 a=1,b=2->done,product=2 a=2,b=0->done,product=0 a=2,b=1->done,product=2 a=2,b=2->done,product=4
-3: latency 400 cases a=0,b=3->done,product=0 a=1,b=3->done,product=3 a=2,b=3->done,product=6 a=3,b=0->done,product=0 a=3,b=1->done,product=3 a=3,b=2->done,product=6 a=3,b=3->done,product=9
-4: latency 400 cases a=0,b=4->done,product=0 a=1,b=4->done,product=4 a=2,b=4->done,product=8 a=3,b=4->done,product=12 a=4,b=0->done,product=0 a=4,b=1->done,product=4 a=4,b=2->done,product=8 a=4,b=3->done,product=12 a=4,b=4->done,product=16
-5: latency 400
-6: latency 448
-7: latency 544
-8: latency 648
-9: latency 760
-10: latency 880
-11: latency 1008
-12: latency 1144
-13: latency 1288
-14: latency 1440
-15: latency 1600
-16: latency 1768
-17: latency 1944
-18: latency 2128
-19: latency 2320
-20: latency 2520
-21: latency 2728
-22: latency 2944
-23: latency 3168
-24: latency 3400
-25: latency 3640
-26: latency 3888
-27: latency 4144
-28: latency 4408
-29: latency 4680
-30: latency 4960
+0: latency 672 cases a=0,b=0->done,product=0
+1: latency 672 cases a=0,b=1->done,product=0 a=1,b=0->done,product=0 a=1,b=1->done,product=1
+2: latency 672 cases a=0,b=2->done,product=0 a=1,b=2->done,product=2 a=2,b=0->done,product=0 a=2,b=1->done,product=2 a=2,b=2->done,product=4
+3: latency 672 cases a=0,b=3->done,product=0 a=1,b=3->done,product=3 a=2,b=3->done,product=6 a=3,b=0->done,product=0 a=3,b=1->done,product=3 a=3,b=2->done,product=6 a=3,b=3->done,product=9
+4: latency 672 cases a=0,b=4->done,product=0 a=1,b=4->done,product=4 a=2,b=4->done,product=8 a=3,b=4->done,product=12 a=4,b=0->done,product=0 a=4,b=1->done,product=4 a=4,b=2->done,product=8 a=4,b=3->done,product=12 a=4,b=4->done,product=16
+5: latency 672
+6: latency 784
+7: latency 992
+8: latency 1224
+9: latency 1480
+10: latency 1760
+11: latency 2064
+12: latency 2392
+13: latency 2744
+14: latency 3120
+15: latency 3520
+16: latency 3944
+17: latency 4392
+18: latency 4864
+19: latency 5360
+20: latency 5880
+21: latency 6424
+22: latency 6992
+23: latency 7584
+24: latency 8200
+25: latency 8840
+26: latency 9504
+27: latency 10192
+28: latency 10904
+29: latency 11640
+30: latency 12400
 == divide
-1: latency 400 cases a=0,b=1->done,quotient=0,remainder=0 a=1,b=1->done,quotient=1,remainder=0
-2: latency 400 cases a=0,b=2->done,quotient=0,remainder=0 a=1,b=2->done,quotient=0,remainder=1 a=2,b=1->done,quotient=2,remainder=0 a=2,b=2->done,quotient=1,remainder=0
-3: latency 400 cases a=0,b=3->done,quotient=0,remainder=0 a=1,b=3->done,quotient=0,remainder=1 a=2,b=3->done,quotient=0,remainder=2 a=3,b=1->done,quotient=3,remainder=0 a=3,b=2->done,quotient=1,remainder=1 a=3,b=3->done,quotient=1,remainder=0
-4: latency 400 cases a=0,b=4->done,quotient=0,remainder=0 a=1,b=4->done,quotient=0,remainder=1 a=2,b=4->done,quotient=0,remainder=2 a=3,b=4->done,quotient=0,remainder=3 a=4,b=1->done,quotient=4,remainder=0 a=4,b=2->done,quotient=2,remainder=0 a=4,b=3->done,quotient=1,remainder=1 a=4,b=4->done,quotient=1,remainder=0
-5: latency 400
-6: latency 448
-7: latency 544
-8: latency 648
-9: latency 760
-10: latency 880
-11: latency 1008
-12: latency 1144
-13: latency 1288
-14: latency 1440
-15: latency 1600
-16: latency 1768
-17: latency 1944
-18: latency 2128
-19: latency 2320
-20: latency 2520
-21: latency 2728
-22: latency 2944
-23: latency 3168
-24: latency 3400
-25: latency 3640
-26: latency 3888
-27: latency 4144
-28: latency 4408
-29: latency 4680
-30: latency 4960
+1: latency 600 cases a=0,b=1->done,quotient=0,remainder=0 a=1,b=1->done,quotient=1,remainder=0
+2: latency 600 cases a=0,b=2->done,quotient=0,remainder=0 a=1,b=2->done,quotient=0,remainder=1 a=2,b=1->done,quotient=2,remainder=0 a=2,b=2->done,quotient=1,remainder=0
+3: latency 600 cases a=0,b=3->done,quotient=0,remainder=0 a=1,b=3->done,quotient=0,remainder=1 a=2,b=3->done,quotient=0,remainder=2 a=3,b=1->done,quotient=3,remainder=0 a=3,b=2->done,quotient=1,remainder=1 a=3,b=3->done,quotient=1,remainder=0
+4: latency 600 cases a=0,b=4->done,quotient=0,remainder=0 a=1,b=4->done,quotient=0,remainder=1 a=2,b=4->done,quotient=0,remainder=2 a=3,b=4->done,quotient=0,remainder=3 a=4,b=1->done,quotient=4,remainder=0 a=4,b=2->done,quotient=2,remainder=0 a=4,b=3->done,quotient=1,remainder=1 a=4,b=4->done,quotient=1,remainder=0
+5: latency 600
+6: latency 784
+7: latency 992
+8: latency 1224
+9: latency 1480
+10: latency 1760
+11: latency 2064
+12: latency 2392
+13: latency 2744
+14: latency 3120
+15: latency 3520
+16: latency 3944
+17: latency 4392
+18: latency 4864
+19: latency 5360
+20: latency 5880
+21: latency 6424
+22: latency 6992
+23: latency 7584
+24: latency 8200
+25: latency 8840
+26: latency 9504
+27: latency 10192
+28: latency 10904
+29: latency 11640
+30: latency 12400
 == compare
 0: latency 164 cases a=0,b=0->not less
 1: latency 164 cases a=0,b=1->less a=1,b=0->not less a=1,b=1->not less
@@ -571,34 +571,34 @@
 29: latency 368
 30: latency 380
 == add loop
-0: latency 400 cases a=0,b=0,n=0->done,sum=0
-1: latency 400 cases a=0,b=0,n=1->done,sum=0 a=0,b=1,n=0->done,sum=0 a=0,b=1,n=1->done,sum=1 a=1,b=0,n=0->done,sum=1 a=1,b=0,n=1->done,sum=1 a=1,b=1,n=0->done,sum=1 a=1,b=1,n=1->done,sum=2
-2: latency 400 cases a=0,b=0,n=2->done,sum=0 a=0,b=1,n=2->done,sum=2 a=0,b=2,n=0->done,sum=0 a=0,b=2,n=1->done,sum=2 a=0,b=2,n=2->done,sum=4 a=1,b=0,n=2->done,sum=1 a=1,b=1,n=2->done,sum=3 a=1,b=2,n=0->done,sum=1 a=1,b=2,n=1->done,sum=3 a=1,b=2,n=2->done,sum=5 a=2,b=0,n=0->done,sum=2 a=2,b=0,n=1->done,sum=2 a=2,b=0,n=2->done,sum=2 a=2,b=1,n=0->done,sum=2 a=2,b=1,n=1->done,sum=3 a=2,b=1,n=2->done,sum=4 a=2,b=2,n=0->done,sum=2 a=2,b=2,n=1->done,sum=4 a=2,b=2,n=2->done,sum=6
-3: latency 400 cases a=0,b=0,n=3->done,sum=0 a=0,b=1,n=3->done,sum=3 a=0,b=2,n=3->done,sum=6 a=0,b=3,n=0->done,sum=0 a=0,b=3,n=1->done,sum=3 a=0,b=3,n=2->done,sum=6 a=0,b=3,n=3->done,sum=9 a=1,b=0,n=3->done,sum=1 a=1,b=1,n=3->done,sum=4 a=1,b=2,n=3->done,sum=7 a=1,b=3,n=0->done,sum=1 a=1,b=3,n=1->done,sum=4 a=1,b=3,n=2->done,sum=7 a=1,b=3,n=3->done,sum=10 a=2,b=0,n=3->done,sum=2 a=2,b=1,n=3->done,sum=5 a=2,b=2,n=3->done,sum=8 a=2,b=3,n=0->done,sum=2 a=2,b=3,n=1->done,sum=5 a=2,b=3,n=2->done,sum=8 a=2,b=3,n=3->done,sum=11 a=3,b=0,n=0->done,sum=3 a=3,b=0,n=1->done,sum=3 a=3,b=0,n=2->done,sum=3 a=3,b=0,n=3->done,sum=3 a=3,b=1,n=0->done,sum=3 a=3,b=1,n=1->done,sum=4 a=3,b=1,n=2->done,sum=5 a=3,b=1,n=3->done,sum=6 a=3,b=2,n=0->done,sum=3 a=3,b=2,n=1->done,sum=5 a=3,b=2,n=2->done,sum=7 a=3,b=2,n=3->done,sum=9 a=3,b=3,n=0->done,sum=3 a=3,b=3,n=1->done,sum=6 a=3,b=3,n=2->done,sum=9 a=3,b=3,n=3->done,sum=12
-4: latency 400 cases a=0,b=0,n=4->done,sum=0 a=0,b=1,n=4->done,sum=4 a=0,b=2,n=4->done,sum=8 a=0,b=3,n=4->done,sum=12 a=0,b=4,n=0->done,sum=0 a=0,b=4,n=1->done,sum=4 a=0,b=4,n=2->done,sum=8 a=0,b=4,n=3->done,sum=12 a=0,b=4,n=4->done,sum=16 a=1,b=0,n=4->done,sum=1 a=1,b=1,n=4->done,sum=5 a=1,b=2,n=4->done,sum=9 a=1,b=3,n=4->done,sum=13 a=1,b=4,n=0->done,sum=1 a=1,b=4,n=1->done,sum=5 a=1,b=4,n=2->done,sum=9 a=1,b=4,n=3->done,sum=13 a=1,b=4,n=4->done,sum=17 a=2,b=0,n=4->done,sum=2 a=2,b=1,n=4->done,sum=6 a=2,b=2,n=4->done,sum=10 a=2,b=3,n=4->done,sum=14 a=2,b=4,n=0->done,sum=2 a=2,b=4,n=1->done,sum=6 a=2,b=4,n=2->done,sum=10 a=2,b=4,n=3->done,sum=14 a=2,b=4,n=4->done,sum=18 a=3,b=0,n=4->done,sum=3 a=3,b=1,n=4->done,sum=7 a=3,b=2,n=4->done,sum=11 a=3,b=3,n=4->done,sum=15 a=3,b=4,n=0->done,sum=3 a=3,b=4,n=1->done,sum=7 a=3,b=4,n=2->done,sum=11 a=3,b=4,n=3->done,sum=15 a=3,b=4,n=4->done,sum=19 a=4,b=0,n=0->done,sum=4 a=4,b=0,n=1->done,sum=4 a=4,b=0,n=2->done,sum=4 a=4,b=0,n=3->done,sum=4 a=4,b=0,n=4->done,sum=4 a=4,b=1,n=0->done,sum=4 a=4,b=1,n=1->done,sum=5 a=4,b=1,n=2->done,sum=6 a=4,b=1,n=3->done,sum=7 a=4,b=1,n=4->done,sum=8 a=4,b=2,n=0->done,sum=4 a=4,b=2,n=1->done,sum=6 a=4,b=2,n=2->done,sum=8 a=4,b=2,n=3->done,sum=10 a=4,b=2,n=4->done,sum=12 a=4,b=3,n=0->done,sum=4 a=4,b=3,n=1->done,sum=7 a=4,b=3,n=2->done,sum=10 a=4,b=3,n=3->done,sum=13 a=4,b=3,n=4->done,sum=16 a=4,b=4,n=0->done,sum=4 a=4,b=4,n=1->done,sum=8 a=4,b=4,n=2->done,sum=12 a=4,b=4,n=3->done,sum=16 a=4,b=4,n=4->done,sum=20
-5: latency 400
-6: latency 448
-7: latency 544
-8: latency 648
-9: latency 760
-10: latency 880
-11: latency 1008
-12: latency 1144
-13: latency 1288
-14: latency 1440
-15: latency 1600
-16: latency 1768
-17: latency 1944
-18: latency 2128
-19: latency 2320
-20: latency 2520
-21: latency 2728
-22: latency 2944
-23: latency 3168
-24: latency 3400
-25: latency 3640
-26: latency 3888
-27: latency 4144
-28: latency 4408
-29: latency 4680
-30: latency 4960
+0: latency 672 cases a=0,b=0,n=0->done,sum=0
+1: latency 672 cases a=0,b=0,n=1->done,sum=0 a=0,b=1,n=0->done,sum=0 a=0,b=1,n=1->done,sum=1 a=1,b=0,n=0->done,sum=1 a=1,b=0,n=1->done,sum=1 a=1,b=1,n=0->done,sum=1 a=1,b=1,n=1->done,sum=2
+2: latency 672 cases a=0,b=0,n=2->done,sum=0 a=0,b=1,n=2->done,sum=2 a=0,b=2,n=0->done,sum=0 a=0,b=2,n=1->done,sum=2 a=0,b=2,n=2->done,sum=4 a=1,b=0,n=2->done,sum=1 a=1,b=1,n=2->done,sum=3 a=1,b=2,n=0->done,sum=1 a=1,b=2,n=1->done,sum=3 a=1,b=2,n=2->done,sum=5 a=2,b=0,n=0->done,sum=2 a=2,b=0,n=1->done,sum=2 a=2,b=0,n=2->done,sum=2 a=2,b=1,n=0->done,sum=2 a=2,b=1,n=1->done,sum=3 a=2,b=1,n=2->done,sum=4 a=2,b=2,n=0->done,sum=2 a=2,b=2,n=1->done,sum=4 a=2,b=2,n=2->done,sum=6
+3: latency 672 cases a=0,b=0,n=3->done,sum=0 a=0,b=1,n=3->done,sum=3 a=0,b=2,n=3->done,sum=6 a=0,b=3,n=0->done,sum=0 a=0,b=3,n=1->done,sum=3 a=0,b=3,n=2->done,sum=6 a=0,b=3,n=3->done,sum=9 a=1,b=0,n=3->done,sum=1 a=1,b=1,n=3->done,sum=4 a=1,b=2,n=3->done,sum=7 a=1,b=3,n=0->done,sum=1 a=1,b=3,n=1->done,sum=4 a=1,b=3,n=2->done,sum=7 a=1,b=3,n=3->done,sum=10 a=2,b=0,n=3->done,sum=2 a=2,b=1,n=3->done,sum=5 a=2,b=2,n=3->done,sum=8 a=2,b=3,n=0->done,sum=2 a=2,b=3,n=1->done,sum=5 a=2,b=3,n=2->done,sum=8 a=2,b=3,n=3->done,sum=11 a=3,b=0,n=0->done,sum=3 a=3,b=0,n=1->done,sum=3 a=3,b=0,n=2->done,sum=3 a=3,b=0,n=3->done,sum=3 a=3,b=1,n=0->done,sum=3 a=3,b=1,n=1->done,sum=4 a=3,b=1,n=2->done,sum=5 a=3,b=1,n=3->done,sum=6 a=3,b=2,n=0->done,sum=3 a=3,b=2,n=1->done,sum=5 a=3,b=2,n=2->done,sum=7 a=3,b=2,n=3->done,sum=9 a=3,b=3,n=0->done,sum=3 a=3,b=3,n=1->done,sum=6 a=3,b=3,n=2->done,sum=9 a=3,b=3,n=3->done,sum=12
+4: latency 672 cases a=0,b=0,n=4->done,sum=0 a=0,b=1,n=4->done,sum=4 a=0,b=2,n=4->done,sum=8 a=0,b=3,n=4->done,sum=12 a=0,b=4,n=0->done,sum=0 a=0,b=4,n=1->done,sum=4 a=0,b=4,n=2->done,sum=8 a=0,b=4,n=3->done,sum=12 a=0,b=4,n=4->done,sum=16 a=1,b=0,n=4->done,sum=1 a=1,b=1,n=4->done,sum=5 a=1,b=2,n=4->done,sum=9 a=1,b=3,n=4->done,sum=13 a=1,b=4,n=0->done,sum=1 a=1,b=4,n=1->done,sum=5 a=1,b=4,n=2->done,sum=9 a=1,b=4,n=3->done,sum=13 a=1,b=4,n=4->done,sum=17 a=2,b=0,n=4->done,sum=2 a=2,b=1,n=4->done,sum=6 a=2,b=2,n=4->done,sum=10 a=2,b=3,n=4->done,sum=14 a=2,b=4,n=0->done,sum=2 a=2,b=4,n=1->done,sum=6 a=2,b=4,n=2->done,sum=10 a=2,b=4,n=3->done,sum=14 a=2,b=4,n=4->done,sum=18 a=3,b=0,n=4->done,sum=3 a=3,b=1,n=4->done,sum=7 a=3,b=2,n=4->done,sum=11 a=3,b=3,n=4->done,sum=15 a=3,b=4,n=0->done,sum=3 a=3,b=4,n=1->done,sum=7 a=3,b=4,n=2->done,sum=11 a=3,b=4,n=3->done,sum=15 a=3,b=4,n=4->done,sum=19 a=4,b=0,n=0->done,sum=4 a=4,b=0,n=1->done,sum=4 a=4,b=0,n=2->done,sum=4 a=4,b=0,n=3->done,sum=4 a=4,b=0,n=4->done,sum=4 a=4,b=1,n=0->done,sum=4 a=4,b=1,n=1->done,sum=5 a=4,b=1,n=2->done,sum=6 a=4,b=1,n=3->done,sum=7 a=4,b=1,n=4->done,sum=8 a=4,b=2,n=0->done,sum=4 a=4,b=2,n=1->done,sum=6 a=4,b=2,n=2->done,sum=8 a=4,b=2,n=3->done,sum=10 a=4,b=2,n=4->done,sum=12 a=4,b=3,n=0->done,sum=4 a=4,b=3,n=1->done,sum=7 a=4,b=3,n=2->done,sum=10 a=4,b=3,n=3->done,sum=13 a=4,b=3,n=4->done,sum=16 a=4,b=4,n=0->done,sum=4 a=4,b=4,n=1->done,sum=8 a=4,b=4,n=2->done,sum=12 a=4,b=4,n=3->done,sum=16 a=4,b=4,n=4->done,sum=20
+5: latency 672
+6: latency 784
+7: latency 992
+8: latency 1224
+9: latency 1480
+10: latency 1760
+11: latency 2064
+12: latency 2392
+13: latency 2744
+14: latency 3120
+15: latency 3520
+16: latency 3944
+17: latency 4392
+18: latency 4864
+19: latency 5360
+20: latency 5880
+21: latency 6424
+22: latency 6992
+23: latency 7584
+24: latency 8200
+25: latency 8840
+26: latency 9504
+27: latency 10192
+28: latency 10904
+29: latency 11640
+30: latency 12400

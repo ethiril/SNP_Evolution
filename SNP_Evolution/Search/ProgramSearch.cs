@@ -11,8 +11,7 @@ namespace SnpEvolution.Search
 {
     public sealed record ProgramSearchSettings(int Population = 100, int MaxInstructions = 16, int Registers = 4, int MaxConfigurations = 2_000, bool Lexicase = true);
 
-    // A stalled population is replaced by random programs, since one that overshoots the target is a dead end small edits
-    // rarely leave. The target is a set of numbers to generate, or a contract whose cases a function program computes.
+    // A stalled population is replaced by random programs, since one that overshoots the target is a dead end small edits rarely leave.
     public sealed class ProgramSearch : ISearch<RegisterProgram>
     {
         private const int Patience = 100;
@@ -104,8 +103,7 @@ namespace SnpEvolution.Search
             return new SearchOutcome<RegisterProgram>(stop, best.Program, best.Fitness, description, request.Budget.Report()) { Generations = generations };
         }
 
-        // Inputs and outputs take the first registers and the rest are scratch; any register may be subtracted from, and a
-        // HALT may end on any done port.
+        // One scratch register at least, beyond the inputs and outputs.
         private (IProgramScoring, ProgramEdits) Function(IContractTask task, SearchRequest<RegisterProgram> request)
         {
             var scoring = new FunctionScoring(task.Contract, settings.MaxConfigurations, request.Budget);

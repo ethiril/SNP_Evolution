@@ -15,9 +15,7 @@ namespace SnpEvolution.Specs.Contracts
         // Generous for loops: a hand-built add loop spends about 4b + 30 steps on each of its n rounds.
         public const int LoopLatency = 400;
 
-        // Generous, so a slow but correct part is kept for MAP-Elites to make quicker and smaller. A part compiled from a
-        // register program with the textbook ADD and SUB modules takes 7 to 11 steps per unit (SUB alone takes 3, and every
-        // input register has to be emptied), and 12 per unit admits it.
+        // Generous enough for a compiled part, which takes 7 to 11 steps per unit, so MAP-Elites can make it quicker and smaller.
         public static int LatencyFor(int largestValue) => 12 * largestValue + 20;
 
         // A control part waits for its inputs, not for a count, so it is allowed a little over the last arrival.
@@ -48,26 +46,11 @@ namespace SnpEvolution.Specs.Contracts
             _ => 4,
             TogetherTriggers: true);
 
-        // A trigger in-port's value is the step it fires on, counted from 1 with start; done waits for both, which may come in
-        // either order and up to gap steps apart.
-        public static Specification Join(int gap) => new Specification(
-            "join",
-            new[] { Specification.DoneOut },
-            new[] { TriggerIn("a"), TriggerIn("b") },
-            v => v["a"] is >= 1 && v["b"] is >= 1 && v["a"] <= gap + 1 && v["b"] <= gap + 1,
-            Case(_ => Outputs()),
-            v => ControlLatency(Math.Max(v["a"], v["b"])),
-            LargestInput: gap + 1);
+        // Done waits for both inputs, which may come in either order and up to gap steps apart.
+        public static Specification Join(int gap) => TwoTriggers("join", gap, v => v["a"] >= 1 && v["b"] >= 1);
 
         // Exactly one of the two fires in a round, and done answers whichever it was.
-        public static Specification Merge(int gap) => new Specification(
-            "merge",
-            new[] { Specification.DoneOut },
-            new[] { TriggerIn("a"), TriggerIn("b") },
-            v => (v["a"] == 0) != (v["b"] == 0) && v["a"] <= gap + 1 && v["b"] <= gap + 1,
-            Case(_ => Outputs()),
-            v => ControlLatency(Math.Max(v["a"], v["b"])),
-            LargestInput: gap + 1);
+        public static Specification Merge(int gap) => TwoTriggers("merge", gap, v => (v["a"] == 0) != (v["b"] == 0));
 
         // Routes start by a branch: x fires with start (1) or not at all (0).
         public static Specification Select { get; } = new Specification(
@@ -171,6 +154,16 @@ namespace SnpEvolution.Specs.Contracts
         private static Port CountIn(string name) => Port.In(name, PortKind.Count);
 
         private static Port TriggerIn(string name) => Port.In(name, PortKind.Trigger);
+
+        // Trigger in-ports a and b, each arriving no later than gap steps after start.
+        private static Specification TwoTriggers(string name, int gap, Func<IReadOnlyDictionary<string, int>, bool> inDomain) => new Specification(
+            name,
+            new[] { Specification.DoneOut },
+            new[] { TriggerIn("a"), TriggerIn("b") },
+            v => inDomain(v) && v["a"] <= gap + 1 && v["b"] <= gap + 1,
+            Case(_ => Outputs()),
+            v => ControlLatency(Math.Max(v["a"], v["b"])),
+            LargestInput: gap + 1);
 
         private static Port CountOut(string name) => Port.Out(name, PortKind.Count);
 

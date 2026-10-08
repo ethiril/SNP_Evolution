@@ -42,6 +42,23 @@ namespace SnpEvolution.Tests.Search
                 Assert.Equal(task.Latency(results[index].PortRuns[0], index), program.Run(contract.Cases[index].Inputs, FunctionScoring.StepsFor(contract.Cases[index])).Outcomes.Single().Latency));
         }
 
+        // The program search then has to pass the input the bounded check failed on, with the latency allowed there.
+        [Fact]
+        [Slow]
+        public void ACounterexampleBecomesACaseTheProgramSearchMustPass()
+        {
+            Part broken = PartFixtures.RegisterFailingAtTwenty();
+            Counterexample counterexample = Assert.IsType<Verdict.Failed>(BoundedCheck.Prove(broken, new ProofLimits(TimeSpan.FromMinutes(1)), new EvaluationBudget()).Verdict).Counterexample;
+
+            ContractTask widened = CompiledPartSearch.WithCase(broken.Task(), counterexample);
+
+            Assert.Equal(broken.Contract.Cases.Count + 1, widened.Contract.Cases.Count);
+            Assert.Equal(20, widened.Contract.Cases[^1].Inputs["n"]);
+            Assert.Equal(Math.Max(broken.Contract.MaxLatency, counterexample.Contract.MaxLatency), widened.Contract.MaxLatency);
+            Assert.Equal(widened.Contract.Cases.Count * new FunctionScoring(widened.Contract, 2_000, new EvaluationBudget()).ChecksPerCase,
+                new FunctionScoring(widened.Contract, 2_000, new EvaluationBudget()).Score(FunctionPrograms.For("register").Program).Checks.Count);
+        }
+
         [Fact]
         public void OnlyContractsWithCountPortsAreCompiled()
         {

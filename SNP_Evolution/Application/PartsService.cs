@@ -14,8 +14,7 @@ using SnpEvolution.Storage;
 
 namespace SnpEvolution.Application
 {
-    // How a part with count ports is found: by search, by compiling a register program, or both (compile, and search when
-    // no compiled part verifies). A part without count ports is always searched for.
+    // Both compiles and searches when no compiled part verifies; a part without count ports is always searched for.
     public enum PartRoute
     {
         Both,
@@ -102,8 +101,7 @@ namespace SnpEvolution.Application
 
         public const int Population = 60;
 
-        // The route's outcome for one contract, or null when only compiling was asked for and the contract cannot be. The
-        // textbook modules use rules outside the hardware profile, so under it a part is always searched for.
+        // Null when only compiling was asked for and the contract cannot be; the compiler's rules are outside the hardware profile.
         private static PartOutcome? Find(Contract contract, PartsRequest request, Settings settings, PartSearchSettings search, EvaluationBudget spent, Action<string> log)
         {
             bool compiles = request.Route != PartRoute.Search && CompiledPartSearch.Applies(contract) && !settings.HardwareProfile;

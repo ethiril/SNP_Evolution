@@ -10,6 +10,9 @@ namespace SnpEvolution.Tests.Application
 {
     public class LibraryViewTests
     {
+        private static readonly PartRecipe AnEmptyRecipe = new PartRecipe(
+            Array.Empty<RecipePart>(), Array.Empty<GlueNeuron>(), Array.Empty<PortWire>(), Array.Empty<RecipeLink>(), Array.Empty<string>(), Array.Empty<string>(), new Dictionary<string, string>());
+
         private static PartFile Kept(string file) => new PartFile(RepositoryFiles.ReadPart("parts", file), Path.Combine("parts", file));
 
         [Fact]
@@ -22,6 +25,7 @@ namespace SnpEvolution.Tests.Application
             Assert.StartsWith("sequencer 2", lines[2]);
             Assert.Contains("all inputs", lines[1]);
             Assert.Contains("searched", lines[1]);
+            Assert.Equal("composed", LibraryView.Route(Kept("delay-2.json").Part with { Recipe = AnEmptyRecipe }));
             Assert.Contains("No part yet for: delay 1, delay 3, delay 4, fan-out", table);
         }
 
@@ -36,7 +40,7 @@ namespace SnpEvolution.Tests.Application
             Assert.Contains("Neuron", text);
             Assert.Contains("Sends to", text);
         }
-    
+
         // The paper must say which parts came from the compiler, so the browser shows the route and the program.
         [Fact]
         public void ACompiledPartShowsItsRouteAndProgram()

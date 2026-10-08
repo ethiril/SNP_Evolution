@@ -19,10 +19,11 @@ namespace SnpEvolution.Tests.Search
             SearchOutcome<RegisterProgram> best = search.Run(new SearchRequest<RegisterProgram>(target, budget, new Random(1), _ => { }) { MaxGenerations = 400 });
 
             Assert.True(best.Solved, best.Best!.ToString());
+            Assert.Matches(@"\(stage (\d+)/\1\)$", best.Description);
             Assert.Equal(new[] { 2, 3 }, Generated(RegisterMachineCompiler.Compile(best.Best!)));
             Assert.True(budget[EvaluationKind.InterpreterRun] > 0);
         }
-    
+
         // Searched against the contract's cases, the program computes every case in the interpreter, ending on the right done.
         [Theory]
         [InlineData("register")]

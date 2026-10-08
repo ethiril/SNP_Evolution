@@ -86,7 +86,7 @@ namespace SnpEvolution.Specs.Tasks
             {
                 return 1;
             }
-            if (contract.OrderedTriggers && !ports.TriggersInOrder(run, caseIndex) || contract.TogetherTriggers && !ports.TriggersTogether(run, caseIndex))
+            if ((contract.OrderedTriggers && !ports.TriggersInOrder(run, caseIndex)) || (contract.TogetherTriggers && !ports.TriggersTogether(run, caseIndex)))
             {
                 return 0;
             }

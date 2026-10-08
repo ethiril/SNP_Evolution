@@ -6,8 +6,7 @@ using SnpEvolution.Specs.Contracts;
 namespace SnpEvolution.Specs.Parts
 {
     // Where a library part came from: the seed its contract was evolved with, the run that found it, and the networks
-    // scored to find, shrink and verify it. A part compiled from a register program keeps the program and the size the
-    // compiler made it, before shrinking, so a reader can tell which parts came from the compiler.
+    // scored to find, shrink and verify it. Program and Compiled are set only for a part compiled from a register program.
     public sealed record PartOrigin(
         int Seed,
         string Run,

@@ -15,10 +15,7 @@ namespace SnpEvolution.Search
 
         private readonly bool choices;
 
-        // A generator never subtracts from its output register r0, so its SUBs start at r1, and it needs ADDs that choose to
-        // generate more than one number. A function program's SUBs may use any register, its HALTs end on one of several
-        // done ports, and its ADDs never choose: a contract holds on every computation, so a choice can only fail it, and
-        // following both ways of every choice is what makes scoring slow.
+        // A function program's ADDs never choose, since a contract holds on every computation and a choice can only fail it.
         public ProgramEdits(int maxInstructions, int registers, Random random, int dones = 1, int firstSubtractable = 1, bool choices = true)
         {
             this.maxInstructions = maxInstructions;
@@ -61,6 +58,7 @@ namespace SnpEvolution.Search
             int roll = random.Next(10);
             if (roll == 0)
             {
+                // Drawing only when there is a choice keeps a generator search's random sequence as it was.
                 return new Instruction(Operation.Halt, dones > 1 ? random.Next(dones) : 0);
             }
             List<int> halts = Enumerable.Range(0, Math.Min(length, program.Count)).Where(label => program[label].Operation == Operation.Halt).ToList();

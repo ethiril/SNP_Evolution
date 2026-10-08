@@ -84,22 +84,24 @@ namespace SnpEvolution.Search
             }
         }
 
-        public static PartOutcome Evolve(Contract contract, int runSeed, PartSearchSettings settings, EvaluationBudget budget, Action<string> log)
+        public static PartOutcome Evolve(Contract contract, int runSeed, PartSearchSettings settings, EvaluationBudget budget, Action<string> log) =>
+            Find(new PartSearch(settings), contract, runSeed, budget, log);
+
+        public static PartOutcome Find(ISearch<MeasuredPart> search, Contract contract, int runSeed, EvaluationBudget budget, Action<string> log)
         {
             int seed = SeedFor(runSeed, contract.Name);
-            SearchOutcome<MeasuredPart> outcome = new PartSearch(settings).Run(new SearchRequest<MeasuredPart>(new ContractTask(contract), budget, new Random(seed), log));
-            return new PartOutcome(contract, seed, outcome.Spent, outcome.Best?.Part, outcome.Best?.Measurement);
+            SearchOutcome<MeasuredPart> outcome = search.Run(new SearchRequest<MeasuredPart>(new ContractTask(contract), budget, new Random(seed), log));
+            return new PartOutcome(contract, seed, outcome.Spent, outcome.Best?.Part, outcome.Best?.Measurement, outcome.Best?.Compiled);
         }
+
+        public static ContractTask TaskOf(SearchRequest<MeasuredPart> request) =>
+            request.Task is IContractTask contractTask ? ContractTask.Of(contractTask) : throw new ArgumentException("A part search needs a contract.", nameof(request));
 
         public SearchOutcome<MeasuredPart> Run(SearchRequest<MeasuredPart> request)
         {
-            ContractTask task = request.Task is IContractTask contractTask ? ContractTask.Of(contractTask) : throw new ArgumentException("A part search needs a contract.", nameof(request));
-            NetworkFactory factory = Factory(task, request.Random);
+            ContractTask task = TaskOf(request);
             var verifier = new Verifier(task, request.Budget);
-            var setup = new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3))
-            {
-                Lexicase = settings.Lexicase,
-            };
+            NetworkSetup setup = Setup(task, request.Random, verifier) with { Lexicase = settings.Lexicase };
             EvaluationBudget searchPhase = request.Budget.Phase(settings.Budget);
             IGeneticAlgorithm Create(IPopulationEvaluator evaluator) => settings.Algorithm.Create(setup.Context(evaluator, request.Random, request.Log));
             IReadOnlyList<Stage> stages = settings.StagedCases ? CaseStages(task) : new[] { new Stage(task, task.Contract.Cases.Count) };
@@ -140,10 +142,9 @@ namespace SnpEvolution.Search
         // Not solved when it fails the contract.
         public SearchOutcome<MeasuredPart> ShrinkFrom(SearchRequest<MeasuredPart> request, Network network)
         {
-            ContractTask task = request.Task is IContractTask contractTask ? ContractTask.Of(contractTask) : throw new ArgumentException("A part search needs a contract.", nameof(request));
-            NetworkFactory factory = Factory(task, request.Random);
+            ContractTask task = TaskOf(request);
             var verifier = new Verifier(task, request.Budget);
-            var setup = new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3));
+            NetworkSetup setup = Setup(task, request.Random, verifier);
             PartMeasurement measured = verifier.Measure(network);
             if (measured.Verdict is not Verdict.Passed)
             {
@@ -173,6 +174,12 @@ namespace SnpEvolution.Search
             }
             stages.Add(new Stage(task, total));
             return stages;
+        }
+
+        private NetworkSetup Setup(ContractTask task, Random random, Verifier verifier)
+        {
+            NetworkFactory factory = Factory(task, random);
+            return new NetworkSetup(settings.Population, MutationRate, factory, factory.NewNetwork, new NetworkScoring(settings.CreateEngine, verifier.Options, SolvedRetests: 3));
         }
 
         private NetworkFactory Factory(ContractTask task, Random random)

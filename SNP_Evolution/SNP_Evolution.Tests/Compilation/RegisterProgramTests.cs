@@ -47,7 +47,7 @@ namespace SnpEvolution.Tests.Compilation
             Assert.Equal(new[] { 2, 4, 6 }, outputs);
             Assert.True(complete);
         }
-    
+
         public static TheoryData<string> FunctionContracts => new TheoryData<string>(FunctionPrograms.Texts.Keys);
 
         [Theory]
@@ -79,6 +79,26 @@ namespace SnpEvolution.Tests.Compilation
             Assert.Equal(program.Program.ToString(), RegisterProgram.Parse(program.Program.ToString()).ToString());
         }
 
+        [Theory]
+        [InlineData("ADD r0 -> 1\nHALT", 1, "it has 1 registers, but its inputs and outputs need 2")]
+        [InlineData("ADD r0 -> 1\nHALT 1", 2, "instruction 1 halts on done port 1, but there are 1")]
+        [InlineData("SUB r0 -> 1 else 1\nHALT", 2, null)]
+        public void AFunctionProgramNeedsItsRegistersAndDonePortsButMaySubtractFromAnyRegister(string text, int registers, string? problem)
+        {
+            var function = new FunctionProgram(RegisterProgram.Parse(text) with { RegisterCount = registers }, new[] { "n" }, new[] { "out" }, new[] { "done" });
+
+            Assert.Equal(problem, function.Problem());
+        }
+
+        [Fact]
+        public void AGeneratorMayNotSubtractFromItsOutputRegister()
+        {
+            RegisterProgram generator = RegisterProgram.Parse("SUB r0 -> 1 else 1\nHALT");
+
+            Assert.Equal("instruction 0 subtracts from the output register r0", generator.Problem());
+            Assert.Null(generator.StructureProblem());
+        }
+
         [Fact]
         public void AnInputLeftInItsRegisterIsNotClean()
         {
@@ -99,6 +119,18 @@ namespace SnpEvolution.Tests.Compilation
 
             Assert.False(run.Complete);
             Assert.Empty(run.Outcomes);
+        }
+
+        // Configurations carry their step count, so meeting one twice means two choices rejoined, which the run must not trust.
+        [Fact]
+        public void TwoChoicesThatRejoinLeaveTheRunIncomplete()
+        {
+            FunctionProgram rejoining = FunctionProgram.Parse("ADD r0 -> 1 | 2\nADD r0 -> 4 | 3\nADD r0 -> 3 | 4\nHALT\nHALT", Array.Empty<string>(), new[] { "out" }, new[] { "done" });
+
+            FunctionRun run = rejoining.Run(new Dictionary<string, int>(), 50);
+
+            Assert.NotEmpty(run.Outcomes);
+            Assert.False(run.Complete);
         }
 
         [Fact]

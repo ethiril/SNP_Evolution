@@ -1,8 +1,8 @@
 $ snp-evolution compose --task "Contract multiply" --hand-built on --seed 1 --library parts --evaluations 100 --population 10
-exit 0
+exit 2
 --- stdout
 Composing a network for Contract multiply with Composition search, tournament of 3.
-Runs last 808 steps instead of 50, so the whole target fits.
+Runs last 1352 steps instead of 50, so the whole target fits.
 Composing networks from the parts in parts and the hand-built parts, with up to 7 glue neuron(s) and 8 part copies.
 When the run stalls it proposes the parts it lacks and evolves each for up to 20000 evaluations.
 A composition that solves the contract is promoted to a part and saved to the library.
@@ -10,232 +10,396 @@ The run stops after 100 evaluations, counting side runs, incubation and retests.
 Parents are picked by lexicase selection, so networks right about different parts of the target all breed.
 After 50 generations without improvement, mutation steps up and newcomers join.
 Module 1 kept: part for add 2, 11 neurons, 17 synapses, 14 rules (7 distinct), register width 25, lasso table 48, from add-2.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 2 kept: part for add, 24 neurons, 49 synapses, 35 rules (9 distinct), register width 35, lasso table 124, from add.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 3 kept: part for decrement, 30 neurons, 48 synapses, 42 rules (8 distinct), register width 25, lasso table 144, from decrement.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 4 kept: part for delay 1, 3 neurons, 2 synapses, 3 rules (3 distinct), register width 3, lasso table 9, from delay-1.json (evolve-parts --seed 1 --budget 50000).
-Module 5 kept: part for delay 2, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, from delay-2.json (evolve-parts --seed 1 --budget 50000).
-Module 6 kept: part for delay 3, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 1, lasso table 5, from delay-3.json (evolve-parts --seed 1 --budget 50000).
-Module 7 kept: part for delay 4, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, from delay-4.json (evolve-parts --seed 1 --budget 50000).
-Module 8 kept: part for double, 24 neurons, 38 synapses, 33 rules (8 distinct), register width 49, lasso table 112, from double.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 9 kept: part for fan-out, 38 neurons, 58 synapses, 51 rules (8 distinct), register width 25, lasso table 172, from fan-out.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 10 kept: part for fork, 4 neurons, 3 synapses, 4 rules (3 distinct), register width 2, lasso table 10, from fork.json (evolve-parts --seed 2 --budget 50000).
-Module 11 kept: part for gate, 39 neurons, 60 synapses, 55 rules (8 distinct), register width 25, lasso table 190, from gate.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 12 kept: part for increment, 9 neurons, 12 synapses, 13 rules (6 distinct), register width 25, lasso table 47, from increment.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 13 kept: part for join, 4 neurons, 3 synapses, 4 rules (4 distinct), register width 6, lasso table 18, from join.json (evolve-parts --seed 1 --budget 50000).
-Module 14 kept: part for merge, 4 neurons, 3 synapses, 4 rules (4 distinct), register width 1, lasso table 9, from merge.json (evolve-parts --seed 1 --budget 50000).
-Module 15 kept: part for register, 23 neurons, 35 synapses, 31 rules (7 distinct), register width 25, lasso table 103, from register.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 16 kept: part for select, 4 neurons, 3 synapses, 5 rules (5 distinct), register width 2, lasso table 14, from select.json (evolve-parts --seed 4 --budget 50000).
-Module 17 kept: part for sequencer 2, 6 neurons, 8 synapses, 8 rules (8 distinct), register width 4, lasso table 24, from sequencer-2.json (evolve-parts --seed 1 --budget 50000).
-Module 18 kept: part for sequencer 3, 5 neurons, 4 synapses, 5 rules (2 distinct), register width 1, lasso table 10, from sequencer-3.json (evolve-parts --seed 1 --budget 100000 --profile hardware).
-Module 19 kept: part for zero test, 18 neurons, 23 synapses, 25 rules (9 distinct), register width 25, lasso table 87, from zero-test.json (evolve-parts --seed 1 --budget 50000 --route compile).
-Module 15 (register) replaced: 23 neurons, 35 synapses, 31 rules (7 distinct), register width 25, lasso table 103 by 5 neurons, 4 synapses, 8 rules (6 distinct), register width 25, lasso table 27, from hand-built.
-Module 2 (add) replaced: 24 neurons, 49 synapses, 35 rules (9 distinct), register width 35, lasso table 124 by 6 neurons, 5 synapses, 9 rules (6 distinct), register width 35, lasso table 30, from hand-built.
-Module 12 (increment) replaced: 9 neurons, 12 synapses, 13 rules (6 distinct), register width 25, lasso table 47 by 5 neurons, 5 synapses, 8 rules (6 distinct), register width 25, lasso table 27, from hand-built.
-Module 9 (fan-out) replaced: 38 neurons, 58 synapses, 51 rules (8 distinct), register width 25, lasso table 172 by 6 neurons, 5 synapses, 10 rules (6 distinct), register width 25, lasso table 34, from hand-built.
-Module 19 (zero test) replaced: 18 neurons, 23 synapses, 25 rules (9 distinct), register width 25, lasso table 87 by 5 neurons, 4 synapses, 10 rules (7 distinct), register width 49, lasso table 40, from hand-built.
-Module 3 (decrement) replaced: 30 neurons, 48 synapses, 42 rules (8 distinct), register width 25, lasso table 144 by 6 neurons, 6 synapses, 9 rules (6 distinct), register width 25, lasso table 30, from hand-built.
-Module 11 (gate) replaced: 39 neurons, 60 synapses, 55 rules (8 distinct), register width 25, lasso table 190 by 6 neurons, 5 synapses, 11 rules (9 distinct), register width 51, lasso table 45, from hand-built.
-Module 20 kept: part for add loop, 49 neurons, 62 synapses, 79 rules (15 distinct), register width 27, lasso table 282, from hand-built.
-Promoted the composition for add loop to module 20: 49 neurons, 62 synapses, 79 rules (15 distinct), register width 27, lasso table 282, latency 223, proven up to 12 (bound 12 reached), built from register, register, fan-out, zero test, decrement, gate, fan-out.
+Module 2 kept: part for add loop, 50 neurons, 77 synapses, 67 rules (8 distinct), register width 65, lasso table 230, from add-loop.json (evolve-parts --seed 10 --budget 50000 --route compile).
+Module 3 kept: part for add, 24 neurons, 49 synapses, 35 rules (9 distinct), register width 35, lasso table 124, from add.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 4 kept: part for decrement, 30 neurons, 48 synapses, 42 rules (8 distinct), register width 25, lasso table 144, from decrement.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 5 kept: part for delay 1, 3 neurons, 2 synapses, 3 rules (3 distinct), register width 3, lasso table 9, from delay-1.json (evolve-parts --seed 1 --budget 50000).
+Module 6 kept: part for delay 2, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, from delay-2.json (evolve-parts --seed 1 --budget 50000).
+Module 7 kept: part for delay 3, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 1, lasso table 5, from delay-3.json (evolve-parts --seed 1 --budget 50000).
+Module 8 kept: part for delay 4, 2 neurons, 1 synapses, 2 rules (2 distinct), register width 2, lasso table 4, from delay-4.json (evolve-parts --seed 1 --budget 50000).
+Module 9 kept: part for double, 24 neurons, 38 synapses, 33 rules (8 distinct), register width 49, lasso table 112, from double.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 10 kept: part for fan-out, 38 neurons, 58 synapses, 51 rules (8 distinct), register width 25, lasso table 172, from fan-out.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 11 kept: part for fork, 4 neurons, 3 synapses, 4 rules (3 distinct), register width 2, lasso table 10, from fork.json (evolve-parts --seed 2 --budget 50000).
+Module 12 kept: part for gate, 39 neurons, 60 synapses, 55 rules (8 distinct), register width 25, lasso table 190, from gate.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 13 kept: part for increment, 9 neurons, 12 synapses, 13 rules (6 distinct), register width 25, lasso table 47, from increment.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 14 kept: part for join, 4 neurons, 3 synapses, 4 rules (4 distinct), register width 6, lasso table 18, from join.json (evolve-parts --seed 1 --budget 50000).
+Module 15 kept: part for merge, 4 neurons, 3 synapses, 4 rules (4 distinct), register width 1, lasso table 9, from merge.json (evolve-parts --seed 1 --budget 50000).
+Module 16 kept: part for register, 23 neurons, 35 synapses, 31 rules (7 distinct), register width 25, lasso table 103, from register.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 17 kept: part for select, 4 neurons, 3 synapses, 5 rules (5 distinct), register width 2, lasso table 14, from select.json (evolve-parts --seed 4 --budget 50000).
+Module 18 kept: part for sequencer 2, 6 neurons, 8 synapses, 8 rules (8 distinct), register width 4, lasso table 24, from sequencer-2.json (evolve-parts --seed 1 --budget 50000).
+Module 19 kept: part for sequencer 3, 5 neurons, 4 synapses, 5 rules (2 distinct), register width 1, lasso table 10, from sequencer-3.json (evolve-parts --seed 1 --budget 100000 --profile hardware).
+Module 20 kept: part for zero test, 18 neurons, 23 synapses, 25 rules (9 distinct), register width 25, lasso table 87, from zero-test.json (evolve-parts --seed 1 --budget 50000 --route compile).
+Module 16 (register) replaced: 23 neurons, 35 synapses, 31 rules (7 distinct), register width 25, lasso table 103 by 5 neurons, 4 synapses, 8 rules (6 distinct), register width 25, lasso table 27, from hand-built.
+Module 3 (add) replaced: 24 neurons, 49 synapses, 35 rules (9 distinct), register width 35, lasso table 124 by 6 neurons, 5 synapses, 9 rules (6 distinct), register width 35, lasso table 30, from hand-built.
+Module 13 (increment) replaced: 9 neurons, 12 synapses, 13 rules (6 distinct), register width 25, lasso table 47 by 5 neurons, 5 synapses, 8 rules (6 distinct), register width 25, lasso table 27, from hand-built.
+Module 10 (fan-out) replaced: 38 neurons, 58 synapses, 51 rules (8 distinct), register width 25, lasso table 172 by 6 neurons, 5 synapses, 10 rules (6 distinct), register width 25, lasso table 34, from hand-built.
+Module 20 (zero test) replaced: 18 neurons, 23 synapses, 25 rules (9 distinct), register width 25, lasso table 87 by 5 neurons, 4 synapses, 10 rules (7 distinct), register width 49, lasso table 40, from hand-built.
+Module 4 (decrement) replaced: 30 neurons, 48 synapses, 42 rules (8 distinct), register width 25, lasso table 144 by 6 neurons, 6 synapses, 9 rules (6 distinct), register width 25, lasso table 30, from hand-built.
+Module 12 (gate) replaced: 39 neurons, 60 synapses, 55 rules (8 distinct), register width 25, lasso table 190 by 6 neurons, 5 synapses, 11 rules (9 distinct), register width 51, lasso table 45, from hand-built.
+Module 2 (add loop) replaced: 50 neurons, 77 synapses, 67 rules (8 distinct), register width 65, lasso table 230 by 49 neurons, 62 synapses, 79 rules (15 distinct), register width 27, lasso table 282, from hand-built.
+Promoted the composition for add loop to module 2: 49 neurons, 62 synapses, 79 rules (15 distinct), register width 27, lasso table 282, latency 223, proven up to 12 (bound 12 reached), built from register, register, fan-out, zero test, decrement, gate, fan-out.
 Running Generation 0
-Neuron            Spikes   Rules                                                                         Sends to
-n1 (in)           -        a -> a                                                                        n7
-n2 (in)           -        a -> a                                                                        -
-n3 (in)           -        a -> a                                                                        n8
-n4                -        a -> a                                                                        -
-n5                -        a -> a                                                                        -
-n6                -        a -> a                                                                        -
-n7 [module 19]    -        a -> a                                                                        n11
-n8 [module 19]    -        a -> aaaa                                                                     n11
-n9 [module 19]    -        a -> a  |  aa -> forget                                                       n5
-n10 [module 19]   -        a -> forget  |  aa -> a                                                       n5
-n11 [module 19]   -        a -> a  |  a(aaaa)+/aaa -> aa  |  aa(aaaa)+/aaaa -> forget  |  aa -> forget   n9, n10
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
 a=1,b=1: right values 0.25
-a=1,b=2: right values 0.17
-a=1,b=3: right values 0.13
-a=1,b=4: right values 0.1
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
 a=2,b=1: right values 0.17
-a=2,b=2: right values 0.1
-a=2,b=3: right values 0.07
-a=2,b=4: right values 0.06
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
 a=3,b=1: right values 0.13
-a=3,b=2: right values 0.07
-a=3,b=3: right values 0.05
-a=3,b=4: right values 0.04
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
 a=4,b=1: right values 0.1
-a=4,b=2: right values 0.06
-a=4,b=3: right values 0.04
-a=4,b=4: right values 0.03
-a=6,b=5: right values 0.02
-Current best fitness: 0.7030724
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
 Running Generation 1
-Neuron            Spikes   Rules                                                                         Sends to
-n1 (in)           -        a -> a                                                                        n7
-n2 (in)           -        a -> a                                                                        -
-n3 (in)           -        a -> a                                                                        n8
-n4                -        a -> a                                                                        -
-n5                -        a -> a                                                                        -
-n6                -        a -> a                                                                        -
-n7 [module 19]    -        a -> a                                                                        n11
-n8 [module 19]    -        a -> aaaa                                                                     n11
-n9 [module 19]    -        a -> a  |  aa -> forget                                                       n5
-n10 [module 19]   -        a -> forget  |  aa -> a                                                       n5
-n11 [module 19]   -        a -> a  |  a(aaaa)+/aaa -> aa  |  aa(aaaa)+/aaaa -> forget  |  aa -> forget   n9, n10
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
 a=1,b=1: right values 0.25
-a=1,b=2: right values 0.17
-a=1,b=3: right values 0.13
-a=1,b=4: right values 0.1
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
 a=2,b=1: right values 0.17
-a=2,b=2: right values 0.1
-a=2,b=3: right values 0.07
-a=2,b=4: right values 0.06
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
 a=3,b=1: right values 0.13
-a=3,b=2: right values 0.07
-a=3,b=3: right values 0.05
-a=3,b=4: right values 0.04
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
 a=4,b=1: right values 0.1
-a=4,b=2: right values 0.06
-a=4,b=3: right values 0.04
-a=4,b=4: right values 0.03
-a=6,b=5: right values 0.02
-Current best fitness: 0.7030724
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
 Running Generation 2
-Neuron                  Spikes   Rules                        Sends to
-n1 (in)                 -        a -> a                       n7, n8, n9, n11
-n2 (in)                 -        a -> a                       n13
-n3 (in)                 -        a -> forget                  n12
-n4                      -        a -> a                       -
-n5                      -        a -> a                       -
-n6                      -        a -> a  |  aaa -> aa;1       -
-n7 [module 14]          -        a*/a -> forget;2             n8
-n8 [module 14]          -        a -> a;3                     n10
-n9 [module 14]          -        a+/a -> a;3                  n10
-n10 (out) [module 14]   -        a+/a -> aa                   -
-n11 [module 2]          -        a -> a                       n16
-n12 [module 2]          -        a -> aa                      n16
-n13 [module 2]          -        a -> aa                      n16
-n14 [module 2]          -        a -> a  |  aa -> forget      n4
-n15 [module 2]          -        a -> forget  |  aa -> a      n5
-n16 [module 2]          -        a(aa)+/aa -> a  |  a -> aa   n14, n15
-a=1,b=0: right values 0.25
-a=1,b=2: right values 0.25
-a=1,b=3: right values 0.17
-a=1,b=4: right values 0.13
-a=2,b=0: right values 0.17
-a=2,b=2: right values 0.17
-a=2,b=3: right values 0.1
-a=2,b=4: right values 0.07
-a=3,b=0: right values 0.13
-a=3,b=2: right values 0.13
-a=3,b=3: right values 0.07
-a=3,b=4: right values 0.05
-a=4,b=0: right values 0.1
-a=4,b=2: right values 0.1
-a=4,b=3: right values 0.06
-a=4,b=4: right values 0.04
-a=6,b=5: right values 0.02
-Current best fitness: 0.71118987
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
 Running Generation 3
-Neuron                  Spikes   Rules                        Sends to
-n1 (in)                 -        a -> a                       n7, n8, n9, n11
-n2 (in)                 -        a -> a                       n13
-n3 (in)                 -        a -> forget                  n12
-n4                      -        a -> a                       -
-n5                      -        a -> a                       -
-n6                      -        a -> a  |  aaa -> aa;1       -
-n7 [module 14]          -        a*/a -> forget;2             n8
-n8 [module 14]          -        a -> a;3                     n10
-n9 [module 14]          -        a+/a -> a;3                  n10
-n10 (out) [module 14]   -        a+/a -> aa                   -
-n11 [module 2]          -        a -> a                       n16
-n12 [module 2]          -        a -> aa                      n16
-n13 [module 2]          -        a -> aa                      n16
-n14 [module 2]          -        a -> a  |  aa -> forget      n4
-n15 [module 2]          -        a -> forget  |  aa -> a      n5
-n16 [module 2]          -        a(aa)+/aa -> a  |  a -> aa   n14, n15
-a=1,b=0: right values 0.25
-a=1,b=2: right values 0.25
-a=1,b=3: right values 0.17
-a=1,b=4: right values 0.13
-a=2,b=0: right values 0.17
-a=2,b=2: right values 0.17
-a=2,b=3: right values 0.1
-a=2,b=4: right values 0.07
-a=3,b=0: right values 0.13
-a=3,b=2: right values 0.13
-a=3,b=3: right values 0.07
-a=3,b=4: right values 0.05
-a=4,b=0: right values 0.1
-a=4,b=2: right values 0.1
-a=4,b=3: right values 0.06
-a=4,b=4: right values 0.04
-a=6,b=5: right values 0.02
-Current best fitness: 0.71118987
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
 Running Generation 4
-Neuron            Spikes   Rules                                                                         Sends to
-n1 (in)           -        a -> a                                                                        n7
-n2 (in)           -        a -> a                                                                        n9
-n3 (in)           -        a -> a                                                                        n10
-n4                -        a -> a                                                                        -
-n5                -        a -> a                                                                        -
-n6                -        a -> a                                                                        -
-n7 [module 20]    -        a -> a                                                                        n17, n22
-n8 [module 20]    -        a -> a                                                                        n18
-n9 [module 20]    -        a -> a                                                                        n45
-n10 [module 20]   -        a -> a                                                                        n23
-n11 [module 20]   -        a -> a  |  aa -> aa                                                           n4
-n12 [module 20]   -        aa -> a                                                                       n5
-n13 [module 20]   -        a -> a                                                                        n46
-n14 [module 20]   -        a -> aa                                                                       n15, n16
-n15 [module 20]   -        a -> a  |  aaa -> forget                                                      n22
-n16 [module 20]   -        a -> forget  |  aaa -> a                                                      n12
-n17 [module 20]   -        a -> a                                                                        n21
-n18 [module 20]   -        a -> aa                                                                       n21
-n19 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n20 [module 20]   -        a -> forget  |  aa -> a                                                       n12
-n21 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n19, n20
-n22 [module 20]   -        a -> a                                                                        n26
-n23 [module 20]   -        a -> aa                                                                       n26
-n24 [module 20]   -        a -> a  |  aa -> forget                                                       n28
-n25 [module 20]   -        a -> forget  |  aa -> a                                                       n27
-n26 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n24, n25
-n27 [module 20]   -        a -> a                                                                        n32
-n28 [module 20]   -        a -> aa                                                                       n32
-n29 [module 20]   -        a -> a  |  aa -> forget                                                       n34
-n30 [module 20]   -        a -> a  |  aa -> forget                                                       n39
-n31 [module 20]   -        a -> forget  |  aa -> a                                                       n33
-n32 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n29, n30, n31
-n33 [module 20]   -        a -> a                                                                        n37
-n34 [module 20]   -        a -> aaaa                                                                     n37
-n35 [module 20]   -        a -> a  |  aa -> forget                                                       n14, n44
-n36 [module 20]   -        a -> forget  |  aa -> a                                                       n13, n38
-n37 [module 20]   -        a -> a  |  a(aaaa)+/aaa -> aa  |  aa(aaaa)+/aaaa -> forget  |  aa -> forget   n35, n36
-n38 [module 20]   -        a -> a                                                                        n42, n43
-n39 [module 20]   -        a -> aa                                                                       n42
-n40 [module 20]   -        a -> a  |  aa -> forget                                                       n23
-n41 [module 20]   -        a -> forget  |  aa -> a                                                       n44
-n42 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n40, n41
-n43 [module 20]   -        a -> a                                                                        n40
-n44 [module 20]   -        a -> a                                                                        n49
-n45 [module 20]   -        a -> aaaa                                                                     n49
-n46 [module 20]   -        a -> aa                                                                       n49
-n47 [module 20]   -        a -> a  |  aa -> forget                                                       n51
-n48 [module 20]   -        a -> forget  |  aa -> a                                                       n50
-n49 [module 20]   -        aaa(aaaa)+/aaaa -> a  |  aaa -> aa  |  a(aaaa)+/aaaa -> forget  |  a -> aa    n47, n48
-n50 [module 20]   -        a -> a                                                                        n55
-n51 [module 20]   -        a -> aa                                                                       n55
-n52 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n53 [module 20]   -        a -> a  |  aa -> forget                                                       n45
-n54 [module 20]   -        a -> forget  |  aa -> a                                                       n15, n16
-n55 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n52, n53, n54
-meets the contract
-Current best fitness: 1
-Testing the best fitness for repeated success.
-Fitness over 0.985, stopping . . .
-Module 21 kept: part for multiply, 55 neurons, 67 synapses, 85 rules (15 distinct), register width 27, lasso table 300, from composition search for multiply.
-Promoted the composition for multiply to module 21: 55 neurons, 67 synapses, 85 rules (15 distinct), register width 27, lasso table 300, latency 225, proven up to 12 (bound 12 reached), built from add loop.
-The library holds hand-built parts, so it is not saved to the default part library folder; give another folder to keep it.
-Evaluations: 50 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 55 in all. Evolving the library's parts beforehand took 332,401, so 332,456 with them. 35 repeated a network already scored on the same task, 0 of them exactly. Besides them, 14 exhaustive checks. Besides them, 13 proof bounds.
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+Running Generation 5
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+Running Generation 6
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+Running Generation 7
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+Running Generation 8
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+Running Generation 9
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
+a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03
+Current best fitness: 0.71340287
+The budget of 100 evaluations is spent, stopping . . .
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 332,401, so 332,501 with them. 68 repeated a network already scored on the same task, 0 of them exactly.
 Saved the file to: <work>/runs/<run>/ComposedNet-evaluations.txt
 Saved the file to: <work>/runs/<run>/ComposedNet.csv
 
@@ -243,73 +407,53 @@ Parts:
 No parts were proposed.
 
 Part                 In best (nested)   Mean per network in final population
-fan-out                    0 (2)   0.00
-register                   0 (2)   0.00
-add loop (promoted)        1 (0)   1.00
-decrement                  0 (1)   0.00
-gate                       0 (1)   0.00
-zero test                  0 (1)   0.00
+add                        1 (0)   0.60
+join                       1 (0)   0.60
+add loop (promoted)        0 (0)   0.40
+select                     0 (0)   0.40
+gate                       0 (0)   0.30
+fan-out                    0 (0)   0.00
+register                   0 (0)   0.00
+decrement                  0 (0)   0.00
+zero test                  0 (0)   0.00
 
-The best network reuses promoted part(s): add loop x1.
+The best network uses no promoted part.
 Saved the file to: <work>/runs/<run>/ComposedNet-parts.txt
 
-Best network found (fitness 1, meets the contract):
-Neuron            Spikes   Rules                                                                         Sends to
-n1 (in)           -        a -> a                                                                        n7
-n2 (in)           -        a -> a                                                                        n9
-n3 (in)           -        a -> a                                                                        n10
-n4                -        a -> a                                                                        -
-n5                -        a -> a                                                                        -
-n6                -        a -> a                                                                        -
-n7 [module 20]    -        a -> a                                                                        n17, n22
-n8 [module 20]    -        a -> a                                                                        n18
-n9 [module 20]    -        a -> a                                                                        n45
-n10 [module 20]   -        a -> a                                                                        n23
-n11 [module 20]   -        a -> a  |  aa -> aa                                                           n4
-n12 [module 20]   -        aa -> a                                                                       n5
-n13 [module 20]   -        a -> a                                                                        n46
-n14 [module 20]   -        a -> aa                                                                       n15, n16
-n15 [module 20]   -        a -> a  |  aaa -> forget                                                      n22
-n16 [module 20]   -        a -> forget  |  aaa -> a                                                      n12
-n17 [module 20]   -        a -> a                                                                        n21
-n18 [module 20]   -        a -> aa                                                                       n21
-n19 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n20 [module 20]   -        a -> forget  |  aa -> a                                                       n12
-n21 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n19, n20
-n22 [module 20]   -        a -> a                                                                        n26
-n23 [module 20]   -        a -> aa                                                                       n26
-n24 [module 20]   -        a -> a  |  aa -> forget                                                       n28
-n25 [module 20]   -        a -> forget  |  aa -> a                                                       n27
-n26 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n24, n25
-n27 [module 20]   -        a -> a                                                                        n32
-n28 [module 20]   -        a -> aa                                                                       n32
-n29 [module 20]   -        a -> a  |  aa -> forget                                                       n34
-n30 [module 20]   -        a -> a  |  aa -> forget                                                       n39
-n31 [module 20]   -        a -> forget  |  aa -> a                                                       n33
-n32 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n29, n30, n31
-n33 [module 20]   -        a -> a                                                                        n37
-n34 [module 20]   -        a -> aaaa                                                                     n37
-n35 [module 20]   -        a -> a  |  aa -> forget                                                       n14, n44
-n36 [module 20]   -        a -> forget  |  aa -> a                                                       n13, n38
-n37 [module 20]   -        a -> a  |  a(aaaa)+/aaa -> aa  |  aa(aaaa)+/aaaa -> forget  |  aa -> forget   n35, n36
-n38 [module 20]   -        a -> a                                                                        n42, n43
-n39 [module 20]   -        a -> aa                                                                       n42
-n40 [module 20]   -        a -> a  |  aa -> forget                                                       n23
-n41 [module 20]   -        a -> forget  |  aa -> a                                                       n44
-n42 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n40, n41
-n43 [module 20]   -        a -> a                                                                        n40
-n44 [module 20]   -        a -> a                                                                        n49
-n45 [module 20]   -        a -> aaaa                                                                     n49
-n46 [module 20]   -        a -> aa                                                                       n49
-n47 [module 20]   -        a -> a  |  aa -> forget                                                       n51
-n48 [module 20]   -        a -> forget  |  aa -> a                                                       n50
-n49 [module 20]   -        aaa(aaaa)+/aaaa -> a  |  aaa -> aa  |  a(aaaa)+/aaaa -> forget  |  a -> aa    n47, n48
-n50 [module 20]   -        a -> a                                                                        n55
-n51 [module 20]   -        a -> aa                                                                       n55
-n52 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n53 [module 20]   -        a -> a  |  aa -> forget                                                       n45
-n54 [module 20]   -        a -> forget  |  aa -> a                                                       n15, n16
-n55 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n52, n53, n54
+Best network found (fitness 0.71340287, a=1,b=0: right values 0.17
+a=1,b=1: right values 0.25
+a=1,b=3: right values 0.25
+a=1,b=4: right values 0.17
+a=2,b=0: right values 0.1
+a=2,b=1: right values 0.17
+a=2,b=3: right values 0.17
+a=2,b=4: right values 0.1
+a=3,b=0: right values 0.07
+a=3,b=1: right values 0.13
+a=3,b=3: right values 0.13
+a=3,b=4: right values 0.07
+a=4,b=0: right values 0.06
+a=4,b=1: right values 0.1
+a=4,b=3: right values 0.1
+a=4,b=4: right values 0.06
+a=6,b=5: right values 0.03):
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13
 
 ----------- Saving Network -----------
 Saved the file to: <work>/runs/<run>/ComposedNet.json
@@ -696,6 +840,1661 @@ Saved to <work>/runs/<run>
     "UpTo": 1599,
     "AllInputs": false,
     "Stopped": "time limit of 20 s"
+  }
+}
+--- file parts/add-loop.json
+{
+  "Contract": {
+    "Name": "add loop",
+    "Start": {
+      "Name": "start",
+      "Direction": "In",
+      "Kind": "Trigger",
+      "Width": 0
+    },
+    "Done": [
+      {
+        "Name": "done",
+        "Direction": "Out",
+        "Kind": "Trigger",
+        "Width": 0
+      }
+    ],
+    "Data": [
+      {
+        "Name": "a",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "b",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "n",
+        "Direction": "In",
+        "Kind": "Count",
+        "Width": 0
+      },
+      {
+        "Name": "sum",
+        "Direction": "Out",
+        "Kind": "Count",
+        "Width": 0
+      }
+    ],
+    "Cases": [
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 0,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 0,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 1
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 1,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 1,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 2,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 2,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 10
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 3
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 5
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 9
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 11
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 3,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 12
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 3,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 14
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 0
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4,
+          "n": 0
+        },
+        "Outputs": {
+          "sum": 2
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 4
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4,
+          "n": 1
+        },
+        "Outputs": {
+          "sum": 6
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 8
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4,
+          "n": 2
+        },
+        "Outputs": {
+          "sum": 10
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 12
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4,
+          "n": 3
+        },
+        "Outputs": {
+          "sum": 14
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 4,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 16
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 4,
+          "n": 4
+        },
+        "Outputs": {
+          "sum": 18
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 0,
+          "b": 6,
+          "n": 5
+        },
+        "Outputs": {
+          "sum": 30
+        },
+        "Done": "done"
+      },
+      {
+        "Inputs": {
+          "a": 2,
+          "b": 6,
+          "n": 5
+        },
+        "Outputs": {
+          "sum": 32
+        },
+        "Done": "done"
+      }
+    ],
+    "MaxLatency": 672,
+    "MinLatency": 0,
+    "OrderedTriggers": false
+  },
+  "Binding": {
+    "Positions": {
+      "sum": 5,
+      "done": 6
+    }
+  },
+  "Network": {
+    "Neurons": [
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          12
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": true
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          23,
+          26,
+          27
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          40,
+          41
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          44,
+          45,
+          47,
+          48
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 3,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          34,
+          35
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aaa(aa)*",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 4,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          30
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          24,
+          25
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7,
+          28,
+          29
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          17,
+          32
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          20,
+          33
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10,
+          36,
+          37
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          13,
+          38
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          12,
+          39
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a(aa)?",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          8,
+          42,
+          43
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9,
+          37,
+          46
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9,
+          49,
+          50
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          6
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          11,
+          29,
+          31
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          23,
+          37
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          27
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          14
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          19
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          26
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          27
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          18
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          23,
+          30
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          9
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          7
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          5,
+          16
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          22
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          34
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          35,
+          45
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 2
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          10
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          20
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          21
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          40
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          41
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          15
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          13
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          44
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          13
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "aa",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 2,
+            "Produce": 1
+          },
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": false,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          16
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 0,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          47
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      },
+      {
+        "Rules": [
+          {
+            "RuleExpression": "a",
+            "Delay": 1,
+            "Fire": true,
+            "Consume": 1,
+            "Produce": 1
+          }
+        ],
+        "SpikeCount": 0,
+        "Connections": [
+          48
+        ],
+        "IsOutput": false,
+        "IsInput": false
+      }
+    ]
+  },
+  "Cost": {
+    "Neurons": 50,
+    "Synapses": 77,
+    "DistinctRules": 8,
+    "Rules": 67,
+    "RegisterWidth": 65,
+    "LassoTable": 230
+  },
+  "Latency": 519,
+  "Origin": {
+    "Seed": 1766610344,
+    "Run": "evolve-parts --seed 10 --budget 50000 --route compile",
+    "Evaluations": 62543,
+    "Program": "inputs r0 = a, r1 = b, r2 = n; outputs r3 = sum; done 0 = done\n0: SUB r0 -> 2 else 8\n1: SUB r0 -> 3 else 8\n2: SUB r4 -> 2 else 7\n3: ADD r2 -> 6\n4: ADD r0 -> 9\n5: HALT done\n6: ADD r3 -> 1\n7: ADD r3 -> 0\n8: SUB r1 -> 9 else 10\n9: SUB r2 -> 4 else 1\n10: SUB r2 -> 1 else 5\n",
+    "Compiled": {
+      "Neurons": 55,
+      "Synapses": 81,
+      "DistinctRules": 6,
+      "Rules": 74,
+      "RegisterWidth": 0,
+      "LassoTable": 251
+    }
+  },
+  "Proven": {
+    "UpTo": 25,
+    "AllInputs": false,
+    "Stopped": "time limit of 60 s"
   }
 }
 --- file parts/add.json
@@ -8179,25 +9978,33 @@ Saved to <work>/runs/<run>
   }
 }
 --- file runs/<run>/ComposedNet-evaluations.txt
-Evaluations: 50 main run, 0 side runs, 0 incubation, 5 verification, 0 proposed parts; 55 in all. Evolving the library's parts beforehand took 332,401, so 332,456 with them. 35 repeated a network already scored on the same task, 0 of them exactly. Besides them, 14 exhaustive checks. Besides them, 13 proof bounds.
+Evaluations: 100 main run, 0 side runs, 0 incubation, 0 verification, 0 proposed parts; 100 in all. Evolving the library's parts beforehand took 332,401, so 332,501 with them. 68 repeated a network already scored on the same task, 0 of them exactly.
 --- file runs/<run>/ComposedNet-parts.txt
 No parts were proposed.
 
 Part                 In best (nested)   Mean per network in final population
-fan-out                    0 (2)   0.00
-register                   0 (2)   0.00
-add loop (promoted)        1 (0)   1.00
-decrement                  0 (1)   0.00
-gate                       0 (1)   0.00
-zero test                  0 (1)   0.00
+add                        1 (0)   0.60
+join                       1 (0)   0.60
+add loop (promoted)        0 (0)   0.40
+select                     0 (0)   0.40
+gate                       0 (0)   0.30
+fan-out                    0 (0)   0.00
+register                   0 (0)   0.00
+decrement                  0 (0)   0.00
+zero test                  0 (0)   0.00
 
-The best network reuses promoted part(s): add loop x1.
+The best network uses no promoted part.
 --- (no newline at end of file)
 --- file runs/<run>/ComposedNet.csv
-0.7030724,0.6633754,0.6199786,0.6594551,0.6594551,0.6594551,0.6199786,0.6199786,0.7030724,0.6594551
-0.7030724,0.6594551,0.7030724,0.7030724,0.43424228,0.71118987,0.7030724,0.7030724,0.6199786,0.6594551
-0.71118987,0.71118987,0.7030724,0.6594551,0.6594551,0.6199786,0.71118987,0.6199786,0.6594551,0.6199786
-0.71118987,0.71118987,0.71118987,1,0.6199786,0.6199786,0.7111751,0.6594551,0.6594551,0.71118987
+0.71340287,0.7133547,0.7133547,0.7133547,0.6592262,0.5,0.7133547,0.71340287,0.45307243,0.6592262
+0.71340287,0.6592262,0.6592262,0.6592262,0.71340287,0.21073718,0.70559037,0.71340287,0.65710753,0.6592262
+0.71340287,0.71340287,0.6979492,0.71340287,0.32091346,0.71340287,0.6592262,0.6592262,0.6592262,0.37492487
+0.71340287,0.71340287,0.6592262,0.4479492,0.6592262,0.7094787,0.6979492,0.6592262,0.6592262,0.71340287
+0.71340287,0.7094787,0.6592262,0.6592262,0.71340287,0.6592262,0.6979492,0.6592262,0.6592262,0.7094787
+0.71340287,0.5787329,0.6592262,0.71340287,0.6592262,0.407177,0.6592262,0.6979492,0.6979492,0.6592262
+0.71340287,0.6592262,0.6592262,0.57091343,0.71340287,0.71118987,0.70208335,0.6592262,0.6979492,0.6592262
+0.71340287,0.71340287,0.6979492,0.4555904,0.71340287,0.49397296,0.6979492,0.55462766,0.71118987,0.70208335
+0.71340287,0.71118987,0.6979492,0.70208335,0.70208335,0.6979492,0.71340287,0.71340287,0.6979492,0.59615386
 --- file runs/<run>/ComposedNet.json
 {
   "Neurons": [
@@ -8213,7 +10020,9 @@ The best network reuses promoted part(s): add loop x1.
       ],
       "SpikeCount": 0,
       "Connections": [
-        7
+        7,
+        14,
+        15
       ],
       "IsOutput": false,
       "IsInput": true
@@ -8230,6 +10039,7 @@ The best network reuses promoted part(s): add loop x1.
       ],
       "SpikeCount": 0,
       "Connections": [
+        8,
         9
       ],
       "IsOutput": false,
@@ -8246,9 +10056,7 @@ The best network reuses promoted part(s): add loop x1.
         }
       ],
       "SpikeCount": 0,
-      "Connections": [
-        10
-      ],
+      "Connections": [],
       "IsOutput": false,
       "IsInput": true
     },
@@ -8309,14 +10117,13 @@ The best network reuses promoted part(s): add loop x1.
       ],
       "SpikeCount": 0,
       "Connections": [
-        17,
-        22
+        12
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
@@ -8326,18 +10133,18 @@ The best network reuses promoted part(s): add loop x1.
           "Delay": 0,
           "Fire": true,
           "Consume": 1,
-          "Produce": 1
+          "Produce": 2
         }
       ],
       "SpikeCount": 0,
       "Connections": [
-        18
+        12
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
@@ -8347,39 +10154,18 @@ The best network reuses promoted part(s): add loop x1.
           "Delay": 0,
           "Fire": true,
           "Consume": 1,
-          "Produce": 1
+          "Produce": 2
         }
       ],
       "SpikeCount": 0,
       "Connections": [
-        45
+        12
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        23
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
@@ -8394,9 +10180,9 @@ The best network reuses promoted part(s): add loop x1.
         {
           "RuleExpression": "aa",
           "Delay": 0,
-          "Fire": true,
+          "Fire": false,
           "Consume": 2,
-          "Produce": 2
+          "Produce": 1
         }
       ],
       "SpikeCount": 0,
@@ -8406,12 +10192,19 @@ The best network reuses promoted part(s): add loop x1.
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
       "Rules": [
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": false,
+          "Consume": 1,
+          "Produce": 1
+        },
         {
           "RuleExpression": "aa",
           "Delay": 0,
@@ -8422,224 +10215,50 @@ The best network reuses promoted part(s): add loop x1.
       ],
       "SpikeCount": 0,
       "Connections": [
-        5
+        5,
+        13
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
       "Rules": [
         {
-          "RuleExpression": "a",
+          "RuleExpression": "a(aa)+",
           "Delay": 0,
           "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        46
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        15,
-        16
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aaa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 3,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        22
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aaa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 3,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        12
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        21
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        21
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
           "Consume": 2,
           "Produce": 1
+        },
+        {
+          "RuleExpression": "a",
+          "Delay": 0,
+          "Fire": true,
+          "Consume": 1,
+          "Produce": 2
         }
       ],
       "SpikeCount": 0,
       "Connections": [
+        10,
         11
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
-        "Instance": 3
+        "Module": 3,
+        "Instance": 2
       }
     },
     {
       "Rules": [
         {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        12
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a(aa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
+          "RuleExpression": "a?",
+          "Delay": 2,
           "Fire": true,
           "Consume": 1,
           "Produce": 2
@@ -8647,907 +10266,74 @@ The best network reuses promoted part(s): add loop x1.
       ],
       "SpikeCount": 0,
       "Connections": [
-        19,
-        20
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        26
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        26
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        28
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        27
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a(aa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        24,
-        25
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        32
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        32
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        34
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        39
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        33
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a(aa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        29,
-        30,
-        31
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        37
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 4
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        37
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        14,
-        44
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        13,
-        38
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a(aaaa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 3,
-          "Produce": 2
-        },
-        {
-          "RuleExpression": "aa(aaaa)+",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 4,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        35,
-        36
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        42,
-        43
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        42
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        23
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        44
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a(aa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        40,
-        41
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        40
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        49
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 4
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        49
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        49
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        51
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        50
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "aaa(aaaa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 4,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aaa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 3,
-          "Produce": 2
-        },
-        {
-          "RuleExpression": "a(aaaa)+",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 4,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        47,
-        48
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        55
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 2
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        55
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        11
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        45
-      ],
-      "IsOutput": false,
-      "IsInput": false,
-      "Module": {
-        "Module": 20,
-        "Instance": 3
-      }
-    },
-    {
-      "Rules": [
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": false,
-          "Consume": 1,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "aa",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        }
-      ],
-      "SpikeCount": 0,
-      "Connections": [
-        15,
         16
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
+        "Module": 14,
         "Instance": 3
       }
     },
     {
       "Rules": [
         {
-          "RuleExpression": "a(aa)+",
-          "Delay": 0,
-          "Fire": true,
-          "Consume": 2,
-          "Produce": 1
-        },
-        {
-          "RuleExpression": "a",
-          "Delay": 0,
-          "Fire": true,
+          "RuleExpression": "a(aa)?",
+          "Delay": 3,
+          "Fire": false,
           "Consume": 1,
-          "Produce": 2
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 0,
+      "Connections": [],
+      "IsOutput": false,
+      "IsInput": false,
+      "Module": {
+        "Module": 14,
+        "Instance": 3
+      }
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "a?",
+          "Delay": 3,
+          "Fire": false,
+          "Consume": 1,
+          "Produce": 1
         }
       ],
       "SpikeCount": 0,
       "Connections": [
-        52,
-        53,
-        54
+        14
       ],
       "IsOutput": false,
       "IsInput": false,
       "Module": {
-        "Module": 20,
+        "Module": 14,
+        "Instance": 3
+      }
+    },
+    {
+      "Rules": [
+        {
+          "RuleExpression": "aaa(aaa)+",
+          "Delay": 2,
+          "Fire": true,
+          "Consume": 4,
+          "Produce": 1
+        }
+      ],
+      "SpikeCount": 4,
+      "Connections": [
+        6,
+        13
+      ],
+      "IsOutput": false,
+      "IsInput": false,
+      "Module": {
+        "Module": 14,
         "Instance": 3
       }
     }
@@ -9555,59 +10341,20 @@ The best network reuses promoted part(s): add loop x1.
 }
 --- (no newline at end of file)
 --- file runs/<run>/ComposedNet.txt
-Neuron            Spikes   Rules                                                                         Sends to
-n1 (in)           -        a -> a                                                                        n7
-n2 (in)           -        a -> a                                                                        n9
-n3 (in)           -        a -> a                                                                        n10
-n4                -        a -> a                                                                        -
-n5                -        a -> a                                                                        -
-n6                -        a -> a                                                                        -
-n7 [module 20]    -        a -> a                                                                        n17, n22
-n8 [module 20]    -        a -> a                                                                        n18
-n9 [module 20]    -        a -> a                                                                        n45
-n10 [module 20]   -        a -> a                                                                        n23
-n11 [module 20]   -        a -> a  |  aa -> aa                                                           n4
-n12 [module 20]   -        aa -> a                                                                       n5
-n13 [module 20]   -        a -> a                                                                        n46
-n14 [module 20]   -        a -> aa                                                                       n15, n16
-n15 [module 20]   -        a -> a  |  aaa -> forget                                                      n22
-n16 [module 20]   -        a -> forget  |  aaa -> a                                                      n12
-n17 [module 20]   -        a -> a                                                                        n21
-n18 [module 20]   -        a -> aa                                                                       n21
-n19 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n20 [module 20]   -        a -> forget  |  aa -> a                                                       n12
-n21 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n19, n20
-n22 [module 20]   -        a -> a                                                                        n26
-n23 [module 20]   -        a -> aa                                                                       n26
-n24 [module 20]   -        a -> a  |  aa -> forget                                                       n28
-n25 [module 20]   -        a -> forget  |  aa -> a                                                       n27
-n26 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n24, n25
-n27 [module 20]   -        a -> a                                                                        n32
-n28 [module 20]   -        a -> aa                                                                       n32
-n29 [module 20]   -        a -> a  |  aa -> forget                                                       n34
-n30 [module 20]   -        a -> a  |  aa -> forget                                                       n39
-n31 [module 20]   -        a -> forget  |  aa -> a                                                       n33
-n32 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n29, n30, n31
-n33 [module 20]   -        a -> a                                                                        n37
-n34 [module 20]   -        a -> aaaa                                                                     n37
-n35 [module 20]   -        a -> a  |  aa -> forget                                                       n14, n44
-n36 [module 20]   -        a -> forget  |  aa -> a                                                       n13, n38
-n37 [module 20]   -        a -> a  |  a(aaaa)+/aaa -> aa  |  aa(aaaa)+/aaaa -> forget  |  aa -> forget   n35, n36
-n38 [module 20]   -        a -> a                                                                        n42, n43
-n39 [module 20]   -        a -> aa                                                                       n42
-n40 [module 20]   -        a -> a  |  aa -> forget                                                       n23
-n41 [module 20]   -        a -> forget  |  aa -> a                                                       n44
-n42 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n40, n41
-n43 [module 20]   -        a -> a                                                                        n40
-n44 [module 20]   -        a -> a                                                                        n49
-n45 [module 20]   -        a -> aaaa                                                                     n49
-n46 [module 20]   -        a -> aa                                                                       n49
-n47 [module 20]   -        a -> a  |  aa -> forget                                                       n51
-n48 [module 20]   -        a -> forget  |  aa -> a                                                       n50
-n49 [module 20]   -        aaa(aaaa)+/aaaa -> a  |  aaa -> aa  |  a(aaaa)+/aaaa -> forget  |  a -> aa    n47, n48
-n50 [module 20]   -        a -> a                                                                        n55
-n51 [module 20]   -        a -> aa                                                                       n55
-n52 [module 20]   -        a -> a  |  aa -> forget                                                       n11
-n53 [module 20]   -        a -> a  |  aa -> forget                                                       n45
-n54 [module 20]   -        a -> forget  |  aa -> a                                                       n15, n16
-n55 [module 20]   -        a(aa)+/aa -> a  |  a -> aa                                                    n52, n53, n54
+Neuron            Spikes   Rules                        Sends to
+n1 (in)           -        a -> a                       n7, n14, n15
+n2 (in)           -        a -> a                       n8, n9
+n3 (in)           -        a -> a                       -
+n4                -        a -> a                       -
+n5                -        a -> a                       -
+n6                -        a -> a                       -
+n7 [module 3]     -        a -> a                       n12
+n8 [module 3]     -        a -> aa                      n12
+n9 [module 3]     -        a -> aa                      n12
+n10 [module 3]    -        a -> a  |  aa -> forget      n4
+n11 [module 3]    -        a -> forget  |  aa -> a      n5, n13
+n12 [module 3]    -        a(aa)+/aa -> a  |  a -> aa   n10, n11
+n13 [module 14]   -        a?/a -> aa;2                 n16
+n14 [module 14]   -        a(aa)?/a -> forget;3         -
+n15 [module 14]   -        a?/a -> forget;3             n14
+n16 [module 14]   aaaa     aaa(aaa)+/aaaa -> a;2        n6, n13

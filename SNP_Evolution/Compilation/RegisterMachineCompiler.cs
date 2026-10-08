@@ -39,24 +39,14 @@ namespace SnpEvolution.Compilation
             return builder.Build();
         }
 
-        // Steps from an instruction neuron firing to the next one firing in a compiled network: an ADD passes straight on,
-        // or through its choice, one step later for Else; a SUB's register answers above zero a step before it answers at zero.
-        public static int Steps(Instruction instruction, bool tookElse) => instruction.Operation switch
-        {
-            Operation.Add when instruction.Next == instruction.Else => 1,
-            Operation.Add => tookElse ? 4 : 3,
-            _ => tookElse ? 4 : 3,
-        };
+        // A plain ADD passes straight on; a choosing ADD or a SUB takes three steps to Next and four to Else.
+        public static int Steps(Instruction instruction, bool tookElse) =>
+            instruction.Operation == Operation.Add && instruction.Next == instruction.Else ? 1 : tookElse ? 4 : 3;
 
-        // A compiled function program's latency: a step from start to the first instruction, the instructions' own steps,
-        // a SUB loop per output (3 steps a unit and 4 at zero), and a step from the HALT to its done port.
+        // A step from start, the instructions' own steps, a drain loop per output (3 a unit, 4 at zero), and a step to done.
         public static int Latency(int instructionSteps, IEnumerable<int> outputs) => 1 + instructionSteps + outputs.Sum(value => 3 * value + 4) + 1;
 
-        // Compiles a function program into a part's network, laid out start, the count in-ports, the count out-ports and the
-        // done ports, then the rest. Start fires the first instruction. Each count in-port spike adds two to its register,
-        // as the modules' registers hold 2v. When the program halts, each output register is drained by a SUB loop whose
-        // "above zero" gate also fires the out-port, one spike per unit, and then the HALT fires its done port, so every
-        // value is sent before done and every register ends at zero.
+        // Neurons are laid out as a part's ports are (start, count in-ports, count out-ports, done ports), and outputs drain before done so every register ends at zero.
         public static Network Compile(FunctionProgram function)
         {
             if (function.Problem() is string problem)
@@ -66,6 +56,7 @@ namespace SnpEvolution.Compilation
             (RegisterProgram program, IReadOnlyDictionary<int, int> drains) = WithDrains(function);
             var builder = new Builder();
             int start = builder.New(new[] { Rule.Standard("a", 1) }, isInput: true);
+            // Each input spike adds two, as the modules' registers hold 2v.
             int[] inputs = function.Inputs.Select(_ => builder.New(new[] { Rule.Standard("a", 1, produce: 2) }, isInput: true)).ToArray();
             int[] outputs = function.Outputs.Select(_ => builder.New(new[] { Rule.Standard("a", 1) })).ToArray();
             int[] dones = function.Dones.Select(_ => builder.New(new[] { Rule.Standard("a", 1) })).ToArray();
@@ -81,8 +72,7 @@ namespace SnpEvolution.Compilation
             return builder.Build();
         }
 
-        // The program with each HALT replaced by a SUB loop per output register, in order, ending on a HALT for the same
-        // done port, and which loop labels drain which output.
+        // Each HALT becomes a SUB loop per output register, ending on the same HALT; Drains maps each loop's label to its output.
         public static (RegisterProgram Program, IReadOnlyDictionary<int, int> Drains) WithDrains(FunctionProgram function)
         {
             List<Instruction> instructions = function.Program.Instructions.ToList();
@@ -110,8 +100,7 @@ namespace SnpEvolution.Compilation
             return (function.Program with { Instructions = instructions }, drains);
         }
 
-        // The ADD and SUB modules for every instruction, with halt wiring each HALT and emit giving the neuron a SUB's
-        // "above zero" gate also fires, if any.
+        // Emit names the neuron, if any, that a SUB's "above zero" gate also fires.
         private static void Modules(Builder builder, RegisterProgram program, int[] registers, int[] instructions, Action<Instruction, int> halt, Func<int, int?> emit)
         {
             for (int label = 0; label < program.Instructions.Count; label++)

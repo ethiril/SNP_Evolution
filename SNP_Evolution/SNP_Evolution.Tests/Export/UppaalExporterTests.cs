@@ -122,5 +122,25 @@ namespace SnpEvolution.Tests.Export
 
             Assert.False(Holds(broken with { Contract = upToTwenty }, DoneOnceQueryName));
         }
+
+        [Fact]
+        public void OnlyControlContractsGetPerCaseEarliestDoneAndTogetherTriggerChecks()
+        {
+            Contract join = FirstParts.Named("join");
+            Contract fork = FirstParts.Named("fork");
+            Part register = PartFixtures.HandBuiltRegister();
+
+            string joinDeclarations = Declarations(new Part(join, ControlNetworks.JoinOnAPair(relay: false), PortLayout.AfterInputs(join)));
+            string forkDeclarations = Declarations(new Part(fork, ControlNetworks.Fork(apart: false), PortLayout.AfterInputs(fork)));
+            string registerDeclarations = Declarations(register);
+
+            Assert.Contains("const int EARLIEST[CASES] = {1, 2, 3, 4, 5, 2, 2, 4, 4, 5, 5};", joinDeclarations);
+            Assert.Contains("firstDone - (START[caseNo] + 1) >= EARLIEST[caseNo]", joinDeclarations);
+            Assert.DoesNotContain("EARLIEST", registerDeclarations);
+            Assert.Contains("if (outFirst[0] >= 0 && outFirst[1] >= 0 && outFirst[0] != outFirst[1]) doneOk = false;", forkDeclarations);
+            Assert.DoesNotContain("Triggers that fire do so on one step", registerDeclarations);
+        }
+
+        private static string Declarations(Part part) => UppaalDeclarations.Of(part, new ContractTask(part.Contract, part.Binding), deterministic: true);
     }
 }

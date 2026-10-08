@@ -14,8 +14,7 @@ namespace SnpEvolution.Search
         public int Size => Program.Instructions.Count;
     }
 
-    // How a program search scores a program, in stages that end with the whole target. A larger scale runs the program
-    // for longer, for confirming a solve.
+    // Stages end with the whole target; a larger scale runs the program for longer, for confirming a solve.
     public interface IProgramScoring
     {
         int Stage { get; }

@@ -53,7 +53,7 @@ namespace SnpEvolution.Tests.Compilation
             Assert.Equal(new[] { 1, 2, 3, 5, 8, 13, 21 }, outputs);
             Assert.Equal(outputs, generated.Where(number => number <= 21));
         }
-    
+
         public static TheoryData<string> FunctionContracts => new TheoryData<string>(FunctionPrograms.Texts.Keys);
 
         // Laid out as evolved parts are, so the contract's own binding reads it.

@@ -275,6 +275,24 @@ The run ends with a table of each contract, whether it was solved, the evaluatio
 
 With seed 1 and the default budget (47 minutes on a 15-core machine; about 70 seconds since part search keeps its neurons deterministic, when it also solves delay 1), the run solved delay 2, 3 and 4 (2 neurons, 1 synapse each) and sequencer 2 (6 neurons, 8 synapses). Delay 1 was solved by other seeds but not this one, and sequencer 3 and the zero test came close (best fitness 0.97). None of the parts with count ports was solved. Their best networks score about 0.8, getting every rule right except putting the right values out and firing done once. A part that holds a count until start needs the parity trick of the hand-built register: each input spike is stored as two, and start makes the total odd so that a rule matching odd counts drains it. Larger networks, lexicase off, and partial credit for right values when done misfires all left the best near 0.8 within 50000 evaluations. Weighting the values as half of each case and learning a few cases at a time solved none of them over 10 seeds either, but moved where the search stalls: increment and register get the right values on their first three cases and leave one neuron holding a spike, add and register get all but one case right, the zero test never fires done for n = 0, and fan-out and double each reached all their cases on one seed. The `parts/` folder in the repository holds the parts this run found.
 
+### Compiling count parts
+
+Search alone has not found a count part, so for a contract whose data ports are all counts, `evolve-parts` also has a compile route (`--route compile`, or `both`, the default, which falls back to search when compiling finds nothing):
+
+1. **Program search.** It searches for a function program: a register program whose inputs start in r0, r1, …, whose outputs are the registers after them, and whose HALTs each name a done port. The interpreter scores it on the contract's cases with no network built. Each case is checked for the right done, each output, every other register back at zero, being on time, and halting, with lexicase parents. Function programs never make ADD choices, and the search stops after 2000 generations.
+2. **Taking instructions out.** Instructions are removed one at a time while the program still passes.
+3. **Compiling.** The program is compiled with the textbook ADD and SUB modules (Ionescu, Păun and Yokomori 2006). Each count in-port relays every spike into its register as two, and before each HALT a SUB loop drains each output register onto its out-port, one spike per unit. The interpreter knows the compiled network's timing (1 step to start, 1 per ADD, 3 per SUB above zero and 4 at zero, 3 per unit drained plus 4, 1 to done), so programs that would be late are scored down without being built.
+4. **Checking past the cases.** The compiled part is checked up to twice its largest case. A counterexample joins the program search's cases, and the search runs again from the last program, up to four rounds in all.
+5. **Shrinking.** The part is verified and shrunk with MAP-Elites as a searched part is, with the whole budget, since program search spends no network evaluations.
+
+The part file keeps the program and the size the compiler made (`parts` shows both). Under `--profile hardware` parts are always searched for, since the modules use rules outside the profile.
+
+Over 10 seeds every count first part and every building block but the add loop had a program, and each compiled part verified and was admitted. The add loop was admitted on 2 of 10 seeds, after counterexamples. The compiled parts are 3 to 7 times the size of the hand-built ones (register 21 neurons after shrinking, against 5), because each instruction costs about four neurons. They take 7 to 11 steps per unit, which is why count contracts allow 12 per unit. RESEARCH.md "Parts without hand-building" has the table.
+
+```
+snp-evolution evolve-parts --only "register,add,zero test,fan-out,increment" --route compile
+```
+
 ## Composing machines from parts
 
 Composition search (the "Composition search" algorithms) builds each network from copies of library parts, glue neurons and the synapses between them, and never changes a part's inside. Parts are wired port to port by type. For a contract task the task's own ports count as typed ports too: a part's count in-port can be fed straight from the task's count input, and its done port can drive the task's done neuron. The glue then starts as quiet relays with no synapses of their own, since the parts and the ports give the structure. Without a contract, glue starts random, because something has to fire.
@@ -292,13 +310,23 @@ snp-evolution benchmark --task "Contract multiply" --algorithm Composition --lex
 
 **Reuse.** Every composition run saves `-parts.txt`: each library part's copies in the best network, with copies nested inside promoted parts in brackets, and its mean copies per network in the final population. It ends by saying whether the best network reuses a promoted part. Counting reads the module tags of the flattened network, so it works for any algorithm. Benchmarks of composition search add a column of the parts the best networks hold, as runs out of all. This is not the module library's uses and wins, which count whether inserting a copy made a child fitter during the search.
 
-**Hand-built parts.** evolve-parts has not yet found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Its done waits for both the loop's last round and the accumulator's own done, since a large a is still draining into the sum when the loop ends. Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
+**Hand-built parts.** Before the compile route, evolve-parts had not found a part with count ports, so `--hand-built on` (*Composition: start from hand-built parts* in the menu) adds hand-built ones: register, add, increment, fan-out, zero test, decrement and a gate that passes a count on or swallows it. It also adds an *add loop*, a + n x b, built from seven of them and ten glue neurons and promoted like any composition (49 neurons, latency 223). Its done waits for both the loop's last round and the accumulator's own done, since a large a is still draining into the sum when the loop ends. Every hand-built part is verified on its contract. They are off by default, since the library should be one the runs found, and a run with them never saves to the default `parts/` folder. `--hand-built leaves` gives the parts without the add loop, as a control.
 
 On n1 x n2 in count encoding (10 seeds per algorithm, 6000 evaluations each, lexicase parents, 5 sampled runs per network, the `parts/` library plus the hand-built parts), composition search solved 10 of 20 runs with the add loop in the library: 7 of 10 with MAP-Elites (median 3205 evaluations) and 3 of 10 with tournament selection (median 4325). The add loop was in the best network of 18 of 20 runs. With `--hand-built leaves`, the same parts without the add loop, no run solved it (best fitness 0.875 on average; Fisher's exact test p = 4e-4). Before the add loop's done was joined to its accumulator's (see Proving parts past their cases), the same runs solved 14 of 20, 7 of 10 for each algorithm. The fix cost tournament selection 4 runs (7 against 3 of 10, p = 0.18). A network that only relays start to done scores 0.85 on multiplication, because every case with a zero product passes, so without a loop part the search stalls there. The promoted multiplier (`compose --task "Contract multiply" --hand-built on --seed 1`) has 56 neurons and 68 synapses and takes 261 steps for 6 x 5.
 
 ```
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built on
 snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built leaves
+```
+
+**From compiled parts only.** Since the compile route (see Evolving library parts), `parts/` holds count parts and an add loop compiled from register programs, with no hand-built input. The counts below are under the looser latencies the compiled parts need. With `--hand-built off` and that library, the same benchmark solved 13 of 20 runs:
+- 7 of 10 with MAP-Elites (median 2645 evaluations);
+- 6 of 10 with tournament selection (median 2610).
+
+The compiled add loop was in the best network of 17 of the 20 runs. The control, `--hand-built leaves` over the timing and control parts, solved none (Fisher's exact test p = 1.3e-5), and neither did the compiled library without its add loop. The multiplier promoted from it (`compose --task "Contract multiply" --hand-built off --seed 1`) has 56 neurons and 82 synapses, and takes 501 steps for 6 x 5.
+
+```
+snp-evolution benchmark --task "Contract multiply" --algorithm Composition --seeds 10 --budget 6000 --lexicase on --repetitions 5 --engine sampled --hand-built off
 ```
 
 ## Proving parts past their cases

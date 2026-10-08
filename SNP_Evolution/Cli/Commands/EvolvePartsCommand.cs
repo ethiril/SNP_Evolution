@@ -32,15 +32,12 @@ namespace SnpEvolution.Cli
             List<Contract> contracts = FirstParts.Contracts.ToList();
             if (args.Find(CommonOptions.Only) is string[] names)
             {
-                // The building blocks can be asked for by name; a name that is a contract's own picks only that one.
                 List<Contract> known = contracts.Concat(ArithmeticParts.BuildingBlocks).ToList();
                 if (names.FirstOrDefault(name => !known.Any(contract => contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))) is string unknown)
                 {
                     return Refuse($"No first-part or building-block contract matches '{unknown}'. The contracts are: {string.Join(", ", known.Select(contract => contract.Name))}.");
                 }
-                contracts = known.Where(contract => names.Any(name => known.Any(other => other.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                    ? contract.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                    : contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase))).ToList();
+                contracts = known.Where(contract => names.Any(name => Picks(name, contract, known))).ToList();
             }
             Settings settings = args.StartingSettings();
             SettingOptions.Apply(settings, args, new SettingOption[] { SettingOptions.Library, SettingOptions.HardwareProfile, SettingOptions.PartBudget });
@@ -48,5 +45,11 @@ namespace SnpEvolution.Cli
             PartsResult result = PartsService.Run(settings, request, Console.WriteLine);
             return result.Error is string error ? Refuse(error) : result.AllSolved ? ExitCode.Success : ExitCode.Unsolved;
         }
+
+        // A name that is a contract's own picks only that one, so "add" need not also pick "add loop".
+        private static bool Picks(string name, Contract contract, IReadOnlyList<Contract> known) =>
+            known.Any(other => other.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                ? contract.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                : contract.Name.Contains(name, StringComparison.OrdinalIgnoreCase);
     }
 }
